@@ -69,3 +69,13 @@ Para garantir que o core da aplicação permanece desacoplado, manutenível, det
    - **Mitigação:** O modelo trata estes campos como opcionais (`None`) e marca a oferta como não comparável, garantindo que o sistema apresenta a oferta ao utilizador com ressalvas explícitas sem gerar rankings enganadores.
 3. **Risco:** Discrepância entre os fusos horários dos servidores das marcas e o horário legal de Lisboa.
    - **Mitigação:** Validação obrigatória de timestamps timezone-aware em `observed_at` e `last_seen_at`.
+
+---
+
+## Documentos Relacionados
+
+- [Índice de ADRs](README.md)
+- [Índice Central da Base de Conhecimento](../README.md)
+- [Estado Atual do Projeto](../current-state.md)
+- [Relatório de Viabilidade de Fontes](../source-feasibility.md)
+- [Implementação Canónica do Modelo (models.py)](../../pizza_radar/core/models.py)

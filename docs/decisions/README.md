@@ -47,6 +47,14 @@ Qual é a solução escolhida? Como será implementada?
 
 ---
 
+## Navegação
+
+- Voltar ao [Índice Central da Base de Conhecimento](../README.md)
+- Consultar o [Estado Atual do Projeto](../current-state.md)
+
+---
+
 ## Índice de Decisões
 
-- [ADR-001: Contrato Canónico de Dados, Interface de Adaptadores e Arquitetura do Core](0001-data-contract-and-core-architecture.md) — *Aceite* (2026-09-28)
+- **[ADR-001: Contrato Canónico de Dados, Interface de Adaptadores e Arquitetura do Core](0001-data-contract-and-core-architecture.md)** — *Aceite* (2026-09-28)
+- **ADR-002: Execução, Hosting Estático e Persistência Gratuita** — *Proposto* (2026-09-28, em revisão na [Pull Request #15](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/15))

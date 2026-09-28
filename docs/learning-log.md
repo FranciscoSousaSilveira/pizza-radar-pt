@@ -20,7 +20,22 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ---
 
+## Navegação
+
+- [Índice Central da Base de Conhecimento](README.md)
+- [Estado Atual do Projeto](current-state.md)
+
+---
+
 ## Registos
+
+### [2026-09-28] — Organização da Documentação como Base de Conhecimento Navegável
+
+- **Contexto / Ticket:** Issue #16 ([CHORE] Organizar documentação como knowledge base navegável)
+- **Desafio / Descoberta:** O crescimento de documentos no repositório (charter, viabilidade, contrato canónico, propostas de arquitetura e equipa permanente) aumentou a necessidade de uma navegação fluida entre artefactos, sem duplicar o estado do projeto nem introduzir ferramentas complexas ou dependências de pesquisa vetorial/RAG.
+- **Impacto:** Estabelecido o `docs/README.md` como catálogo central com indicação de finalidade e momento de leitura de cada documento, o `docs/current-state.md` como registo factual conciso do estado vivo, e adicionados 6 trilhos de leitura por especialidade no `AGENTS.md`. Todos os links utilizam sintaxe relativa padrão em Markdown, permitindo navegação tanto no GitHub como em modo Vault no Obsidian.
+- **Decisão / Solução:** Manter o `README.md` da raiz focado na proposta de valor pública, delegar o acompanhamento do estado operacional para `docs/current-state.md`, e interligar os documentos existentes através de hiperligações contextuais.
+- **Ação Futura:** Manter o `docs/current-state.md` atualizado a cada transição ou fecho de ticket/PR.
 
 ### [2026-09-28] — Contrato Canónico de Dados, Precisão Financeira e Integridade de Ofertas (Core)
 

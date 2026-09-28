@@ -47,3 +47,13 @@ O Produto Viável Mínimo (MVP) estabelece uma base sólida com limites bem defi
 1. Catálogo com atualização periódica e fiável das promoções públicas dos quatro vendedores no concelho de Lisboa.
 2. Interface simples e navegável.
 3. Manutenção sustentável e processo de recolha de dados documentado e robusto.
+
+---
+
+## 8. Documentos Relacionados
+
+- [Índice Central da Base de Conhecimento](README.md)
+- [Estado Atual do Projeto](current-state.md)
+- [Relatório de Viabilidade de Fontes](source-feasibility.md)
+- [Architecture Decision Records (ADRs)](decisions/README.md)
+- [Regras para Agentes e Colaboradores](../AGENTS.md)

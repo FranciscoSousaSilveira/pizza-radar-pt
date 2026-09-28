@@ -310,3 +310,13 @@ Em conformidade com o fluxo de trabalho, o relatório foi submetido a auditoria 
 | **7. Free-Tier e Portabilidade** | Conforme | Documentada a compatibilidade com opções gratuitas e distinção das regras de minutos de GitHub Actions para repositórios privados. |
 | **8. Sem código ou dependências prematuras** | Conforme | Confirmada a ausência de ficheiros de código de aplicação, scrapers ou dependências no repositório. |
 | **9. Conformidade com AGENTS.md e sem segredos** | Conforme | Trabalho em branch semântica, apenas dados públicos sem login/CAPTCHA e ausência total de credenciais ou segredos. |
+
+---
+
+## 8. Documentos Relacionados
+
+- [Índice Central da Base de Conhecimento](README.md)
+- [Estado Atual do Projeto](current-state.md)
+- [Project Charter](project-charter.md)
+- [ADR-001: Contrato Canónico de Dados, Interface de Adaptadores e Core](decisions/0001-data-contract-and-core-architecture.md)
+- [Learning Log](learning-log.md)

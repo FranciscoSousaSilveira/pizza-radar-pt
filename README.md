@@ -36,15 +36,18 @@ Para manter o foco no valor essencial e respeitar boas práticas técnicas e ope
 
 ## Estado Atual do Projeto
 
-O projeto encontra-se na fase de **fundação documental e estruturação inicial**. Ainda não foram definidas frameworks, instaladas dependências ou desenvolvido código de aplicação e scrapers.
+Para consultar o estado vivo do repositório, decisões ativas, tickets em curso e próximos marcos, consulta o documento canónico:
+👉 **[docs/current-state.md](docs/current-state.md)**
 
-## Documentação
+## Documentação e Base de Conhecimento
 
-Para mais detalhes sobre a organização e regras do projeto:
+A documentação do projeto está estruturada como uma base de conhecimento navegável, compatível com o GitHub e pronta a ser aberta como um **Vault do Obsidian** (através de links relativos padrão em Markdown):
 
+- **[docs/README.md](docs/README.md)** — **Índice Central da Base de Conhecimento**
+- [Estado Atual do Projeto](docs/current-state.md)
 - [Project Charter](docs/project-charter.md)
-- [Learning Log](docs/learning-log.md)
-- [Architecture Decision Records (ADRs)](docs/decisions/README.md)
 - [Relatório de Viabilidade de Fontes](docs/source-feasibility.md)
+- [Architecture Decision Records (ADRs)](docs/decisions/README.md)
 - [Fluxo de Trabalho Multiagente](docs/agent-workflow.md)
+- [Learning Log](docs/learning-log.md)
 - [Regras para Agentes e Colaboradores](AGENTS.md)
