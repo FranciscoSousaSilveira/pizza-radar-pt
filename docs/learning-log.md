@@ -22,6 +22,14 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-28] — Arquitetura de Execução, Alojamento e Persistência Free-Tier
+
+- **Contexto / Ticket:** Issue #14 ([ARCH] Arquitetura de execução, alojamento e persistência free-tier)
+- **Desafio / Descoberta:** Conciliar o requisito obrigatório de uma base de dados relacional real com um orçamento estrito de 0,00€/mês e a necessidade de não sofrer pausas por inatividade (problema crítico do Supabase Free). Adicionalmente, mapear com rigor as diferenças de protocolo/DDL do Turso remoto e modelar a tolerância a falhas sem penalizar vendedores cujos coletores sofreram erro de rede transitório.
+- **Impacto:** Adotou-se o Turso (libSQL/SQLite Serverless) com 5 GB gratuitos e sem suspensão por inatividade como base de dados canónica primária, complementado por geração periódica de snapshot estático (`promotions.json`) distribuído na CDN global do Cloudflare Pages (deploy direto do CI via GitHub Secrets, sem ficheiro gerado na `main`).
+- **Decisão / Solução:** Formalizada na ADR-002 e documentada em `docs/architecture-execution-hosting-persistence.md`. Os coletores Python executam via GitHub Actions (consumo estimado de ~20-60 min/mês de 2.000 min gratuitos), persistem na base de dados com regras de expiração determinísticas (apenas incrementando ausências quando a recolha desse vendedor tem sucesso), e utilizam a interface `PromotionRepository` para garantir portabilidade real entre Turso, SQLite local e PostgreSQL. Runners efémeros não utilizam falso fallback local durável, mantendo intacto o snapshot íntegro na CDN em caso de falha de conexão.
+- **Ação Futura:** Implementar os adaptadores de recolha (#8, #9) e configurar o pipeline agendado (#12) sobre esta infraestrutura.
+
 ### [2026-09-28] — Contrato Canónico de Dados, Precisão Financeira e Integridade de Ofertas (Core)
 
 - **Contexto / Ticket:** Issue #7 ([FEAT] Arquitetura base, contrato de dados unificado e interface de adaptadores)
