@@ -58,7 +58,7 @@ class TestTelepizzaAdapter(unittest.TestCase):
         self.assertIsNone(p3["price_cents"])
 
     def test_adapt_2x1_has_two_for_one_discount_type(self) -> None:
-        """Oferta com 2x1 no título mapeia para DiscountType.X_FOR_Y."""
+        """Oferta com 2x1 no título mapeia para DiscountType.X_FOR_Y com StoreScope.UNKNOWN."""
         parsed = self.adapter.parse(self.html_content)
         p3 = next(c for c in parsed if c["id"] == "2X1_NC")
         promo = self.adapter.adapt(p3, _observed_at(), channel="delivery")
@@ -66,7 +66,60 @@ class TestTelepizzaAdapter(unittest.TestCase):
         validated = validate_promo(promo)
         self.assertEqual(validated.vendor, Brand.TELEPIZZA)
         self.assertEqual(validated.discount_type, DiscountType.X_FOR_Y)
-        self.assertEqual(validated.store_scope, StoreScope.NATIONAL)
+        self.assertEqual(validated.store_scope, StoreScope.UNKNOWN)
+        self.assertEqual(validated.store_ids, [])
+        self.assertEqual(validated.store_names, [])
+
+    def test_attribute_order_permutations(self) -> None:
+        """Parser HTML extrai os dados independentemente da ordem em que os atributos aparecem."""
+        html_permuted = """
+        <div class="col-12 offer-tile__wrap" data-tab-content="takeaway">
+          <a data-detail="Massa Fofa com 3 ing."
+             data-name="Pizza Especial 12€"
+             data-img-url="https://images.telepizza.pt/p12.png"
+             class="offer-tile__view-more__btn-icon"
+             data-id="PERM_01">
+             Ver Mais
+          </a>
+        </div>
+        """
+        parsed = self.adapter.parse(html_permuted)
+        self.assertEqual(len(parsed), 1)
+        card = parsed[0]
+        self.assertEqual(card["id"], "PERM_01")
+        self.assertEqual(card["title"], "Pizza Especial 12€")
+        self.assertEqual(card["description"], "Massa Fofa com 3 ing.")
+        self.assertEqual(card["price_cents"], 1200)
+        self.assertEqual(card["channels"], ["takeaway"])
+        self.assertEqual(card["image_url"], "https://images.telepizza.pt/p12.png")
+
+    def test_missing_mandatory_fields_raises_parse_error(self) -> None:
+        """Cartão sem ID ou sem título emite ParseError explicitamente."""
+        html_missing_id = """
+        <div class="col-12 offer-tile__wrap" data-tab-content="takeaway">
+          <a class="offer-tile__view-more__btn-icon" data-id="" data-name="Sem ID"></a>
+        </div>
+        """
+        with self.assertRaises(ParseError):
+            self.adapter.parse(html_missing_id)
+
+        html_missing_name = """
+        <div class="col-12 offer-tile__wrap" data-tab-content="takeaway">
+          <a class="offer-tile__view-more__btn-icon" data-id="ID_ONLY" data-name="  "></a>
+        </div>
+        """
+        with self.assertRaises(ParseError):
+            self.adapter.parse(html_missing_name)
+
+    def test_unevidenced_channel_raises_parse_error(self) -> None:
+        """Oferta sem nenhuma evidência de delivery ou takeaway emite ParseError em vez de inventar."""
+        html_no_channel = """
+        <div class="col-12 offer-tile__wrap" data-tab-content="">
+          <a class="offer-tile__view-more__btn-icon" data-id="NO_CH" data-name="Promo Indefinida" data-detail="Sem menção"></a>
+        </div>
+        """
+        with self.assertRaises(ParseError):
+            self.adapter.parse(html_no_channel)
 
     def test_fetch_promotions_full_mock(self) -> None:
         """fetch_promotions() extrai e valida todas as promoções."""
@@ -77,6 +130,7 @@ class TestTelepizzaAdapter(unittest.TestCase):
         for p in promos:
             validate_promo(p)
             self.assertEqual(p.vendor, Brand.TELEPIZZA)
+            self.assertEqual(p.store_scope, StoreScope.UNKNOWN)
 
     def test_error_propagation(self) -> None:
         """NetworkError e ParseError propagam com vendor=TELEPIZZA."""

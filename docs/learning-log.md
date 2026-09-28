@@ -29,16 +29,16 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
-### [2026-09-28] — Adaptadores Telepizza, Domino's e Pizza Hut: especificidades de parsing e isolamento de falhas
+### [2026-09-28] — Adaptadores Telepizza, Domino's e Pizza Hut: especificidades de parsing, âmbito geográfico e isolamento
 
 - **Contexto / Ticket:** Issue #9 — Implementar adaptadores para Telepizza, Domino's e Pizza Hut (Lisboa)
 - **Desafio / Descoberta:**
-  1. **Domino's:** O endpoint `POST ajax/order.php` devolve `Content-Type: text/html` apesar de o payload ser JSON estrito; títulos incluem preços inteiros (`12€`, `27€`) e decimais (`10,95€`), exigindo regex adaptada `r'(\d+(?:[.,]\d{1,2})?)\s*€'` e conversão direta para `Decimal`.
-  2. **Telepizza:** O catálogo público em `/promocoes` tem 22 ofertas completas em cartões HTML (`.offer-tile__wrap`) contra apenas 12 no bloco JSON-LD. A extração dos atributos `data-id`, `data-name`, `data-detail`, `data-tab-content` no HTML garante 100% de cobertura; os nomes possuem entidades HTML (`&euro;`, `&eacute;`) tratadas via `html.unescape`.
-  3. **Pizza Hut:** O endpoint WP REST API (`/wp-json/wp/v2/ofertas`) devolve 26 ofertas ativas; títulos contêm entidades como `&#8211;` e preços extraíveis diretamente via regex.
-  4. **Isolamento de Falhas:** O orquestrador isola a execução de cada adaptador de forma a que uma falha de rede (`NetworkError`) ou alteração de marcação (`ParseError`) de uma marca não contamine nem impeça a recolha das restantes.
-- **Impacto:** Cobertura de 100% das 4 marcas do MVP de Lisboa (Papa John's, Domino's, Telepizza e Pizza Hut) garantida, sem dependências externas adicionadas.
-- **Decisão / Solução:** Implementados `DominosAdapter`, `TelepizzaAdapter` e `PizzaHutAdapter` com 82 testes unitários determinísticos cobrindo dados sanitizados, unescape de HTML, parsing Decimal e testes de isolamento de falhas.
+  1. **Domino's:** O endpoint `POST ajax/order.php` devolve `Content-Type: text/html` apesar de o payload ser JSON estrito; títulos incluem preços inteiros (`12€`, `27€`) e decimais (`10,95€`), exigindo conversão direta para `Decimal`. A loja 140 (Areeiro) é utilizada estritamente como amostra/âncora de Lisboa sem extrapolar cobertura de todo o concelho. Campos obrigatórios ausentes (`id`, `title`) emitem `ParseError` explícito.
+  2. **Telepizza:** O catálogo público em `/promocoes` possui cartões HTML cuja ordem de atributos varia. Foi implementado `TelepizzaHTMLParser` (`html.parser.HTMLParser`) para extração imune à permutação de atributos. Não se assume delivery + takeaway por omissão: os canais são extraídos apenas mediante evidência na fonte (`data-tab-content` ou texto), emitindo `ParseError` se não houver canal comprovado. `store_scope` é explicitamente `StoreScope.UNKNOWN` pois a página pública não comprova a lista de lojas participantes no concelho.
+  3. **Pizza Hut:** O endpoint WP REST API (`/wp-json/wp/v2/ofertas`) devolve 26 ofertas ativas; títulos contêm entidades HTML (`&#8211;`). Os canais são identificados determinísticamente pelo slug (`-tw` balcão, `-dlv` entrega, `-ei` sala) e texto, nunca presumindo entrega e takeaway em simultâneo sem evidência. O âmbito de lojas é definido como `StoreScope.UNKNOWN` (a menos que lojas aderentes venham comprovadas no payload).
+  4. **Isolamento de Falhas e Orquestração:** Os testes unitários verificam o isolamento contratual entre adaptadores (falha de um não propaga para outros). Fica expressamente documentado que a orquestração de produção, agendamento de execução e recuperação de falhas no runner efémero pertencem ao escopo do Issue #12 (pipeline de automação).
+- **Impacto:** Cobertura determinística das 4 marcas do MVP de Lisboa com contratos auditáveis, precisão monetária estrita em Decimal/cêntimos e representação fidedigna de incerteza geográfica e de canais.
+- **Decisão / Solução:** Implementados `DominosAdapter`, `TelepizzaAdapter` e `PizzaHutAdapter` com testes unitários determinísticos cobrindo permutações de atributos HTML, lojas conhecidas vs. desconhecidas, canais e isolamento contratual.
 - **Ação Futura:** Integrar no pipeline agendado do GitHub Actions no Issue #12.
 
 

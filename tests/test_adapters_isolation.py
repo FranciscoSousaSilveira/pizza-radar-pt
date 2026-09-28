@@ -1,6 +1,9 @@
-"""Testes de isolamento de falhas entre adaptadores de diferentes marcas.
+"""Testes unitários de isolamento contratual de falhas entre adaptadores.
 
 Verifica o requisito: 'falha de uma marca não deve corromper as restantes'.
+Nota arquitetural: Esta suite testa estritamente a independência de execução dos adaptadores.
+A orquestração de produção, agendamento via GitHub Actions, persistência e tolerância a falhas
+no runner pertencem ao Issue #12 (pipeline de automação).
 """
 
 from __future__ import annotations
@@ -17,9 +20,9 @@ from pizza_radar.core.models import Brand, UnifiedPromo
 
 
 def _run_all_adapters_safely(adapters: list) -> tuple[list[UnifiedPromo], dict[Brand, Exception]]:
-    """Função utilitária que simula a orquestração segura e isolada de múltiplos adaptadores.
+    """Função utilitária de teste para simular recolha multi-fornecedor isolada.
 
-    Garante que a falha de um adaptador não impede os restantes de executar e devolver resultados.
+    A orquestração e execução de produção é da responsabilidade da pipeline no Issue #12.
     """
     results: list[UnifiedPromo] = []
     errors: dict[Brand, Exception] = {}

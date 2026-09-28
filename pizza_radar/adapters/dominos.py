@@ -37,7 +37,11 @@ from pizza_radar.core.models import (
 )
 
 _AJAX_URL = "https://www.dominospizza.pt/ajax/order.php"
-_STORE_ID_LISBOA = "140"  # Areeiro / Lisboa Centro
+
+# Loja 140 (Areeiro / Lisboa Centro) é utilizada estritamente como amostra / loja-âncora
+# para observação do catálogo no concelho de Lisboa. Não extrapola nem garante cobertura
+# universal para todas as lojas ou zonas de entrega do concelho.
+_STORE_ID_LISBOA = "140"
 
 _HEADERS = {
     "User-Agent": (
@@ -133,11 +137,14 @@ class DominosAdapter(PromoAdapterInterface):
         parsed: list[dict[str, Any]] = []
         for idx, item in enumerate(combos_data):
             if not isinstance(item, dict):
-                continue
+                raise ParseError(f"Item {idx} de combos.data da Domino's não é um objeto válido", vendor=self.vendor)
             combo_id = item.get("id")
             title = item.get("title")
-            if not combo_id or not title:
-                continue
+            if combo_id is None or title is None or str(combo_id).strip() == "" or str(title).strip() == "":
+                raise ParseError(
+                    f"Item {idx} da Domino's tem campos obrigatórios em falta ou vazios (id={combo_id!r}, title={title!r})",
+                    vendor=self.vendor,
+                )
 
             clean_title = html.unescape(str(title)).strip()
             clean_desc = html.unescape(str(item.get("description") or "")).strip()

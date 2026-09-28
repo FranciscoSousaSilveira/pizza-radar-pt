@@ -2,8 +2,14 @@
 
 Implementa PromoAdapterInterface com extração de cartões HTML (.offer-tile__wrap):
   - fetch_raw(): GET HTTP isolado para a página pública https://www.telepizza.pt/promocoes.
-  - parse(): extração determinística via regex de atributos data-* dos cartões promocionais.
+  - parse(): extração determinística tolerante à ordem de atributos via html.parser.HTMLParser.
   - adapt(): normalização para UnifiedPromo com preços em Decimal e cêntimos inteiros.
+
+Regras estritas:
+  - Zero presunção de StoreScope.NATIONAL: usa StoreScope.UNKNOWN porque a página pública
+    não comprova a lista de lojas participantes ou exclusões no concelho de Lisboa.
+  - Não assume canais (delivery/takeaway) por omissão sem evidência na fonte.
+  - Campos obrigatórios ausentes originam ParseError explícito.
 """
 
 from __future__ import annotations
@@ -14,6 +20,7 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from html.parser import HTMLParser
 from typing import Any
 
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
@@ -38,15 +45,6 @@ _HEADERS = {
 }
 
 _PRICE_REGEX = re.compile(r"(\d+(?:[.,]\d{1,2})?)\s*(?:€|&euro;|euros)", re.IGNORECASE)
-_CARD_REGEX = re.compile(
-    r'<div[^>]*class="[^"]*offer-tile__wrap[^"]*"[^>]*data-tab-content="([^"]*)"[^>]*>.*?'
-    r'<a[^>]*class="[^"]*offer-tile__view-more__btn-icon[^"]*"[^>]*'
-    r'data-id="([^"]*)"[^>]*'
-    r'data-name="([^"]*)"[^>]*'
-    r'data-detail="([^"]*)"[^>]*'
-    r'(?:data-img-url="([^"]*)")?',
-    re.DOTALL | re.IGNORECASE,
-)
 
 
 def _extract_cents_from_text(text: str) -> int | None:
@@ -59,6 +57,43 @@ def _extract_cents_from_text(text: str) -> int | None:
         return int((d * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
     except (InvalidOperation, ValueError):
         return None
+
+
+class TelepizzaHTMLParser(HTMLParser):
+    """Parser HTML tolerante para extrair cartões promocionais da Telepizza.
+
+    Imune a permutações na ordem dos atributos HTML (ex.: data-id antes ou depois de data-name).
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.cards: list[dict[str, Any]] = []
+        self._current_tab_content: str = ""
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attr_dict = {k.lower(): (v or "") for k, v in attrs}
+        classes = attr_dict.get("class", "").split()
+
+        # O contentor do cartão guarda o canal ativo na tab (delivery, takeaway)
+        if "offer-tile__wrap" in classes:
+            self._current_tab_content = attr_dict.get("data-tab-content", "")
+
+        # O elemento detalhado (botão ou link de detalhes) contém os metadados da oferta
+        if "data-id" in attr_dict:
+            card_id = attr_dict.get("data-id", "").strip()
+            name = attr_dict.get("data-name", "")
+            detail = attr_dict.get("data-detail", "")
+            img_url = attr_dict.get("data-img-url", "").strip() or None
+            tab_content = attr_dict.get("data-tab-content", "") or self._current_tab_content
+
+            self.cards.append({
+                "id": card_id,
+                "name": name,
+                "detail": detail,
+                "img_url": img_url,
+                "tab_content": tab_content,
+                "attrs": attr_dict,
+            })
 
 
 class TelepizzaAdapter(PromoAdapterInterface):
@@ -88,58 +123,67 @@ class TelepizzaAdapter(PromoAdapterInterface):
         return body.decode("utf-8", errors="replace")
 
     def parse(self, raw_html: str) -> list[dict[str, Any]]:
-        """Extrai os cartões promocionais do HTML."""
+        """Extrai os cartões promocionais do HTML usando TelepizzaHTMLParser."""
         if not isinstance(raw_html, str):
             raise ParseError("Payload bruto de Telepizza não é texto HTML", vendor=self.vendor)
 
-        cards = _CARD_REGEX.findall(raw_html)
-        if not cards:
-            # Se não encontrou cartões via regex estrita de tag <a>, tentar varredura flexível de atributos
-            alt_regex = re.compile(
-                r'data-id="([^"]+)"[^>]*data-name="([^"]+)"[^>]*data-detail="([^"]*)"',
-                re.IGNORECASE,
-            )
-            simple_matches = alt_regex.findall(raw_html)
-            if not simple_matches:
-                raise ParseError("Nenhum cartão promocional encontrado no HTML da Telepizza", vendor=self.vendor)
-            parsed_simple: list[dict[str, Any]] = []
-            for m_id, m_name, m_detail in simple_matches:
-                clean_name = html.unescape(m_name).strip()
-                clean_detail = html.unescape(m_detail).strip()
-                price_c = _extract_cents_from_text(clean_name) or _extract_cents_from_text(clean_detail)
-                parsed_simple.append({
-                    "id": m_id.strip(),
-                    "title": clean_name,
-                    "description": clean_detail,
-                    "price_cents": price_c,
-                    "channels": ["delivery", "takeaway"],
-                    "image_url": None,
-                })
-            return parsed_simple
+        parser = TelepizzaHTMLParser()
+        try:
+            parser.feed(raw_html)
+        except Exception as exc:
+            raise ParseError(f"Falha de parsing HTML na Telepizza: {exc}", vendor=self.vendor) from exc
+
+        if not parser.cards:
+            raise ParseError("Nenhum cartão promocional encontrado no HTML da Telepizza", vendor=self.vendor)
 
         parsed: list[dict[str, Any]] = []
-        for tab_content, card_id, raw_name, raw_detail, img_url in cards:
+        for card in parser.cards:
+            card_id = card["id"]
+            raw_name = card["name"]
+            raw_detail = card["detail"]
+            img_url = card["img_url"]
+            tab_content = card["tab_content"]
+
+            if not card_id or not raw_name.strip():
+                raise ParseError(
+                    f"Cartão da Telepizza com campos obrigatórios ausentes: id={card_id!r}, name={raw_name!r}",
+                    vendor=self.vendor,
+                )
+
             clean_name = html.unescape(raw_name).strip()
             clean_detail = html.unescape(raw_detail).strip()
 
-            channels: list[str] = []
+            # Extração de canais estritamente baseada em evidência na fonte
             tab_lower = tab_content.lower()
-            if "delivery" in tab_lower:
+            text_lower = f"{clean_name} {clean_detail}".lower()
+            channels: list[str] = []
+
+            has_delivery = "delivery" in tab_lower or "entrega" in text_lower or "domicílio" in text_lower or "domicilio" in text_lower
+            has_takeaway = "takeaway" in tab_lower or "take_away" in tab_lower or "balcão" in text_lower or "balcao" in text_lower or "levantamento" in text_lower
+
+            if has_delivery:
                 channels.append("delivery")
-            if "takeaway" in tab_lower or "take_away" in tab_lower:
+            if has_takeaway:
                 channels.append("takeaway")
+
             if not channels:
-                channels = ["delivery", "takeaway"]
+                raise ParseError(
+                    f"Oferta {card_id} da Telepizza não possui canal de distribuição comprovado (delivery/takeaway)",
+                    vendor=self.vendor,
+                )
 
             price_cents = _extract_cents_from_text(clean_name) or _extract_cents_from_text(clean_detail)
 
             parsed.append({
-                "id": card_id.strip(),
+                "id": card_id,
                 "title": clean_name,
                 "description": clean_detail,
                 "price_cents": price_cents,
                 "channels": channels,
-                "image_url": img_url.strip() if img_url else None,
+                "image_url": img_url,
+                "store_scope": StoreScope.UNKNOWN,
+                "store_ids": [],
+                "store_names": [],
             })
         return parsed
 
@@ -170,6 +214,12 @@ class TelepizzaAdapter(PromoAdapterInterface):
         if image_url and not image_url.startswith(("http://", "https://")):
             image_url = None
 
+        # StoreScope é explicitamente UNKNOWN porque a página pública não comprova
+        # a lista de lojas participantes no concelho de Lisboa
+        store_scope = item.get("store_scope", StoreScope.UNKNOWN)
+        store_ids = item.get("store_ids", [])
+        store_names = item.get("store_names", [])
+
         return UnifiedPromo(
             id=canonical_id,
             vendor=Brand.TELEPIZZA,
@@ -181,7 +231,9 @@ class TelepizzaAdapter(PromoAdapterInterface):
             conditions=item["description"],
             days_of_week=days_of_week,
             dispatch_methods=[dispatch_method],
-            store_scope=StoreScope.NATIONAL,  # Catálogo público da página nacional
+            store_scope=store_scope,
+            store_ids=store_ids,
+            store_names=store_names,
             pizza_count=None,
             pizza_size=PizzaSize.UNKNOWN,
             included_items=[],

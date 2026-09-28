@@ -97,6 +97,35 @@ class TestDominosAdapter(unittest.TestCase):
             validate_promo(p)
             self.assertEqual(p.vendor, Brand.DOMINOS)
 
+    def test_missing_mandatory_fields_raises_parse_error(self) -> None:
+        """Item em combos.data sem id ou title emite ParseError explicitamente."""
+        raw_missing_id = {
+            "combos": {
+                "data": [{"id": None, "title": "Sem ID"}]
+            }
+        }
+        with self.assertRaises(ParseError) as ctx:
+            self.adapter.parse(raw_missing_id, delivery_method="D")
+        self.assertEqual(ctx.exception.vendor, Brand.DOMINOS)
+
+        raw_missing_title = {
+            "combos": {
+                "data": [{"id": 123, "title": ""}]
+            }
+        }
+        with self.assertRaises(ParseError) as ctx:
+            self.adapter.parse(raw_missing_title, delivery_method="D")
+        self.assertEqual(ctx.exception.vendor, Brand.DOMINOS)
+
+        raw_non_dict_item = {
+            "combos": {
+                "data": ["not-a-dict"]
+            }
+        }
+        with self.assertRaises(ParseError) as ctx:
+            self.adapter.parse(raw_non_dict_item, delivery_method="D")
+        self.assertEqual(ctx.exception.vendor, Brand.DOMINOS)
+
     def test_error_propagation(self) -> None:
         """NetworkError e ParseError propagam com vendor correto."""
         with patch.object(self.adapter, "fetch_raw", side_effect=NetworkError("Timeout", vendor=Brand.DOMINOS)):

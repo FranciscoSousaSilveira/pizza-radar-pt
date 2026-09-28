@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 from pizza_radar.adapters.pizza_hut import PizzaHutAdapter, _extract_cents_from_text
 from pizza_radar.core.adapter import NetworkError, ParseError
-from pizza_radar.core.models import Brand, DiscountType, StoreScope
+from pizza_radar.core.models import Brand, DiscountType, DispatchMethod, StoreScope
 from pizza_radar.core.validator import validate_promo
 
 _FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
@@ -54,7 +54,7 @@ class TestPizzaHutAdapter(unittest.TestCase):
         self.assertEqual(o2["price_cents"], 2425)
 
     def test_adapt_2x1_has_two_for_one_discount_type(self) -> None:
-        """2x1 da Pizza Hut mapeia para X_FOR_Y e dias temáticos."""
+        """2x1 da Pizza Hut mapeia para X_FOR_Y com StoreScope.UNKNOWN e canal Take Away."""
         parsed = self.adapter.parse(self.offers_raw)
         o3 = next(o for o in parsed if o["id"] == "14626")
         promo = self.adapter.adapt(o3, _observed_at())
@@ -62,7 +62,88 @@ class TestPizzaHutAdapter(unittest.TestCase):
         validated = validate_promo(promo)
         self.assertEqual(validated.vendor, Brand.PIZZA_HUT)
         self.assertEqual(validated.discount_type, DiscountType.X_FOR_Y)
-        self.assertEqual(validated.store_scope, StoreScope.NATIONAL)
+        self.assertEqual(validated.store_scope, StoreScope.UNKNOWN)
+        self.assertEqual(validated.store_ids, [])
+        self.assertEqual(validated.store_names, [])
+        self.assertEqual(validated.dispatch_methods, [DispatchMethod.TAKE_AWAY])
+
+    def test_known_vs_unknown_participating_stores(self) -> None:
+        """Verifica distinção entre lojas comprovadas (SPECIFIC_STORES) e incerteza (UNKNOWN)."""
+        # Caso 1: Lojas comprovadas no payload
+        payload_known = [{
+            "id": 9901,
+            "slug": "promo-lojas-especificas-tw",
+            "title": {"rendered": "Promo Colombo e Vasco 15€"},
+            "participating_stores": [
+                {"id": "colombo", "name": "Colombo"},
+                {"id": "vasco", "name": "Vasco da Gama"},
+            ],
+        }]
+        parsed_known = self.adapter.parse(payload_known)
+        self.assertEqual(parsed_known[0]["store_scope"], StoreScope.SPECIFIC_STORES)
+        self.assertEqual(parsed_known[0]["store_ids"], ["colombo", "vasco"])
+        self.assertEqual(parsed_known[0]["store_names"], ["Colombo", "Vasco da Gama"])
+
+        promo_known = self.adapter.adapt(parsed_known[0], _observed_at())
+        self.assertEqual(promo_known.store_scope, StoreScope.SPECIFIC_STORES)
+
+        # Caso 2: Sem lojas comprovadas -> StoreScope.UNKNOWN
+        payload_unknown = [{
+            "id": 9902,
+            "slug": "promo-geral-tw",
+            "title": {"rendered": "Promo Geral 10€"},
+        }]
+        parsed_unknown = self.adapter.parse(payload_unknown)
+        self.assertEqual(parsed_unknown[0]["store_scope"], StoreScope.UNKNOWN)
+        self.assertEqual(parsed_unknown[0]["store_ids"], [])
+        self.assertEqual(parsed_unknown[0]["store_names"], [])
+
+        promo_unknown = self.adapter.adapt(parsed_unknown[0], _observed_at())
+        self.assertEqual(promo_unknown.store_scope, StoreScope.UNKNOWN)
+
+    def test_channel_detection_variations(self) -> None:
+        """Verifica deteção de canal por slug e texto sem inventar canais."""
+        from pizza_radar.core.models import DispatchMethod
+
+        # Take Away por slug -tw
+        p_tw = self.adapter.parse([{
+            "id": 1,
+            "slug": "oferta-tw",
+            "title": {"rendered": "Oferta Balcão"},
+        }])[0]
+        self.assertEqual(p_tw["dispatch_methods"], [DispatchMethod.TAKE_AWAY])
+
+        # Delivery por slug -dlv
+        p_dlv = self.adapter.parse([{
+            "id": 2,
+            "slug": "oferta-dlv",
+            "title": {"rendered": "Oferta Entrega"},
+        }])[0]
+        self.assertEqual(p_dlv["dispatch_methods"], [DispatchMethod.DELIVERY])
+
+        # Dine-in por slug rodizio
+        p_dine = self.adapter.parse([{
+            "id": 3,
+            "slug": "rodizio",
+            "title": {"rendered": "Rodízio na Mesa"},
+        }])[0]
+        self.assertEqual(p_dine["dispatch_methods"], [DispatchMethod.DINE_IN])
+
+        # Falta de canal comprovado -> ParseError (não assume ambos nem inventa)
+        with self.assertRaises(ParseError):
+            self.adapter.parse([{
+                "id": 4,
+                "slug": "oferta-sem-canal",
+                "title": {"rendered": "Pizza Simples"},
+            }])
+
+    def test_missing_mandatory_fields_raises_parse_error(self) -> None:
+        """Item sem ID ou com título vazio emite ParseError explicitamente."""
+        with self.assertRaises(ParseError):
+            self.adapter.parse([{"id": None, "title": {"rendered": "Sem ID"}}])
+
+        with self.assertRaises(ParseError):
+            self.adapter.parse([{"id": 123, "title": {"rendered": "   "}}])
 
     def test_fetch_promotions_full_mock(self) -> None:
         """fetch_promotions() extrai e valida todas as promoções."""
@@ -73,6 +154,7 @@ class TestPizzaHutAdapter(unittest.TestCase):
         for p in promos:
             validate_promo(p)
             self.assertEqual(p.vendor, Brand.PIZZA_HUT)
+            self.assertEqual(p.store_scope, StoreScope.UNKNOWN)
 
     def test_error_propagation(self) -> None:
         """NetworkError e ParseError propagam com vendor=PIZZA_HUT."""
