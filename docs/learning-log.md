@@ -25,9 +25,9 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 ### [2026-09-28] — Viabilidade de Fontes de Dados e Seleção do Primeiro Adaptador
 
 - **Contexto / Ticket:** Issue #3 (SPIKE)
-- **Desafio / Descoberta:** Investigada a viabilidade de recolha de promoções públicas dos 4 operadores em Lisboa. Descobriu-se que nenhuma marca exige morada ou código postal para consulta de campanhas, existindo endpoints de API JSON públicos acessíveis na Papa John's (`api.papajohns.pt`), Domino's Pizza (`ajax/order.php`) e Pizza Hut (`wp-json`), e JSON-LD Schema.org estruturado na Telepizza.
-- **Impacto:** Confirma-se a viabilidade de uma arquitetura 100% determinística, sem necessidade de browsers headless (Puppeteer/Playwright) nem chamadas a modelos de IA em tempo de execução, permitindo custos nulos com infraestrutura free-tier.
-- **Decisão / Solução:** Documentada a matriz de viabilidade em `docs/source-feasibility.md` e selecionada a Papa John's como primeiro adaptador a construir, devido à API REST nativa, dados tipados e menor atrito técnico.
+- **Desafio / Descoberta:** Investigada a viabilidade de recolha de promoções públicas dos 4 operadores em Lisboa. Constatou-se que nenhuma marca exige morada ou código postal para consulta pública de campanhas, existindo endpoints publicamente acessíveis sem autenticação utilizados pelo frontend oficial (na Papa John's, Domino's e Pizza Hut) e dados estruturados em SSR e JSON-LD (na Telepizza), todos sem garantia de estabilidade contratual.
+- **Impacto:** Confirma-se a viabilidade de uma arquitetura determinística e testável, sem necessidade de browsers headless (Puppeteer/Playwright) nem chamadas a modelos de IA em tempo de execução, orientada a opções gratuitas (free tier) de alojamento e bases de dados.
+- **Decisão / Solução:** Documentada a matriz e evidências de viabilidade em `docs/source-feasibility.md` e recomendada a Papa John's como primeiro adaptador a construir, devido à estrutura JSON tipada e ao menor atrito técnico observado.
 - **Ação Futura:** Criar a especificação do contrato canónico de dados e desenhar a interface agnóstica de adaptadores no próximo ticket.
 
 ### [2026-09-28] — Fundação Documental e Alinhamento de Âmbito
