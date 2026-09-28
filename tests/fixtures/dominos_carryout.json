@@ -1,0 +1,30 @@
+{
+  "combos": {
+    "data": [
+      {
+        "id": 2420,
+        "title": "MÉDIA DESDE 9,95€",
+        "description": "Pizza Média a partir de 9,95€ no balcão",
+        "promo": "✓ Preço Take Away",
+        "delivery_type": 2,
+        "terms": "Válido para recolha em loja.",
+        "image_url": "https://cache.dominos.pt/combos/media_995.webp",
+        "repetition": false,
+        "allow_half": true,
+        "steps": []
+      },
+      {
+        "id": 3433,
+        "title": "Grande desde 11€ cada",
+        "description": "Pizzas Grandes desde 11€ para take away",
+        "promo": "✓ Melhor valor balcão",
+        "delivery_type": 2,
+        "terms": null,
+        "image_url": "https://cache.dominos.pt/combos/grande_11.webp",
+        "repetition": true,
+        "allow_half": true,
+        "steps": []
+      }
+    ]
+  }
+}

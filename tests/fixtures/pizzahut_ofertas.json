@@ -1,0 +1,41 @@
+[
+  {
+    "id": 15056,
+    "slug": "dlsc6eur",
+    "title": {
+      "rendered": "DOUBLE STUFFED CRUST &#8211; Apenas 6€ por pessoa"
+    },
+    "link": "https://www.pizzahut.pt/ofertas/dlsc6eur/",
+    "modified": "2026-09-09T15:47:41",
+    "yoast_head_json": {
+      "description": "Double Stuffed Crust por apenas 6€ por pessoa. Válido em restaurantes aderentes.",
+      "og_title": "Double Stuffed Crust 6€"
+    }
+  },
+  {
+    "id": 15049,
+    "slug": "menu-dsc-tw",
+    "title": {
+      "rendered": "MENU DOUBLE STUFFED CRUST 24,25€"
+    },
+    "link": "https://www.pizzahut.pt/ofertas/menu-dsc-tw/",
+    "modified": "2026-09-10T12:00:00",
+    "yoast_head_json": {
+      "description": "Menu completo com Double Stuffed Crust por 24,25€.",
+      "og_title": "Menu Double Stuffed Crust 24,25€"
+    }
+  },
+  {
+    "id": 14626,
+    "slug": "2x1-tercas",
+    "title": {
+      "rendered": "2×1 – MELHOR QUE UMA SÓ DUAS!"
+    },
+    "link": "https://www.pizzahut.pt/ofertas/2x1-tercas/",
+    "modified": "2026-09-01T10:00:00",
+    "yoast_head_json": {
+      "description": "Compre uma pizza e receba outra grátis.",
+      "og_title": "2x1 Pizza Hut"
+    }
+  }
+]

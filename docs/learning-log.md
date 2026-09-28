@@ -29,6 +29,19 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-28] — Adaptadores Telepizza, Domino's e Pizza Hut: especificidades de parsing e isolamento de falhas
+
+- **Contexto / Ticket:** Issue #9 — Implementar adaptadores para Telepizza, Domino's e Pizza Hut (Lisboa)
+- **Desafio / Descoberta:**
+  1. **Domino's:** O endpoint `POST ajax/order.php` devolve `Content-Type: text/html` apesar de o payload ser JSON estrito; títulos incluem preços inteiros (`12€`, `27€`) e decimais (`10,95€`), exigindo regex adaptada `r'(\d+(?:[.,]\d{1,2})?)\s*€'` e conversão direta para `Decimal`.
+  2. **Telepizza:** O catálogo público em `/promocoes` tem 22 ofertas completas em cartões HTML (`.offer-tile__wrap`) contra apenas 12 no bloco JSON-LD. A extração dos atributos `data-id`, `data-name`, `data-detail`, `data-tab-content` no HTML garante 100% de cobertura; os nomes possuem entidades HTML (`&euro;`, `&eacute;`) tratadas via `html.unescape`.
+  3. **Pizza Hut:** O endpoint WP REST API (`/wp-json/wp/v2/ofertas`) devolve 26 ofertas ativas; títulos contêm entidades como `&#8211;` e preços extraíveis diretamente via regex.
+  4. **Isolamento de Falhas:** O orquestrador isola a execução de cada adaptador de forma a que uma falha de rede (`NetworkError`) ou alteração de marcação (`ParseError`) de uma marca não contamine nem impeça a recolha das restantes.
+- **Impacto:** Cobertura de 100% das 4 marcas do MVP de Lisboa (Papa John's, Domino's, Telepizza e Pizza Hut) garantida, sem dependências externas adicionadas.
+- **Decisão / Solução:** Implementados `DominosAdapter`, `TelepizzaAdapter` e `PizzaHutAdapter` com 82 testes unitários determinísticos cobrindo dados sanitizados, unescape de HTML, parsing Decimal e testes de isolamento de falhas.
+- **Ação Futura:** Integrar no pipeline agendado do GitHub Actions no Issue #12.
+
+
 ### [2026-09-28] — Estrutura real da API Papa John's, precisão Decimal e desduplicação entre lojas
 
 - **Contexto / Ticket:** Issue #8 — PapaJohnsAdapter
