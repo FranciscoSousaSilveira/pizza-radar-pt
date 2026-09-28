@@ -1,0 +1,99 @@
+[
+  {
+    "id": 232,
+    "dispatch_method": "pj_delivery",
+    "name": "Party Combo",
+    "name_delivery": null,
+    "description": "4 Médias + 2 Combombásticos + 2 Bebidas (1,5L). Se são 8 desde 7,49€ cada.",
+    "description_delivery": null,
+    "price": 59.92,
+    "original_price": 62.36,
+    "min_price": 59.92,
+    "price_currency": "EUR",
+    "offer_type": "Combo",
+    "start_datetime": "2024-11-29T08:00:00.000Z",
+    "end_datetime": "2029-12-31T00:00:00.000Z",
+    "availability": ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"],
+    "free_extras": 2,
+    "position": 13,
+    "hidden": false,
+    "promoted": false,
+    "pictures": [
+      {
+        "id": 5001,
+        "url": "https://cdn.papajohns.pt/pictures/offers/party_combo_delivery_photo.webp",
+        "key": "pictures/offers/party_combo_delivery_photo.webp",
+        "thumbnails": {},
+        "category": "delivery_photo"
+      }
+    ],
+    "conditions": null
+  },
+  {
+    "id": 252,
+    "dispatch_method": "both",
+    "name": "Duo Bestial + entrada",
+    "name_delivery": "Duo Bestial + entrada",
+    "description": "2 Médias desde 8,99€ cada. Não fiques com vontade de mais!",
+    "description_delivery": "2 Médias desde 10,49€ cada. Não fiques com vontade de mais!",
+    "price": 20.98,
+    "original_price": 22.89,
+    "min_price": 20.98,
+    "price_currency": "EUR",
+    "offer_type": "Combo",
+    "start_datetime": "2021-09-01T00:30:00.000Z",
+    "end_datetime": "2029-12-31T00:00:00.000Z",
+    "availability": ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"],
+    "free_extras": 2,
+    "position": 1,
+    "hidden": false,
+    "promoted": true,
+    "pictures": [
+      {
+        "id": 4001,
+        "url": "https://cdn.papajohns.pt/pictures/offers/duo_bestial_photo.webp",
+        "key": "pictures/offers/duo_bestial_photo.webp",
+        "thumbnails": {},
+        "category": "photo"
+      },
+      {
+        "id": 4003,
+        "url": "https://cdn.papajohns.pt/pictures/offers/duo_bestial_delivery_photo.webp",
+        "key": "pictures/offers/duo_bestial_delivery_photo.webp",
+        "thumbnails": {},
+        "category": "delivery_photo"
+      }
+    ],
+    "conditions": null
+  },
+  {
+    "id": 222,
+    "dispatch_method": "both",
+    "name": "O PAPITO",
+    "name_delivery": "O PAPITO Delivery",
+    "description": "1 Pizza Individual + 1 Entrada + 1 Bebida 500ml por 6,99€",
+    "description_delivery": "1 Pizza Individual + 1 Entrada + 1 Bebida 500ml por 10,99€",
+    "price": 10.99,
+    "original_price": 13.59,
+    "min_price": 10.99,
+    "price_currency": "EUR",
+    "offer_type": "Combo",
+    "start_datetime": "2022-01-01T00:00:00.000Z",
+    "end_datetime": "2029-12-31T00:00:00.000Z",
+    "availability": ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"],
+    "free_extras": 1,
+    "position": 4,
+    "hidden": false,
+    "promoted": false,
+    "pictures": [
+      {
+        "id": 4002,
+        "url": "https://cdn.papajohns.pt/pictures/offers/papito_photo.webp",
+        "key": "pictures/offers/papito_photo.webp",
+        "thumbnails": {},
+        "category": "photo"
+      }
+    ],
+    "conditions": null
+  }
+]

@@ -1,0 +1,132 @@
+[
+  {
+    "id": 207,
+    "dispatch_method": "in_store",
+    "name": "A MAIS FRESCA",
+    "name_delivery": null,
+    "description": "Pizza média com massa fina e estaladiça com 2 ingredientes à escolha por apenas 7.99€",
+    "description_delivery": null,
+    "price": 7.99,
+    "original_price": 9.45,
+    "min_price": 7.99,
+    "price_currency": "EUR",
+    "offer_type": "Combo",
+    "start_datetime": "2024-02-05T00:00:00.000Z",
+    "end_datetime": "2028-12-31T00:00:00.000Z",
+    "availability": ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"],
+    "free_extras": 2,
+    "max_ingredients": 3,
+    "min_ingredients": 1,
+    "position": 2,
+    "hidden": false,
+    "promoted": false,
+    "pictures": [
+      {
+        "id": 3999,
+        "url": "https://cdn.papajohns.pt/pictures/offers/la_mas_fresca_delivery.webp",
+        "key": "pictures/offers/la_mas_fresca_delivery.webp",
+        "thumbnails": {
+          "small": "https://cdn.papajohns.pt/pictures/offers/la_mas_fresca_delivery_small.webp",
+          "medium": "https://cdn.papajohns.pt/pictures/offers/la_mas_fresca_delivery_medium.webp",
+          "large": "https://cdn.papajohns.pt/pictures/offers/la_mas_fresca_delivery_large.webp",
+          "extra_large": "https://cdn.papajohns.pt/pictures/offers/la_mas_fresca_delivery_extra_large.webp"
+        },
+        "category": "delivery_photo"
+      },
+      {
+        "id": 3998,
+        "url": "https://cdn.papajohns.pt/pictures/offers/la_mas_fresca_photo.webp",
+        "key": "pictures/offers/la_mas_fresca_photo.webp",
+        "thumbnails": {
+          "small": "https://cdn.papajohns.pt/pictures/offers/la_mas_fresca_photo_small.webp"
+        },
+        "category": "photo"
+      }
+    ],
+    "conditions": null
+  },
+  {
+    "id": 252,
+    "dispatch_method": "both",
+    "name": "Duo Bestial + entrada",
+    "name_delivery": "Duo Bestial + entrada",
+    "description": "2 Médias desde 8,99€ cada. Não fiques com vontade de mais!",
+    "description_delivery": "2 Médias desde 10,49€ cada. Não fiques com vontade de mais!",
+    "price": 17.98,
+    "original_price": 22.89,
+    "min_price": 17.98,
+    "price_currency": "EUR",
+    "offer_type": "Combo",
+    "start_datetime": "2021-09-01T00:30:00.000Z",
+    "end_datetime": "2029-12-31T00:00:00.000Z",
+    "availability": ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"],
+    "free_extras": 2,
+    "max_ingredients": 10,
+    "position": 3,
+    "hidden": true,
+    "promoted": true,
+    "pictures": [
+      {
+        "id": 4001,
+        "url": "https://cdn.papajohns.pt/pictures/offers/duo_bestial_photo.webp",
+        "key": "pictures/offers/duo_bestial_photo.webp",
+        "thumbnails": {},
+        "category": "photo"
+      }
+    ],
+    "conditions": null
+  },
+  {
+    "id": 222,
+    "dispatch_method": "both",
+    "name": "O PAPITO",
+    "name_delivery": "O PAPITO Delivery",
+    "description": "1 Pizza Individual + 1 Entrada + 1 Bebida 500ml por 6,99€",
+    "description_delivery": "1 Pizza Individual + 1 Entrada + 1 Bebida 500ml por 10,99€",
+    "price": 6.99,
+    "original_price": 13.59,
+    "min_price": 6.99,
+    "price_currency": "EUR",
+    "offer_type": "Combo",
+    "start_datetime": "2022-01-01T00:00:00.000Z",
+    "end_datetime": "2029-12-31T00:00:00.000Z",
+    "availability": ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"],
+    "free_extras": 1,
+    "max_ingredients": 3,
+    "position": 4,
+    "hidden": false,
+    "promoted": false,
+    "pictures": [
+      {
+        "id": 4002,
+        "url": "https://cdn.papajohns.pt/pictures/offers/papito_photo.webp",
+        "key": "pictures/offers/papito_photo.webp",
+        "thumbnails": {},
+        "category": "photo"
+      }
+    ],
+    "conditions": null
+  },
+  {
+    "id": 218,
+    "dispatch_method": "both",
+    "name": "Combo Médio",
+    "name_delivery": "Combo Médio Delivery",
+    "description": "Combo médio especial",
+    "description_delivery": "Combo médio especial delivery",
+    "price": 16.99,
+    "original_price": 16.64,
+    "min_price": 16.99,
+    "price_currency": "EUR",
+    "offer_type": "Combo",
+    "start_datetime": "2023-01-01T00:00:00.000Z",
+    "end_datetime": "2029-12-31T00:00:00.000Z",
+    "availability": ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"],
+    "free_extras": null,
+    "position": 5,
+    "hidden": false,
+    "promoted": false,
+    "pictures": [],
+    "conditions": null
+  }
+]

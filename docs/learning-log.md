@@ -29,6 +29,15 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-28] — Estrutura real da API Papa John's: sem offer_groups, nome e descrição por canal
+
+- **Contexto / Ticket:** Issue #8 — PapaJohnsAdapter
+- **Desafio / Descoberta:** A investigação de source-feasibility (Issue #3) documentou os campos `offer_groups` como detalhe esperado da composição das ofertas. Na implementação real, o source-researcher confirmou (via GET ao endpoint ao vivo em 2026-09-28) que o endpoint `/v1/offers/promotions` **não inclui offer_groups** em nenhum dos 14 itens devolvidos. A composição detalhada dos combos (ingredientes, pizzas, tamanhos) só está disponível no endpoint individual `/v1/offers/{id}`. Adicionalmente, itens com `dispatch_method="both"` expõem campos separados `name_delivery` e `description_delivery` para o contexto de entrega ao domicílio.
+- **Impacto:** `pizza_count` não pode ser extraído deterministicamente deste endpoint. A flag `is_comparable_for_unit_price` será sempre `False` para as promoções da Papa John's até que o endpoint individual seja integrado. O campo de imagem requer seleção por `pictures[].category` ("photo" para in_store, "delivery_photo" para pj_delivery). Anomalia real detetada: ID 218 tem `price > original_price` (erro de configuração no backend da marca) — ignorado de forma determinística.
+- **Decisão / Solução:** `pizza_count=None` e `included_items=[]` na versão atual do adaptador. Seleção de imagem por categoria de canal. Anomalia de preço tratada com `original_price_cents=None` quando `original < price`. Fixture sanitizada construída com base na estrutura real confirmada ao vivo.
+- **Ação Futura:** Futura versão pode enriquecer com chamadas ao endpoint `/v1/offers/{id}` para obter composição detalhada — deve ser implementado como camada opcional separada para não introduzir dependência de rede adicional no caminho crítico.
+
+
 ### [2026-09-28] — Organização da Documentação como Base de Conhecimento Navegável
 
 - **Contexto / Ticket:** Issue #16 ([CHORE] Organizar documentação como knowledge base navegável)
