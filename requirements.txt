@@ -1,0 +1,4 @@
+# Dependências de produção do Pizza Radar PT
+# Cliente libSQL / Turso Serverless
+libsql-client>=0.3.0
+requests>=2.31.0

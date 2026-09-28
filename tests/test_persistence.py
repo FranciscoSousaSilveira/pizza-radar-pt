@@ -8,6 +8,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from unittest.mock import MagicMock, patch
+
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
@@ -20,8 +22,10 @@ from pizza_radar.core.models import (
 )
 from pizza_radar.persistence.exporter import export_snapshot, generate_snapshot_dict
 from pizza_radar.persistence.repository import (
+    LibSqlPromotionRepository,
     ObservationEntry,
     SQLitePromotionRepository,
+    TursoPromotionRepository,
 )
 
 
@@ -241,6 +245,87 @@ class TestPersistenceRepository(unittest.TestCase):
             self.assertIn("DOMINOS", snapshot["vendors_active"])
             self.assertIn("PAPA_JOHNS", snapshot["vendors_active"])
             self.assertEqual(len(snapshot["groups"]), 2)
+            self.assertEqual(snapshot["data_mode"], "live")
+
+    def test_snapshot_export_data_mode_demo(self) -> None:
+        p1 = self._sample_promo("pj_1", Brand.PAPA_JOHNS, 1000)
+        self.repo.upsert_promotions([p1], vendor=Brand.PAPA_JOHNS)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_file = Path(tmpdir) / "data" / "promotions.json"
+            snapshot = export_snapshot(self.repo, out_file, data_mode="demo")
+            self.assertEqual(snapshot["data_mode"], "demo")
+
+
+class TestTursoPromotionRepository(unittest.TestCase):
+    """Testa a implementação concreta de TursoPromotionRepository / LibSqlPromotionRepository."""
+
+    def test_libsql_alias(self) -> None:
+        self.assertIs(LibSqlPromotionRepository, TursoPromotionRepository)
+
+    def test_missing_credentials_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            TursoPromotionRepository(database_url="", auth_token="token")
+        with self.assertRaises(ValueError):
+            TursoPromotionRepository(database_url="libsql://db.turso.io", auth_token="")
+
+    def test_url_normalization(self) -> None:
+        with patch.object(TursoPromotionRepository, "init_schema", return_value=None):
+            repo1 = TursoPromotionRepository(database_url="libsql://my-db.turso.io", auth_token="tok")
+            self.assertEqual(repo1.pipeline_url, "https://my-db.turso.io/v2/pipeline")
+
+            repo2 = TursoPromotionRepository(database_url="https://my-db.turso.io/", auth_token="tok")
+            self.assertEqual(repo2.pipeline_url, "https://my-db.turso.io/v2/pipeline")
+
+            repo3 = TursoPromotionRepository(database_url="http://localhost:8080/v2/pipeline", auth_token="tok")
+            self.assertEqual(repo3.pipeline_url, "http://localhost:8080/v2/pipeline")
+
+    @patch("urllib.request.urlopen")
+    def test_execute_pipeline_and_parse_response(self, mock_urlopen: MagicMock) -> None:
+        # Mock de resposta da pipeline libSQL Hrana 2
+        mock_response = MagicMock()
+        mock_response.read.return_value = json.dumps({
+            "results": [
+                {
+                    "type": "ok",
+                    "response": {
+                        "type": "execute",
+                        "result": {
+                            "cols": [{"name": "id"}, {"name": "price_cents"}],
+                            "rows": [
+                                [{"type": "text", "value": "pj_1"}, {"type": "integer", "value": "1200"}],
+                                [{"type": "text", "value": "pj_2"}, {"type": "integer", "value": "950"}],
+                            ],
+                            "affected_row_count": 0,
+                            "last_insert_rowid": None,
+                        },
+                    },
+                }
+            ]
+        }).encode("utf-8")
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        with patch.object(TursoPromotionRepository, "init_schema", return_value=None):
+            repo = TursoPromotionRepository(database_url="libsql://my-db.turso.io", auth_token="secret-token")
+            results = repo._execute_pipeline([("SELECT id, price_cents FROM promotions;", None)])
+
+            self.assertEqual(len(results), 1)
+            rows = results[0]["rows"]
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(rows[0]["id"], "pj_1")
+            self.assertEqual(rows[0]["price_cents"], 1200)
+            self.assertEqual(rows[1]["id"], "pj_2")
+            self.assertEqual(rows[1]["price_cents"], 950)
+
+    @patch("urllib.request.urlopen")
+    def test_connection_error_on_network_failure(self, mock_urlopen: MagicMock) -> None:
+        mock_urlopen.side_effect = ConnectionResetError("Conexão recusada")
+
+        with patch.object(TursoPromotionRepository, "init_schema", return_value=None):
+            repo = TursoPromotionRepository(database_url="libsql://my-db.turso.io", auth_token="secret-token")
+            with self.assertRaises(ConnectionError) as ctx:
+                repo._execute_pipeline([("SELECT 1;", None)])
+            self.assertIn("Falha de rede ao contactar Turso", str(ctx.exception))
 
 
 if __name__ == "__main__":

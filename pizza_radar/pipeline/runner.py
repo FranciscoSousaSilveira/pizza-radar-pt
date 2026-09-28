@@ -58,16 +58,18 @@ def run_pipeline(
     sync_time: datetime | None = None,
     max_consecutive_misses: int = 2,
     location_scope: str = "Lisboa",
+    data_mode: str = "live",
 ) -> PipelineResult:
     """Executa a sincronização coordenada dos adaptadores e gera o snapshot.
 
     Args:
-        repo: Instância de PromotionRepository (ex.: SQLitePromotionRepository).
+        repo: Instância de PromotionRepository (ex.: TursoPromotionRepository ou SQLitePromotionRepository).
         adapters: Lista de adaptadores a executar (um por marca).
         snapshot_output_path: Caminho de destino para promotions.json (opcional).
         sync_time: Instante da sincronização (timezone-aware).
         max_consecutive_misses: Limiar de ausências para desativação (padrão: 2).
         location_scope: Âmbito geográfico (padrão: "Lisboa").
+        data_mode: Modo de dados do snapshot ("live" em produção, "demo" em local).
 
     Returns:
         PipelineResult estruturado com detalhes por vendedor e estado do snapshot.
@@ -174,6 +176,7 @@ def run_pipeline(
                 output_path=snapshot_output_path,
                 location_scope=location_scope,
                 generated_at=now,
+                data_mode=data_mode,
             )
             snapshot_exported = True
             snapshot_path_str = str(snapshot_output_path)

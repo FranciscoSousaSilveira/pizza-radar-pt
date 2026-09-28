@@ -68,6 +68,7 @@ def generate_snapshot_dict(
     repo: PromotionRepository,
     location_scope: str = "Lisboa",
     generated_at: datetime | None = None,
+    data_mode: str = "live",
 ) -> dict[str, Any]:
     """Gera a estrutura de dados do snapshot a partir da base de dados."""
     now_dt = generated_at or datetime.now(timezone.utc)
@@ -99,6 +100,7 @@ def generate_snapshot_dict(
 
     return {
         "schema_version": "1.0.0",
+        "data_mode": data_mode,
         "generated_at": now_dt.isoformat(),
         "location_scope": location_scope,
         "vendors_active": active_vendors,
@@ -112,9 +114,15 @@ def export_snapshot(
     output_path: str | Path,
     location_scope: str = "Lisboa",
     generated_at: datetime | None = None,
+    data_mode: str = "live",
 ) -> dict[str, Any]:
     """Exporta o snapshot determinístico para ficheiro JSON."""
-    snapshot = generate_snapshot_dict(repo, location_scope=location_scope, generated_at=generated_at)
+    snapshot = generate_snapshot_dict(
+        repo,
+        location_scope=location_scope,
+        generated_at=generated_at,
+        data_mode=data_mode,
+    )
     dest = Path(output_path)
     dest.parent.mkdir(parents=True, exist_ok=True)
     with open(dest, "w", encoding="utf-8") as f:
