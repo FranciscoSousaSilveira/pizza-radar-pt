@@ -12,7 +12,7 @@ Consumidores em Portugal que pretendem encomendar pizza e procuram rapidamente a
 
 ## Âmbito do MVP
 
-O primeiro MVP (Produto Viável Mínimo) foca-se geograficamente na região de **Lisboa**, agregando promoções ativas disponíveis nos canais oficiais das marcas selecionadas de forma simples, transparente e acessível.
+O primeiro MVP (Produto Viável Mínimo) foca-se geograficamente no **concelho de Lisboa** (cidade de Lisboa), agregando promoções ativas disponíveis nos canais oficiais das marcas selecionadas através de atualizações periódicas (não em tempo real contínuo), de forma simples, transparente e acessível.
 
 ## Vendedores Iniciais
 
@@ -27,7 +27,8 @@ Nesta fase inicial, o radar monitoriza promoções oficiais de quatro cadeias:
 
 Para manter o foco no valor essencial e respeitar boas práticas técnicas e operacionais, ficam explicitamente fora do âmbito inicial:
 
-- Outras regiões ou cidades fora da área de Lisboa.
+- Outros concelhos da Área Metropolitana de Lisboa e restantes regiões do país (o foco do MVP é estritamente o concelho de Lisboa).
+- Atualizações em tempo real contínuo ou streaming de ofertas (o catálogo é atualizado periodicamente).
 - Outras cadeias ou pizzarias locais/independentes.
 - Realização de encomendas diretas ou integração de checkout (o utilizador é direcionado para o site oficial da marca).
 - Acesso a áreas autenticadas, dados privados de clientes ou contorno de mecanismos como CAPTCHA ou proteções anti-bot.
