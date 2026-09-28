@@ -48,6 +48,7 @@ A documentação do projeto está estruturada como uma base de conhecimento nave
 - [Project Charter](docs/project-charter.md)
 - [Relatório de Viabilidade de Fontes](docs/source-feasibility.md)
 - [Architecture Decision Records (ADRs)](docs/decisions/README.md)
+- [Arquitetura de Execução, Alojamento e Persistência](docs/architecture-execution-hosting-persistence.md)
 - [Fluxo de Trabalho Multiagente](docs/agent-workflow.md)
 - [Learning Log](docs/learning-log.md)
 - [Regras para Agentes e Colaboradores](AGENTS.md)
