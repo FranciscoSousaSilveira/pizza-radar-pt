@@ -14,7 +14,8 @@ Este documento reflete a situação factual, as decisões vigentes e as frentes 
   - Equipa multiagente permanente configurada com 6 papéis em `.agents/agents/` (`main`).
   - Contrato canónico de dados (`UnifiedPromo`), interface agnóstica (`PromoAdapterInterface`), cálculos monetários em cêntimos inteiros e 31 testes unitários determinísticos integrados em `main` ([Issue #7](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/7)).
   - Arquitetura técnica global de execução, alojamento e persistência free-tier (Turso libSQL, Cloudflare Pages, GitHub Actions) formalizada, aprovada e integrada em `main` via squash merge da [PR #15](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/15) ([Issue #14](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/14)).
-  - Organização da documentação em base de conhecimento navegável concluída e em fase de revisão final na [PR #17](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/17) ([Issue #16](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/16)).
+  - Organização da documentação em base de conhecimento navegável concluída e integrada em `main` via squash merge da [PR #17](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/17) ([Issue #16](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/16)).
+  - **PapaJohnsAdapter** implementado na branch `feat/8-papa-johns-adapter` e submetido para revisão na [PR #19](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/19) ([Issue #8](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/8)): parsing de preços via Decimal nativo, desduplicação e agregação entre lojas, exclusão de itens ocultos, separação de camadas fetch/parse/adapt, 63 testes unitários determinísticos, zero IA em runtime.
 
 ---
 
@@ -31,27 +32,28 @@ Este documento reflete a situação factual, as decisões vigentes e as frentes 
 
 A tabela reflete o estado no quadro [GitHub Project `Pizza-radar-project`](https://github.com/users/FranciscoSousaSilveira/projects/1):
 
-| Referência | Título | Tipo | Estado no Project | Responsável / Agente | Notas |
+| Referência | Título Real do Ticket | Tipo | Estado no Project | Responsável / Agente | Notas |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **[PR #17](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/17)** / **[#16](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/16)** | [CHORE] Organizar documentação como knowledge base navegável | CHORE | `Review` | `implementer` / `reviewer` | Implementação concluída, sincronizada com a nova `main` e validada por auditoria independente. Aguarda revisão do utilizador. |
-| **[PR #15](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/15)** / **[#14](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/14)** | [ARCH] Arquitetura de execução, hosting e persistência gratuita | ARCH | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
-| **[#8](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/8)** | [FEAT] Implementar PapaJohnsAdapter para promoções em Lisboa | FEAT | `Backlog` | Por alocar | Próximo ticket técnico de desenvolvimento (desbloqueado). |
-| **[#9](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/9)** | [FEAT] Implementar DominosAdapter para promoções em Lisboa | FEAT | `Backlog` | Por alocar | Segundo adaptador de recolha. |
-| **[#10](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/10)** | [FEAT] Implementar TelepizzaAdapter para promoções em Lisboa | FEAT | `Backlog` | Por alocar | Terceiro adaptador de recolha. |
-| **[#11](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/11)** | [FEAT] Implementar PizzaHutAdapter para promoções em Lisboa | FEAT | `Backlog` | Por alocar | Quarto adaptador; arquitetura de base de dados já definida (#14). |
-| **[#12](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/12)** | [FEAT] Motor de Normalização, Deduplicação e Pipeline de Agregação | FEAT | `Backlog` | Por alocar | Pipeline de persistência e deploy automatizado (estratégia definida em #14). |
+| **[PR #19](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/19)** / **[#8](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/8)** | [FEAT] Implementar adaptador para Papa John's Portugal (Lisboa) | FEAT | `Review` | `implementer` / `reviewer` | Implementado com precisão monetária Decimal, desduplicação entre lojas, exclusão de ofertas ocultas e 63 testes unitários. Aguarda revisão do utilizador. |
+| **[PR #17](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/17)** / **[#16](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/16)** | [CHORE] Organizar documentação como knowledge base navegável | CHORE | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
+| **[PR #15](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/15)** / **[#14](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/14)** | [ARCH] Arquitetura de execução, alojamento e persistência free-tier | ARCH | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
+| **[#9](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/9)** | [FEAT] Implementar adaptadores para Telepizza, Domino's e Pizza Hut (Lisboa) | FEAT | `Backlog` | Por alocar | Adaptadores subsequentes para as restantes marcas em Lisboa. |
+| **[#10](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/10)** | [FEAT] Motor determinístico de normalização, cálculo de descontos e ranking de ofertas | FEAT | `Backlog` | Por alocar | Regras determinísticas de ordenação e comparabilidade de preços. |
+| **[#11](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/11)** | [FEAT] Interface web responsiva para visualização e filtragem de promoções em Lisboa | FEAT | `Backlog` | Por alocar | Frontend para apresentação e pesquisa de ofertas. |
+| **[#12](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/12)** | [CHORE] Pipeline de automação para recolha periódica e persistência estática | CHORE | `Backlog` | Por alocar | Workflows agendados de CI/CD para ingestão e deploy no Cloudflare Pages. |
+| **[#18](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/18)** | [SPIKE] Investigar códigos promocionais em canais sociais e parceiros oficiais | SPIKE | `Backlog` | Por alocar | Estudo de viabilidade sem bloqueio do roadmap do MVP. |
 
 ---
 
 ## 4. Bloqueios e Dependências
 
 - **Bloqueios Atuais:** Não existem bloqueios ativos no projeto.
-- **Dependências Resolvidas:** A formalização e integração da arquitetura de persistência e hosting ([Issue #14](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/14) / [PR #15](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/15)) desbloqueou os requisitos de persistência para os adaptadores subsequentes e para o pipeline de dados ([#11](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/11) e [#12](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/12)).
-- **Prontidão de Implementação:** Todos os contratos canónicos (ADR-001) e decisões de infraestrutura (ADR-002) estão aprovados em `main`.
+- **Dependências Resolvidas:** Contratos canónicos (ADR-001) e decisões de infraestrutura (ADR-002) integrados em `main`.
+- **Estado de Execução:** [PR #19](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/19) aberta e em `Review` para validação final do utilizador.
 
 ---
 
 ## 5. Próximo Marco (Next Milestone)
 
-- **Marco Imediato:** Revisão final e squash merge da **[Pull Request #17](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/17)** ([Issue #16](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/16)), consolidando a base de conhecimento navegável em `main`.
-- **Marco Subsequente (Implementação de Coletores):** Mover o **[Issue #8](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/8)** (`PapaJohnsAdapter`) para `Ready` no GitHub Project, alocar o `implementer` e criar a primeira implementação concreta de recolha de dados reais.
+- **Marco Imediato:** Revisão e aprovação da **[Pull Request #19](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/19)** ([Issue #8](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/8)), consolidando o `PapaJohnsAdapter` em `main`.
+- **Marco Subsequente:** Após merge do #8, avançar para o **[Issue #9](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/9)** (`[FEAT] Implementar adaptadores para Telepizza, Domino's e Pizza Hut (Lisboa)`).

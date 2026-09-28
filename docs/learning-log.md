@@ -29,6 +29,19 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-28] — Estrutura real da API Papa John's, precisão Decimal e desduplicação entre lojas
+
+- **Contexto / Ticket:** Issue #8 — PapaJohnsAdapter
+- **Desafio / Descoberta:**
+  1. A investigação confirmou que o endpoint `/v1/offers/promotions` não inclui `offer_groups` (detalhes de composição estão apenas em `/v1/offers/{id}`).
+  2. O uso de representação em `float` arrisca perda de precisão binária IEEE-754; o parsing JSON nativo deve utilizar `parse_float=Decimal` e conversão determinística para integer cents via `(Decimal * 100).quantize(1, ROUND_HALF_UP)`. Valores inválidos não devem ser silenciados para `None`.
+  3. As 3 lojas de Lisboa (Amoreiras, Areeiro, Benfica) partilham os mesmos catálogos promocionais por canal; produzir um cartão por loja gerava duplicações artificiais.
+  4. O endpoint expõe itens de teste/internos com flag `hidden=true`, que não devem ser publicados.
+- **Impacto:** O adaptador agrega deterministicamente lojas com preços e condições idênticos num único `UnifiedPromo` (`pj_{id}_{canal}` com `store_ids` e `store_names` consolidados), mantendo variantes separadas apenas quando há divergência real. Itens com `hidden=true` são excluídos no parser. Preços utilizam `Decimal` em toda a cadeia de ingestão.
+- **Decisão / Solução:** Implementado `parse_price_to_cents` estrito, agrupamento por assinatura de conteúdo da oferta, filtro de ofertas ocultas e 63 testes unitários sem chamadas de rede.
+- **Ação Futura:** Criada nota no Issue #8 para futura evolução de enriquecimento via `/v1/offers/{id}` e páginas públicas de promoções.
+
+
 ### [2026-09-28] — Organização da Documentação como Base de Conhecimento Navegável
 
 - **Contexto / Ticket:** Issue #16 ([CHORE] Organizar documentação como knowledge base navegável)
