@@ -29,6 +29,18 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-28] — Identidade persistente de histórico vs. agrupamento visual e rankings explicáveis
+
+- **Contexto / Ticket:** Issue #10 — Motor determinístico de normalização, cálculo de descontos e ranking de ofertas
+- **Desafio / Descoberta:** Diferenciar claramente três conceitos que frequentemente colidem em agregadores:
+  1. A identidade estável no tempo necessária para a tabela de histórico (`observation_history`), que não pode mudar quando lojas convergem ou divergem em preço;
+  2. A variante concreta por loja que retém especificidades de preço e validade;
+  3. O agrupamento visual para o frontend, que deve garantir que o utilizador nunca vê cartões duplicados para a mesma campanha no mesmo canal.
+- **Impacto:** Criada a distinção formal entre `PersistentIdentity` (chave lógica imutável `vendor + campaign + channel`), `StoreVariant` e `VisualPromoGroup`. Os rankings (`BEST_UNIT_PRICE`, `HIGHEST_DISCOUNT`, `LOWEST_ABSOLUTE_PRICE`, `RECENTLY_OBSERVED`) fornecem justificações explícitas e operam 100% matematicamente sem modelos de IA.
+- **Decisão / Solução:** Implementado módulo `pizza_radar/engine/` com 78 testes unitários determinísticos a cobrir estabilidade de IDs, cálculos de métricas, filtros e ausência de cartões duplicados.
+- **Ação Futura:** Integrar com o motor de persistência SQLite/Turso no Issue #12.
+
+
 ### [2026-09-28] — Estrutura real da API Papa John's, precisão Decimal e desduplicação entre lojas
 
 - **Contexto / Ticket:** Issue #8 — PapaJohnsAdapter
