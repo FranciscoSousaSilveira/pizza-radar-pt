@@ -12,6 +12,8 @@ from pizza_radar.core.adapter import (
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
+    PizzaSize,
+    StoreScope,
     UnifiedPromo,
 )
 
@@ -39,9 +41,15 @@ class MockPapaJohnsAdapter(PromoAdapterInterface):
                 vendor=self.vendor,
                 title="Super Terça",
                 description="Duas pizzas médias por 15€",
-                price=15.00,
-                original_price=24.00,
+                observed_at="2026-09-28T16:00:00+01:00",
+                price_cents=1500,
+                original_price_cents=2400,
                 discount_type=DiscountType.X_FOR_Y,
+                store_scope=StoreScope.SPECIFIC_STORES,
+                store_ids=["2"],
+                store_names=["Amoreiras"],
+                pizza_count=2,
+                pizza_size=PizzaSize.MEDIUM,
                 source_url="https://papajohns.pt/promocoes",
                 location_scope="Lisboa",
             )
@@ -59,6 +67,10 @@ class TestPromoAdapterInterface(unittest.TestCase):
         promos = adapter.fetch_promotions()
         self.assertEqual(len(promos), 1)
         self.assertEqual(promos[0].id, "mock-pj-1")
+        self.assertEqual(promos[0].price_cents, 1500)
+        self.assertEqual(promos[0].price_euros, 15.00)
+        self.assertTrue(promos[0].is_comparable_for_unit_price)
+        self.assertEqual(promos[0].price_per_pizza_cents, 750)
 
         # Teste do método de validação do adaptador
         validated = adapter.validate_and_filter(promos)

@@ -2,11 +2,15 @@
 
 from pizza_radar.core.models import (
     Brand,
+    ComponentCategory,
     DispatchMethod,
     DiscountType,
+    OfferComponent,
+    PizzaSize,
+    StoreScope,
     TargetAudience,
-    Weekday,
     UnifiedPromo,
+    Weekday,
 )
 from pizza_radar.core.validator import (
     ValidationError,
@@ -14,16 +18,21 @@ from pizza_radar.core.validator import (
     validate_promos,
 )
 from pizza_radar.core.adapter import (
-    PromoAdapterInterface,
     AdapterError,
     NetworkError,
     ParseError,
+    PromoAdapterInterface,
+    RateLimitError,
 )
 
 __all__ = [
     "Brand",
+    "ComponentCategory",
     "DispatchMethod",
     "DiscountType",
+    "OfferComponent",
+    "PizzaSize",
+    "StoreScope",
     "TargetAudience",
     "Weekday",
     "UnifiedPromo",
@@ -34,4 +43,5 @@ __all__ = [
     "AdapterError",
     "NetworkError",
     "ParseError",
+    "RateLimitError",
 ]

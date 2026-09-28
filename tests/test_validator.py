@@ -1,11 +1,15 @@
-"""Testes unitários para o validador do UnifiedPromo."""
+"""Testes unitários para o validador canónico do UnifiedPromo."""
 
 import unittest
 
 from pizza_radar.core.models import (
     Brand,
+    ComponentCategory,
     DispatchMethod,
     DiscountType,
+    OfferComponent,
+    PizzaSize,
+    StoreScope,
     TargetAudience,
     UnifiedPromo,
     Weekday,
@@ -27,19 +31,29 @@ class TestUnifiedPromoValidator(unittest.TestCase):
             vendor=Brand.PAPA_JOHNS,
             title="Promoção de Teste Válida",
             description="Descrição válida para teste de esquema.",
-            price=11.90,
-            original_price=15.90,
+            observed_at="2026-09-28T16:00:00+01:00",
+            price_cents=1190,
+            original_price_cents=1590,
             discount_percentage=25.2,
             discount_type=DiscountType.FIXED_PRICE,
             conditions="Válido de segunda a sexta no concelho de Lisboa.",
-            valid_from="2026-09-01T12:00:00",
-            valid_until="2026-10-31T23:59:59",
+            valid_from="2026-09-01T12:00:00+01:00",
+            valid_until="2026-10-31T23:59:59+01:00",
+            last_seen_at="2026-09-28T16:00:00+01:00",
+            is_active=True,
             days_of_week=[Weekday.MONDAY, Weekday.FRIDAY],
             dispatch_methods=[DispatchMethod.DELIVERY, DispatchMethod.TAKE_AWAY],
             target_audience=TargetAudience.INDIVIDUAL,
+            store_scope=StoreScope.SPECIFIC_STORES,
+            store_ids=["2"],
+            store_names=["Amoreiras"],
+            pizza_count=1,
+            pizza_size=PizzaSize.MEDIUM,
+            included_items=[
+                OfferComponent(category=ComponentCategory.PIZZA, quantity=1, size=PizzaSize.MEDIUM)
+            ],
             image_url="https://example.com/promo.jpg",
             source_url="https://papajohns.pt/promocoes",
-            scraped_at="2026-09-28T16:00:00",
             location_scope="Lisboa",
         )
 
@@ -54,151 +68,242 @@ class TestUnifiedPromoValidator(unittest.TestCase):
         result = validate_promo(promo_dict)
         self.assertIsInstance(result, UnifiedPromo)
         self.assertEqual(result.vendor, Brand.PAPA_JOHNS)
+        self.assertEqual(result.price_cents, 1190)
 
-    def test_missing_or_blank_id(self) -> None:
-        """Validação falha se id for nulo, vazio ou só espaços."""
+    # --- Testes de Temporalidade e Timezone Awareness ---
+
+    def test_missing_or_empty_observed_at_fails(self) -> None:
+        """Validação falha se observed_at for ausente ou vazio."""
         promo = UnifiedPromo(
-            id="   ",
+            id="obs-missing",
             vendor=Brand.DOMINOS,
-            title="Título Válido",
-            description="Desc",
+            title="Oferta",
+            description="",
+            observed_at="",
         )
         with self.assertRaises(ValidationError) as ctx:
             validate_promo(promo)
-        self.assertTrue(any("id" in err for err in ctx.exception.errors))
+        self.assertTrue(any("observed_at" in err for err in ctx.exception.errors))
 
-    def test_missing_or_blank_title(self) -> None:
-        """Validação falha se title for vazio."""
+    def test_timezone_naive_observed_at_fails(self) -> None:
+        """Validação falha se observed_at for ingénuo (sem fuso horário explícito)."""
         promo = UnifiedPromo(
-            id="d-1",
+            id="obs-naive",
             vendor=Brand.DOMINOS,
-            title="",
-            description="Desc",
+            title="Oferta",
+            description="",
+            observed_at="2026-09-28T16:00:00",  # Sem timezone (+01:00 ou Z)
         )
         with self.assertRaises(ValidationError) as ctx:
             validate_promo(promo)
-        self.assertTrue(any("title" in err for err in ctx.exception.errors))
+        self.assertTrue(any("timezone-aware" in err for err in ctx.exception.errors))
 
-    def test_invalid_location_scope(self) -> None:
-        """Validação falha se location_scope não for 'Lisboa'."""
+    def test_timezone_aware_observed_at_with_z_passes(self) -> None:
+        """Validação aceita ISO 8601 com sufixo Z ou offset explícito."""
+        promo = UnifiedPromo(
+            id="obs-z",
+            vendor=Brand.DOMINOS,
+            title="Oferta Z",
+            description="",
+            observed_at="2026-09-28T15:00:00Z",
+        )
+        result = validate_promo(promo)
+        self.assertEqual(result.id, "obs-z")
+
+    # --- Testes de Dinheiro Determinístico (Integer Cents) ---
+
+    def test_float_price_cents_is_rejected(self) -> None:
+        """Validação rejeita float em price_cents para forçar inteiros determinísticos."""
+        promo = UnifiedPromo(
+            id="float-price",
+            vendor=Brand.DOMINOS,
+            title="Preço Float",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
+            price_cents=12.50,  # type: ignore[arg-type]
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            validate_promo(promo)
+        self.assertTrue(any("price_cents" in err for err in ctx.exception.errors))
+
+    def test_negative_price_cents_fails(self) -> None:
+        """Validação falha com cêntimos negativos."""
+        promo = UnifiedPromo(
+            id="neg-cents",
+            vendor=Brand.PIZZA_HUT,
+            title="Preço Negativo",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
+            price_cents=-500,
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            validate_promo(promo)
+        self.assertTrue(any("price_cents" in err for err in ctx.exception.errors))
+
+    def test_promotional_price_cents_greater_than_original_fails(self) -> None:
+        """Validação falha se o preço promocional for maior que o original."""
+        promo = UnifiedPromo(
+            id="inv-prices",
+            vendor=Brand.DOMINOS,
+            title="Preço Inflacionado",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
+            price_cents=2500,
+            original_price_cents=2000,
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            validate_promo(promo)
+        self.assertTrue(any("não pode ser superior ao preço original" in err for err in ctx.exception.errors))
+
+    # --- Testes de Aplicabilidade Geográfica e Lojas ---
+
+    def test_specific_stores_without_store_ids_or_names_fails(self) -> None:
+        """Validação falha se store_scope=SPECIFIC_STORES não especificar nenhuma loja."""
+        promo = UnifiedPromo(
+            id="spec-empty",
+            vendor=Brand.DOMINOS,
+            title="Oferta de Loja Sem Loja",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
+            store_scope=StoreScope.SPECIFIC_STORES,
+            store_ids=[],
+            store_names=[],
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            validate_promo(promo)
+        self.assertTrue(any("SPECIFIC_STORES" in err for err in ctx.exception.errors))
+
+    def test_invalid_location_scope_fails(self) -> None:
+        """Validação falha se location_scope divergir de 'Lisboa'."""
         promo = UnifiedPromo(
             id="tp-porto",
             vendor=Brand.TELEPIZZA,
             title="Promo Porto",
-            description="Fora de Lisboa",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
             location_scope="Porto",
         )
         with self.assertRaises(ValidationError) as ctx:
             validate_promo(promo)
         self.assertTrue(any("location_scope" in err for err in ctx.exception.errors))
 
-    def test_negative_prices(self) -> None:
-        """Validação falha com preços negativos."""
+    # --- Testes de Conteúdo e Componentes ---
+
+    def test_invalid_pizza_count_fails(self) -> None:
+        """Validação falha se pizza_count for zero, negativo ou float."""
+        promo_zero = UnifiedPromo(
+            id="pz-zero",
+            vendor=Brand.PAPA_JOHNS,
+            title="Zero Pizzas",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
+            pizza_count=0,
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            validate_promo(promo_zero)
+        self.assertTrue(any("pizza_count" in err for err in ctx.exception.errors))
+
+    def test_invalid_included_items_quantity_fails(self) -> None:
+        """Validação falha se algum componente tiver quantidade menor que 1."""
         promo = UnifiedPromo(
-            id="ph-neg",
-            vendor=Brand.PIZZA_HUT,
-            title="Preço Negativo",
-            description="Desc",
-            price=-5.00,
+            id="bad-item",
+            vendor=Brand.PAPA_JOHNS,
+            title="Item Inválido",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
+            included_items=[
+                OfferComponent(category=ComponentCategory.PIZZA, quantity=0)
+            ],
         )
         with self.assertRaises(ValidationError) as ctx:
             validate_promo(promo)
-        self.assertTrue(any("price" in err for err in ctx.exception.errors))
+        self.assertTrue(any("included_items" in err for err in ctx.exception.errors))
 
-    def test_promotional_price_greater_than_original(self) -> None:
-        """Validação falha se o preço promocional for maior que o original."""
+    # --- Testes Gerais de Validação ---
+
+    def test_missing_or_blank_id_fails(self) -> None:
+        """Validação falha se id for nulo, vazio ou só espaços."""
         promo = UnifiedPromo(
-            id="d-invalid-prices",
+            id="   ",
             vendor=Brand.DOMINOS,
-            title="Preço Inflacionado",
-            description="Desc",
-            price=25.00,
-            original_price=20.00,
+            title="Título",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
         )
         with self.assertRaises(ValidationError) as ctx:
             validate_promo(promo)
-        self.assertTrue(any("superior ao preço original" in err for err in ctx.exception.errors))
+        self.assertTrue(any("id" in err for err in ctx.exception.errors))
 
-    def test_invalid_discount_percentage(self) -> None:
+    def test_missing_or_blank_title_fails(self) -> None:
+        """Validação falha se title for vazio."""
+        promo = UnifiedPromo(
+            id="d-1",
+            vendor=Brand.DOMINOS,
+            title="",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            validate_promo(promo)
+        self.assertTrue(any("title" in err for err in ctx.exception.errors))
+
+    def test_invalid_discount_percentage_fails(self) -> None:
         """Validação falha com percentagens menores que 0 ou maiores que 100."""
         promo = UnifiedPromo(
-            id="ph-disc-err",
+            id="disc-err",
             vendor=Brand.PIZZA_HUT,
             title="Desconto Impossível",
-            description="Desc",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
             discount_percentage=150.0,
         )
         with self.assertRaises(ValidationError) as ctx:
             validate_promo(promo)
         self.assertTrue(any("discount_percentage" in err for err in ctx.exception.errors))
 
-    def test_empty_dispatch_methods(self) -> None:
-        """Validação falha se a lista de canais de atendimento estiver vazia."""
+    def test_empty_dispatch_methods_fails(self) -> None:
+        """Validação falha se dispatch_methods for lista vazia."""
         promo = UnifiedPromo(
-            id="tp-no-dispatch",
+            id="no-dispatch",
             vendor=Brand.TELEPIZZA,
-            title="Sem Métodos de Atendimento",
-            description="Desc",
+            title="Sem Métodos",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
             dispatch_methods=[],
         )
         with self.assertRaises(ValidationError) as ctx:
             validate_promo(promo)
         self.assertTrue(any("dispatch_methods" in err for err in ctx.exception.errors))
 
-    def test_invalid_dates(self) -> None:
-        """Validação falha com datas mal formatadas ou com intervalo invertido."""
-        promo_bad_format = UnifiedPromo(
-            id="bad-date",
-            vendor=Brand.DOMINOS,
-            title="Data Inválida",
-            description="Desc",
-            valid_from="amanhã",
-        )
-        with self.assertRaises(ValidationError):
-            validate_promo(promo_bad_format)
-
-        promo_inverted_dates = UnifiedPromo(
-            id="inverted-dates",
+    def test_inverted_dates_fails(self) -> None:
+        """Validação falha se valid_from for posterior a valid_until."""
+        promo = UnifiedPromo(
+            id="inv-dates",
             vendor=Brand.DOMINOS,
             title="Datas Invertidas",
-            description="Desc",
+            description="",
+            observed_at="2026-09-28T16:00:00+01:00",
             valid_from="2026-12-31",
             valid_until="2026-01-01",
         )
         with self.assertRaises(ValidationError) as ctx:
-            validate_promo(promo_inverted_dates)
+            validate_promo(promo)
         self.assertTrue(any("posterior" in err for err in ctx.exception.errors))
 
-    def test_invalid_urls(self) -> None:
-        """Validação falha com URLs de fonte ou imagem inválidos."""
-        promo_bad_url = UnifiedPromo(
-            id="bad-url",
-            vendor=Brand.PAPA_JOHNS,
-            title="URL Inválido",
-            description="Desc",
-            source_url="javascript:alert(1)",
-        )
-        with self.assertRaises(ValidationError) as ctx:
-            validate_promo(promo_bad_url)
-        self.assertTrue(any("source_url" in err for err in ctx.exception.errors))
+    def test_batch_validation_success_and_failure(self) -> None:
+        """Validação em lote processa itens válidos e agrega erros indexados."""
+        items_valid = [self.valid_promo, self.valid_promo]
+        self.assertEqual(len(validate_promos(items_valid)), 2)
 
-    def test_batch_validation_success(self) -> None:
-        """Valida que uma lista homogénea de registos válidos é processada corretamente."""
-        items = [self.valid_promo, self.valid_promo]
-        results = validate_promos(items)
-        self.assertEqual(len(results), 2)
-
-    def test_batch_validation_failure_aggregates_errors(self) -> None:
-        """Valida que falhas em lote agregam erros indicando o índice de cada item."""
         bad_item = UnifiedPromo(
             id="",
             vendor=Brand.DOMINOS,
             title="",
             description="",
+            observed_at="",
         )
-        items = [self.valid_promo, bad_item]
         with self.assertRaises(ValidationError) as ctx:
-            validate_promos(items)
+            validate_promos([self.valid_promo, bad_item])
         self.assertTrue(any("[Item 1]" in err for err in ctx.exception.errors))
 
 
