@@ -22,6 +22,14 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-28] — Contrato Canónico de Dados e Interface de Adaptadores (Core)
+
+- **Contexto / Ticket:** Issue #7 ([FEAT] Arquitetura base, contrato de dados unificado e interface de adaptadores)
+- **Desafio / Descoberta:** Harmonizar quatro estruturas de dados radicalmente distintas observadas no spike num contrato único e determinístico sem introduzir acoplamento proprietário ou dependências pesadas de bibliotecas externas.
+- **Impacto:** O modelo canónico `UnifiedPromo` e o seu validador estabelecem um contrato estrito (tipos, enums de marca/canais, preços não negativos, limites de desconto, datas ISO e escopo geográfico fixo em Lisboa) que protege o restante sistema contra anomalias nos dados brutos.
+- **Decisão / Solução:** Implementado o core e validador com dataclasses e tipagem estrita em Python 3.12 na biblioteca padrão (zero dependências externas de runtime), formalizado em ADR-001 e coberto por 25 testes unitários automatizados executados em ~0.001s.
+- **Ação Futura:** Implementar o pioneiro `PapaJohnsAdapter` (Issue #8) derivando da nova `PromoAdapterInterface`.
+
 ### [2026-09-28] — Viabilidade de Fontes de Dados e Seleção do Primeiro Adaptador
 
 - **Contexto / Ticket:** Issue #3 (SPIKE)

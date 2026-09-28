@@ -49,4 +49,4 @@ Qual é a solução escolhida? Como será implementada?
 
 ## Índice de Decisões
 
-*(Nenhuma ADR formalizada até ao momento. O projeto encontra-se na fase de fundação documental).*
+- [ADR-001: Contrato Canónico de Dados, Interface de Adaptadores e Arquitetura do Core](0001-data-contract-and-core-architecture.md) — *Aceite* (2026-09-28)
