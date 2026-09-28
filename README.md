@@ -45,4 +45,6 @@ Para mais detalhes sobre a organização e regras do projeto:
 - [Project Charter](docs/project-charter.md)
 - [Learning Log](docs/learning-log.md)
 - [Architecture Decision Records (ADRs)](docs/decisions/README.md)
+- [Relatório de Viabilidade de Fontes](docs/source-feasibility.md)
+- [Fluxo de Trabalho Multiagente](docs/agent-workflow.md)
 - [Regras para Agentes e Colaboradores](AGENTS.md)
