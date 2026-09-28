@@ -87,6 +87,26 @@ body {
   top: 16px;
 }
 
+/* Banner de Modo de Dados */
+.data-mode-banner {
+  background-color: #FEF3C7;
+  color: #92400E;
+  border-bottom: 1px solid #FCD34D;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.banner-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
 /* Focus Visible para Acessibilidade */
 :focus-visible {
   outline: 3px solid var(--color-border-focus);

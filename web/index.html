@@ -10,6 +10,12 @@
 <body>
   <a href="#main-content" class="skip-link">Saltar para o conteúdo principal</a>
 
+  <!-- Banner de Modo de Dados -->
+  <div id="data-mode-banner" class="data-mode-banner" style="display: none;" role="status">
+    <span class="banner-icon" aria-hidden="true">⚠️</span>
+    <span id="data-mode-text">Dados de demonstração — atualização automática ainda não ativa</span>
+  </div>
+
   <!-- Cabeçalho Principal -->
   <header class="site-header" role="banner">
     <div class="header-container">
@@ -22,7 +28,7 @@
       </div>
       <div class="header-status" aria-label="Estado da monitorização">
         <span class="status-indicator" aria-hidden="true"></span>
-        <span class="status-text">4 marcas monitorizadas • Atualizado 2x ao dia</span>
+        <span class="status-text" id="status-text">4 marcas monitorizadas</span>
       </div>
     </div>
   </header>
@@ -190,7 +196,7 @@
       <div class="footer-col">
         <h3 class="footer-heading">Arquitetura Zero-Cost</h3>
         <p class="footer-text">
-          Pipeline 100% determinístico executado 2x ao dia via GitHub Actions.
+          Pipeline determinístico com capacidade de execução periódica agendada via GitHub Actions.
           Zero chamadas a modelos de inteligência artificial em produção.
           Alojado na CDN global gratuita do Cloudflare Pages.
         </p>

@@ -76,6 +76,9 @@
     statMinPrice: document.getElementById('stat-min-price'),
     statUnitPrice: document.getElementById('stat-unit-price'),
     statLocation: document.getElementById('stat-location'),
+    dataModeBanner: document.getElementById('data-mode-banner'),
+    dataModeText: document.getElementById('data-mode-text'),
+    statusText: document.getElementById('status-text'),
   };
 
   // Inicialização
@@ -95,7 +98,9 @@
       const data = await response.json();
       state.allGroups = data.groups || [];
       state.stats = data.stats || {};
+      state.dataMode = data.data_mode || 'demo';
 
+      handleDataMode(state.dataMode);
       updateMetricsBanner(data);
       applyFiltersAndRender();
     } catch (err) {
@@ -108,6 +113,29 @@
         </div>
       `;
       elements.resultsCount.textContent = 'Erro ao carregar dados.';
+    }
+  }
+
+  // Tratamento do Modo de Dados (Demo vs Live)
+  function handleDataMode(mode) {
+    const isLive = mode === 'live';
+    if (elements.dataModeBanner) {
+      if (!isLive) {
+        elements.dataModeBanner.style.display = 'flex';
+        if (elements.dataModeText) {
+          elements.dataModeText.textContent = 'Dados de demonstração — atualização automática ainda não ativa';
+        }
+      } else {
+        elements.dataModeBanner.style.display = 'none';
+      }
+    }
+
+    if (elements.statusText) {
+      if (isLive) {
+        elements.statusText.textContent = '4 marcas monitorizadas • Atualizado 2x ao dia';
+      } else {
+        elements.statusText.textContent = '4 marcas monitorizadas • Modo de demonstração';
+      }
     }
   }
 
