@@ -67,3 +67,12 @@ flowchart TD
   - Bloqueios anti-bot permanentes;
   - Conflitos insolúveis entre tickets;
   - Pull Request pronta para revisão final e merge.
+
+---
+
+## 5. Documentos Relacionados
+
+- [Índice Central da Base de Conhecimento](README.md)
+- [Regras para Agentes e Colaboradores](../AGENTS.md)
+- [Estado Atual do Projeto](current-state.md)
+- [Definições dos Agentes](../.agents/agents/)

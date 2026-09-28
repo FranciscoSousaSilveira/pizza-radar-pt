@@ -83,3 +83,48 @@ Os agentes devem trabalhar autonomamente e interromper o utilizador **apenas** n
 - **Acesso Ético:** Consulta estrita a páginas e endpoints publicamente acessíveis, sem autenticação, sem simulação de pedidos de encomenda e respeitando os servidores das marcas.
 - **Portabilidade:** Evitar acoplamento proprietário (*vendor lock-in*), mantendo interfaces agnósticas de fornecedor de infraestrutura.
 - **Proibição de Merge Autónomo:** Nenhum agente tem permissão para fundir Pull Requests ou efetuar commits diretos na branch `main`.
+
+---
+
+## 5. Trilhos de Leitura Recomendados por Tarefa / Papel
+
+Para maximizar a eficiência e evitar dispersão de contexto, cada agente ou colaborador deve seguir o trilho de leitura correspondente à sua tarefa:
+
+### Trilho 1: Onboarding Geral / Novo Colaborador ou Agente
+1. [README.md](README.md) — Visão geral de alto nível do projeto.
+2. [AGENTS.md](AGENTS.md) — Regras mandatórias de conduta, segurança e ética.
+3. [docs/README.md](docs/README.md) — Índice geral e mapa da base de conhecimento.
+4. [docs/current-state.md](docs/current-state.md) — Estado vivo do projeto, decisões em vigor e bloqueios.
+5. [docs/project-charter.md](docs/project-charter.md) — Missão, limites geográficos de Lisboa e fronteiras de âmbito.
+
+### Trilho 2: Gestão de Requisitos e Backlog (`project-manager`)
+1. [docs/current-state.md](docs/current-state.md) — Estado atual dos tickets e dependências mapeadas.
+2. [docs/project-charter.md](docs/project-charter.md) — Âmbito e critérios de sucesso do MVP.
+3. [docs/agent-workflow.md](docs/agent-workflow.md) — Estados do quadro e transições do ciclo de vida.
+4. [docs/decisions/README.md](docs/decisions/README.md) — Decisões aceites e limites arquiteturais vigentes.
+
+### Trilho 3: Implementação de Adaptador de Marca (`implementer` / `source-researcher`)
+1. [docs/current-state.md](docs/current-state.md) — Contexto do ticket e decisões ativas.
+2. [docs/decisions/0001-data-contract-and-core-architecture.md](docs/decisions/0001-data-contract-and-core-architecture.md) — Contrato canónico de dados e regras de validação.
+3. [docs/source-feasibility.md](docs/source-feasibility.md) — Secção específica do vendedor a recolher (endpoints, tipos, riscos).
+4. [pizza_radar/core/models.py](pizza_radar/core/models.py) e [pizza_radar/core/adapter.py](pizza_radar/core/adapter.py) — Código base e interface a implementar.
+
+
+### Trilho 4: Persistência, Pipeline e Infraestrutura (`implementer` / `orchestrator`)
+1. [docs/current-state.md](docs/current-state.md) — Estado das decisões ativas e tickets bloqueados.
+2. [docs/decisions/0001-data-contract-and-core-architecture.md](docs/decisions/0001-data-contract-and-core-architecture.md) — Contrato canónico e modelo de dados.
+3. [docs/decisions/README.md](docs/decisions/README.md) — Decisões de persistência e infraestrutura vigentes.
+4. [docs/learning-log.md](docs/learning-log.md) — Contexto de trade-offs e soluções anteriores.
+
+### Trilho 5: Design de Apresentação e Frontend (`ui-designer`)
+1. [docs/current-state.md](docs/current-state.md) — Situação corrente do produto.
+2. [docs/project-charter.md](docs/project-charter.md) — Perfil do utilizador e necessidades em Lisboa.
+3. [docs/decisions/0001-data-contract-and-core-architecture.md](docs/decisions/0001-data-contract-and-core-architecture.md) — Campos canónicos de visualização (`UnifiedPromo`).
+4. [.agents/agents/ui-designer.md](.agents/agents/ui-designer.md) — Princípios de identidade visual e requisitos WCAG AA.
+
+### Trilho 6: Auditoria e Revisão de PR (`reviewer`)
+1. [AGENTS.md](AGENTS.md) — Secções 3 e 4 (limites de autonomia, zero segredos, zero IA em runtime).
+2. Issue associado no GitHub Project — Critérios de aceitação contratados.
+3. [docs/current-state.md](docs/current-state.md) — Consistência factual com o estado do repositório.
+4. ADRs relevantes em [docs/decisions/](docs/decisions/README.md) — Conformidade técnica e arquitetural.
+5. [.github/pull_request_template.md](.github/pull_request_template.md) — Checklist de validação e evidências.
