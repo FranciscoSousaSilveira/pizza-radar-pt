@@ -22,6 +22,14 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-28] — Contrato Canónico de Dados, Precisão Financeira e Integridade de Ofertas (Core)
+
+- **Contexto / Ticket:** Issue #7 ([FEAT] Arquitetura base, contrato de dados unificado e interface de adaptadores)
+- **Desafio / Descoberta:** Harmonizar quatro estruturas de dados distintas observadas no spike (#3) exigiu resolver quatro desafios materiais de produto: (1) evitar erros de arredondamento em float; (2) modelar aplicabilidade geográfica por loja sem presunções universais falsas; (3) evitar estimativas ou valores inventados quando a fonte omite a contagem ou tamanho das pizzas; (4) garantir carimbos temporais timezone-aware distinguindo a validade anunciada pela marca da data de recolha pelo coletor para suporte a expiração determinística.
+- **Impacto:** O modelo `UnifiedPromo` passa a operar com cêntimos inteiros (`price_cents`, `original_price_cents`), define `store_scope` com identificadores de lojas, decompõe componentes de oferta (`OfferComponent`, `pizza_count`, `pizza_size`) marcando explicitamente ofertas não comparáveis para ranking (`is_comparable_for_unit_price`), e torna obrigatório `observed_at` timezone-aware.
+- **Decisão / Solução:** Implementado o core determinístico em Python 3.12 na biblioteca padrão (zero dependências externas), formalizado em ADR-001 revisto e protegido por 31 testes unitários determinísticos executados em ~0.001s.
+- **Ação Futura:** Avançar para a definição da arquitetura de hosting e persistência (#14) e implementação do `PapaJohnsAdapter` (#8).
+
 ### [2026-09-28] — Viabilidade de Fontes de Dados e Seleção do Primeiro Adaptador
 
 - **Contexto / Ticket:** Issue #3 (SPIKE)
