@@ -50,3 +50,4 @@ Qual é a solução escolhida? Como será implementada?
 ## Índice de Decisões
 
 - [ADR-001: Contrato Canónico de Dados, Interface de Adaptadores e Arquitetura do Core](0001-data-contract-and-core-architecture.md) — *Aceite* (2026-09-28)
+- [ADR-002: Arquitetura de Execução, Alojamento, Base de Dados Free-Tier e Publicação de Dados](0002-execution-hosting-and-free-tier-persistence.md) — *Aceite* (2026-09-28)
