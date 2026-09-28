@@ -1,0 +1,1214 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-09-28T17:30:00+00:00",
+  "location_scope": "Lisboa",
+  "vendors_active": [
+    "DOMINOS",
+    "PAPA_JOHNS",
+    "PIZZA_HUT",
+    "TELEPIZZA"
+  ],
+  "stats": {
+    "total_groups": 20,
+    "total_offers": 20,
+    "comparable_groups": 12,
+    "min_price_cents": 595,
+    "cheapest_pizza_cents": 595
+  },
+  "groups": [
+    {
+      "persistent_id": "pid_dominos_2420_delivery",
+      "vendor": "DOMINOS",
+      "title": "MÉDIA DESDE 10,95€",
+      "description": "Pizza Média a partir de 10,95€ na entrega",
+      "dispatch_methods": [
+        "DELIVERY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "140"
+      ],
+      "all_store_names": [
+        "Areeiro (Lisboa)"
+      ],
+      "display_price_label": "10,95€",
+      "min_price_cents": 1095,
+      "max_price_cents": 1095,
+      "min_price_euros": 10.95,
+      "max_price_euros": 10.95,
+      "min_price_per_pizza_cents": 1095,
+      "min_price_per_pizza_euros": 10.95,
+      "max_discount_percentage": null,
+      "pizza_count": 1,
+      "pizza_size": "MEDIUM",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://cache.dominos.pt/combos/media_1095.webp",
+      "source_url": "https://www.dominospizza.pt/promocoes",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "dom_2420_delivery",
+          "persistent_id": "pid_dominos_2420_delivery",
+          "store_ids": [
+            "140"
+          ],
+          "store_names": [
+            "Areeiro (Lisboa)"
+          ],
+          "price_cents": 1095,
+          "price_euros": 10.95,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": 1,
+          "pizza_size": "MEDIUM",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": 1095,
+          "conditions": "Válido para entrega ao domicílio.",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_dominos_2420_take_away",
+      "vendor": "DOMINOS",
+      "title": "MÉDIA DESDE 9,95€",
+      "description": "Pizza Média a partir de 9,95€ no balcão",
+      "dispatch_methods": [
+        "TAKE_AWAY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "140"
+      ],
+      "all_store_names": [
+        "Areeiro (Lisboa)"
+      ],
+      "display_price_label": "9,95€",
+      "min_price_cents": 995,
+      "max_price_cents": 995,
+      "min_price_euros": 9.95,
+      "max_price_euros": 9.95,
+      "min_price_per_pizza_cents": 995,
+      "min_price_per_pizza_euros": 9.95,
+      "max_discount_percentage": null,
+      "pizza_count": 1,
+      "pizza_size": "MEDIUM",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://cache.dominos.pt/combos/media_995.webp",
+      "source_url": "https://www.dominospizza.pt/promocoes",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "dom_2420_takeaway",
+          "persistent_id": "pid_dominos_2420_take_away",
+          "store_ids": [
+            "140"
+          ],
+          "store_names": [
+            "Areeiro (Lisboa)"
+          ],
+          "price_cents": 995,
+          "price_euros": 9.95,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": 1,
+          "pizza_size": "MEDIUM",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": 995,
+          "conditions": "Válido para recolha em loja.",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_dominos_2434_delivery",
+      "vendor": "DOMINOS",
+      "title": "SEGUNDAS A DOBRAR | 40% DESCONTO",
+      "description": "40% de desconto em todas as pizzas médias e grandes às segundas",
+      "dispatch_methods": [
+        "DELIVERY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "140"
+      ],
+      "all_store_names": [
+        "Areeiro (Lisboa)"
+      ],
+      "display_price_label": "Preço sob consulta",
+      "min_price_cents": null,
+      "max_price_cents": null,
+      "min_price_euros": null,
+      "max_price_euros": null,
+      "min_price_per_pizza_cents": null,
+      "min_price_per_pizza_euros": null,
+      "max_discount_percentage": null,
+      "pizza_count": 2,
+      "pizza_size": "MEDIUM",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://cache.dominos.pt/combos/segundas_dobrar.webp",
+      "source_url": "https://www.dominospizza.pt/promocoes",
+      "days_of_week": [
+        "MONDAY"
+      ],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "dom_2434_delivery",
+          "persistent_id": "pid_dominos_2434_delivery",
+          "store_ids": [
+            "140"
+          ],
+          "store_names": [
+            "Areeiro (Lisboa)"
+          ],
+          "price_cents": null,
+          "price_euros": null,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": 2,
+          "pizza_size": "MEDIUM",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": null,
+          "conditions": "Válido exclusivamente às segundas-feiras.",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_dominos_3433_delivery",
+      "vendor": "DOMINOS",
+      "title": "Grande desde 12€ cada",
+      "description": "Pizzas Grandes desde 12€ na compra de 2 ou mais",
+      "dispatch_methods": [
+        "DELIVERY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "140"
+      ],
+      "all_store_names": [
+        "Areeiro (Lisboa)"
+      ],
+      "display_price_label": "12,00€",
+      "min_price_cents": 1200,
+      "max_price_cents": 1200,
+      "min_price_euros": 12.0,
+      "max_price_euros": 12.0,
+      "min_price_per_pizza_cents": null,
+      "min_price_per_pizza_euros": null,
+      "max_discount_percentage": null,
+      "pizza_count": null,
+      "pizza_size": "UNKNOWN",
+      "is_comparable_for_unit_price": false,
+      "has_uniform_price": true,
+      "image_url": "https://cache.dominos.pt/combos/grande_12.webp",
+      "source_url": "https://www.dominospizza.pt/promocoes",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "dom_3433_delivery",
+          "persistent_id": "pid_dominos_3433_delivery",
+          "store_ids": [
+            "140"
+          ],
+          "store_names": [
+            "Areeiro (Lisboa)"
+          ],
+          "price_cents": 1200,
+          "price_euros": 12.0,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": null,
+          "pizza_size": "UNKNOWN",
+          "is_comparable_for_unit_price": false,
+          "price_per_pizza_cents": null,
+          "conditions": "",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_dominos_3433_take_away",
+      "vendor": "DOMINOS",
+      "title": "Grande desde 11€ cada",
+      "description": "Pizzas Grandes desde 11€ para take away",
+      "dispatch_methods": [
+        "TAKE_AWAY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "140"
+      ],
+      "all_store_names": [
+        "Areeiro (Lisboa)"
+      ],
+      "display_price_label": "11,00€",
+      "min_price_cents": 1100,
+      "max_price_cents": 1100,
+      "min_price_euros": 11.0,
+      "max_price_euros": 11.0,
+      "min_price_per_pizza_cents": null,
+      "min_price_per_pizza_euros": null,
+      "max_discount_percentage": null,
+      "pizza_count": null,
+      "pizza_size": "UNKNOWN",
+      "is_comparable_for_unit_price": false,
+      "has_uniform_price": true,
+      "image_url": "https://cache.dominos.pt/combos/grande_11.webp",
+      "source_url": "https://www.dominospizza.pt/promocoes",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "dom_3433_takeaway",
+          "persistent_id": "pid_dominos_3433_take_away",
+          "store_ids": [
+            "140"
+          ],
+          "store_names": [
+            "Areeiro (Lisboa)"
+          ],
+          "price_cents": 1100,
+          "price_euros": 11.0,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": null,
+          "pizza_size": "UNKNOWN",
+          "is_comparable_for_unit_price": false,
+          "price_per_pizza_cents": null,
+          "conditions": "",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_dominos_3445_delivery",
+      "vendor": "DOMINOS",
+      "title": "MENU FAMÍLIA GRANDES | Desde 27€",
+      "description": "2 Pizzas Grandes + Pão de Alho + Bebida 1,5L",
+      "dispatch_methods": [
+        "DELIVERY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "140"
+      ],
+      "all_store_names": [
+        "Areeiro (Lisboa)"
+      ],
+      "display_price_label": "27,00€",
+      "min_price_cents": 2700,
+      "max_price_cents": 2700,
+      "min_price_euros": 27.0,
+      "max_price_euros": 27.0,
+      "min_price_per_pizza_cents": 1350,
+      "min_price_per_pizza_euros": 13.5,
+      "max_discount_percentage": null,
+      "pizza_count": 2,
+      "pizza_size": "MEDIUM",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://cache.dominos.pt/combos/familia_27.webp",
+      "source_url": "https://www.dominospizza.pt/promocoes",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "dom_3445_delivery",
+          "persistent_id": "pid_dominos_3445_delivery",
+          "store_ids": [
+            "140"
+          ],
+          "store_names": [
+            "Areeiro (Lisboa)"
+          ],
+          "price_cents": 2700,
+          "price_euros": 27.0,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": 2,
+          "pizza_size": "MEDIUM",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": 1350,
+          "conditions": "",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_papa_johns_207_take_away",
+      "vendor": "PAPA_JOHNS",
+      "title": "A MAIS FRESCA",
+      "description": "Pizza média com massa fina e estaladiça com 2 ingredientes à escolha por apenas 7.99€",
+      "dispatch_methods": [
+        "TAKE_AWAY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "13",
+        "2",
+        "3"
+      ],
+      "all_store_names": [
+        "Amoreiras",
+        "Areeiro",
+        "Benfica"
+      ],
+      "display_price_label": "7,99€",
+      "min_price_cents": 799,
+      "max_price_cents": 799,
+      "min_price_euros": 7.99,
+      "max_price_euros": 7.99,
+      "min_price_per_pizza_cents": null,
+      "min_price_per_pizza_euros": null,
+      "max_discount_percentage": 15.4,
+      "pizza_count": null,
+      "pizza_size": "UNKNOWN",
+      "is_comparable_for_unit_price": false,
+      "has_uniform_price": true,
+      "image_url": "https://cdn.papajohns.pt/pictures/offers/la_mas_fresca_photo.webp",
+      "source_url": "https://www.papajohns.pt/promocoes/",
+      "days_of_week": [
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY"
+      ],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "pj_207_in_store",
+          "persistent_id": "pid_papa_johns_207_take_away",
+          "store_ids": [
+            "13",
+            "2",
+            "3"
+          ],
+          "store_names": [
+            "Amoreiras",
+            "Areeiro",
+            "Benfica"
+          ],
+          "price_cents": 799,
+          "price_euros": 7.99,
+          "original_price_cents": 945,
+          "original_price_euros": 9.45,
+          "computed_discount_percentage": 15.4,
+          "pizza_count": null,
+          "pizza_size": "UNKNOWN",
+          "is_comparable_for_unit_price": false,
+          "price_per_pizza_cents": null,
+          "conditions": "",
+          "valid_from": "2024-02-05T00:00:00.000Z",
+          "valid_until": "2028-12-31T00:00:00.000Z",
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_papa_johns_218_take_away",
+      "vendor": "PAPA_JOHNS",
+      "title": "Combo Médio",
+      "description": "Combo médio especial",
+      "dispatch_methods": [
+        "TAKE_AWAY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "13",
+        "2",
+        "3"
+      ],
+      "all_store_names": [
+        "Amoreiras",
+        "Areeiro",
+        "Benfica"
+      ],
+      "display_price_label": "16,99€",
+      "min_price_cents": 1699,
+      "max_price_cents": 1699,
+      "min_price_euros": 16.99,
+      "max_price_euros": 16.99,
+      "min_price_per_pizza_cents": null,
+      "min_price_per_pizza_euros": null,
+      "max_discount_percentage": null,
+      "pizza_count": null,
+      "pizza_size": "UNKNOWN",
+      "is_comparable_for_unit_price": false,
+      "has_uniform_price": true,
+      "image_url": null,
+      "source_url": "https://www.papajohns.pt/promocoes/",
+      "days_of_week": [
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY"
+      ],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "pj_218_in_store",
+          "persistent_id": "pid_papa_johns_218_take_away",
+          "store_ids": [
+            "13",
+            "2",
+            "3"
+          ],
+          "store_names": [
+            "Amoreiras",
+            "Areeiro",
+            "Benfica"
+          ],
+          "price_cents": 1699,
+          "price_euros": 16.99,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": null,
+          "pizza_size": "UNKNOWN",
+          "is_comparable_for_unit_price": false,
+          "price_per_pizza_cents": null,
+          "conditions": "",
+          "valid_from": "2023-01-01T00:00:00.000Z",
+          "valid_until": "2029-12-31T00:00:00.000Z",
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_papa_johns_222_delivery",
+      "vendor": "PAPA_JOHNS",
+      "title": "O PAPITO Delivery",
+      "description": "1 Pizza Individual + 1 Entrada + 1 Bebida 500ml por 10,99€",
+      "dispatch_methods": [
+        "DELIVERY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "13",
+        "2",
+        "3"
+      ],
+      "all_store_names": [
+        "Amoreiras",
+        "Areeiro",
+        "Benfica"
+      ],
+      "display_price_label": "10,99€",
+      "min_price_cents": 1099,
+      "max_price_cents": 1099,
+      "min_price_euros": 10.99,
+      "max_price_euros": 10.99,
+      "min_price_per_pizza_cents": 1099,
+      "min_price_per_pizza_euros": 10.99,
+      "max_discount_percentage": 19.1,
+      "pizza_count": 1,
+      "pizza_size": "INDIVIDUAL",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://cdn.papajohns.pt/pictures/offers/papito_photo.webp",
+      "source_url": "https://www.papajohns.pt/promocoes/",
+      "days_of_week": [
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY"
+      ],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "pj_222_pj_delivery",
+          "persistent_id": "pid_papa_johns_222_delivery",
+          "store_ids": [
+            "13",
+            "2",
+            "3"
+          ],
+          "store_names": [
+            "Amoreiras",
+            "Areeiro",
+            "Benfica"
+          ],
+          "price_cents": 1099,
+          "price_euros": 10.99,
+          "original_price_cents": 1359,
+          "original_price_euros": 13.59,
+          "computed_discount_percentage": 19.1,
+          "pizza_count": 1,
+          "pizza_size": "INDIVIDUAL",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": 1099,
+          "conditions": "",
+          "valid_from": "2022-01-01T00:00:00.000Z",
+          "valid_until": "2029-12-31T00:00:00.000Z",
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_papa_johns_222_take_away",
+      "vendor": "PAPA_JOHNS",
+      "title": "O PAPITO",
+      "description": "1 Pizza Individual + 1 Entrada + 1 Bebida 500ml por 6,99€",
+      "dispatch_methods": [
+        "TAKE_AWAY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "13",
+        "2",
+        "3"
+      ],
+      "all_store_names": [
+        "Amoreiras",
+        "Areeiro",
+        "Benfica"
+      ],
+      "display_price_label": "6,99€",
+      "min_price_cents": 699,
+      "max_price_cents": 699,
+      "min_price_euros": 6.99,
+      "max_price_euros": 6.99,
+      "min_price_per_pizza_cents": 699,
+      "min_price_per_pizza_euros": 6.99,
+      "max_discount_percentage": 48.6,
+      "pizza_count": 1,
+      "pizza_size": "INDIVIDUAL",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://cdn.papajohns.pt/pictures/offers/papito_photo.webp",
+      "source_url": "https://www.papajohns.pt/promocoes/",
+      "days_of_week": [
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY"
+      ],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "pj_222_in_store",
+          "persistent_id": "pid_papa_johns_222_take_away",
+          "store_ids": [
+            "13",
+            "2",
+            "3"
+          ],
+          "store_names": [
+            "Amoreiras",
+            "Areeiro",
+            "Benfica"
+          ],
+          "price_cents": 699,
+          "price_euros": 6.99,
+          "original_price_cents": 1359,
+          "original_price_euros": 13.59,
+          "computed_discount_percentage": 48.6,
+          "pizza_count": 1,
+          "pizza_size": "INDIVIDUAL",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": 699,
+          "conditions": "",
+          "valid_from": "2022-01-01T00:00:00.000Z",
+          "valid_until": "2029-12-31T00:00:00.000Z",
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_papa_johns_232_delivery",
+      "vendor": "PAPA_JOHNS",
+      "title": "Party Combo",
+      "description": "4 Médias + 2 Combombásticos + 2 Bebidas (1,5L). Se são 8 desde 7,49€ cada.",
+      "dispatch_methods": [
+        "DELIVERY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "13",
+        "2",
+        "3"
+      ],
+      "all_store_names": [
+        "Amoreiras",
+        "Areeiro",
+        "Benfica"
+      ],
+      "display_price_label": "59,92€",
+      "min_price_cents": 5992,
+      "max_price_cents": 5992,
+      "min_price_euros": 59.92,
+      "max_price_euros": 59.92,
+      "min_price_per_pizza_cents": null,
+      "min_price_per_pizza_euros": null,
+      "max_discount_percentage": 3.9,
+      "pizza_count": null,
+      "pizza_size": "UNKNOWN",
+      "is_comparable_for_unit_price": false,
+      "has_uniform_price": true,
+      "image_url": "https://cdn.papajohns.pt/pictures/offers/party_combo_delivery_photo.webp",
+      "source_url": "https://www.papajohns.pt/promocoes/",
+      "days_of_week": [
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY"
+      ],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "pj_232_pj_delivery",
+          "persistent_id": "pid_papa_johns_232_delivery",
+          "store_ids": [
+            "13",
+            "2",
+            "3"
+          ],
+          "store_names": [
+            "Amoreiras",
+            "Areeiro",
+            "Benfica"
+          ],
+          "price_cents": 5992,
+          "price_euros": 59.92,
+          "original_price_cents": 6236,
+          "original_price_euros": 62.36,
+          "computed_discount_percentage": 3.9,
+          "pizza_count": null,
+          "pizza_size": "UNKNOWN",
+          "is_comparable_for_unit_price": false,
+          "price_per_pizza_cents": null,
+          "conditions": "",
+          "valid_from": "2024-11-29T08:00:00.000Z",
+          "valid_until": "2029-12-31T00:00:00.000Z",
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_papa_johns_252_delivery",
+      "vendor": "PAPA_JOHNS",
+      "title": "Duo Bestial + entrada",
+      "description": "2 Médias desde 10,49€ cada. Não fiques com vontade de mais!",
+      "dispatch_methods": [
+        "DELIVERY"
+      ],
+      "store_scope": "SPECIFIC_STORES",
+      "all_store_ids": [
+        "13",
+        "2",
+        "3"
+      ],
+      "all_store_names": [
+        "Amoreiras",
+        "Areeiro",
+        "Benfica"
+      ],
+      "display_price_label": "20,98€",
+      "min_price_cents": 2098,
+      "max_price_cents": 2098,
+      "min_price_euros": 20.98,
+      "max_price_euros": 20.98,
+      "min_price_per_pizza_cents": 1049,
+      "min_price_per_pizza_euros": 10.49,
+      "max_discount_percentage": 8.3,
+      "pizza_count": 2,
+      "pizza_size": "MEDIUM",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://cdn.papajohns.pt/pictures/offers/duo_bestial_delivery_photo.webp",
+      "source_url": "https://www.papajohns.pt/promocoes/",
+      "days_of_week": [
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY"
+      ],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "pj_252_pj_delivery",
+          "persistent_id": "pid_papa_johns_252_delivery",
+          "store_ids": [
+            "13",
+            "2",
+            "3"
+          ],
+          "store_names": [
+            "Amoreiras",
+            "Areeiro",
+            "Benfica"
+          ],
+          "price_cents": 2098,
+          "price_euros": 20.98,
+          "original_price_cents": 2289,
+          "original_price_euros": 22.89,
+          "computed_discount_percentage": 8.3,
+          "pizza_count": 2,
+          "pizza_size": "MEDIUM",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": 1049,
+          "conditions": "",
+          "valid_from": "2021-09-01T00:30:00.000Z",
+          "valid_until": "2029-12-31T00:00:00.000Z",
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_pizza_hut_14626_take_away",
+      "vendor": "PIZZA_HUT",
+      "title": "2×1 – MELHOR QUE UMA SÓ DUAS!",
+      "description": "Compre uma pizza e receba outra grátis.",
+      "dispatch_methods": [
+        "TAKE_AWAY"
+      ],
+      "store_scope": "UNKNOWN",
+      "all_store_ids": [],
+      "all_store_names": [],
+      "display_price_label": "Preço sob consulta",
+      "min_price_cents": null,
+      "max_price_cents": null,
+      "min_price_euros": null,
+      "max_price_euros": null,
+      "min_price_per_pizza_cents": null,
+      "min_price_per_pizza_euros": null,
+      "max_discount_percentage": null,
+      "pizza_count": null,
+      "pizza_size": "UNKNOWN",
+      "is_comparable_for_unit_price": false,
+      "has_uniform_price": true,
+      "image_url": null,
+      "source_url": "https://www.pizzahut.pt/ofertas/2x1-tw/",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "ph_14626_promo",
+          "persistent_id": "pid_pizza_hut_14626_take_away",
+          "store_ids": [],
+          "store_names": [],
+          "price_cents": null,
+          "price_euros": null,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": null,
+          "pizza_size": "UNKNOWN",
+          "is_comparable_for_unit_price": false,
+          "price_per_pizza_cents": null,
+          "conditions": "Compre uma pizza e receba outra grátis.",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_pizza_hut_15049_take_away",
+      "vendor": "PIZZA_HUT",
+      "title": "MENU DOUBLE STUFFED CRUST 24,25€",
+      "description": "Menu completo com Double Stuffed Crust por 24,25€.",
+      "dispatch_methods": [
+        "TAKE_AWAY"
+      ],
+      "store_scope": "UNKNOWN",
+      "all_store_ids": [],
+      "all_store_names": [],
+      "display_price_label": "24,25€",
+      "min_price_cents": 2425,
+      "max_price_cents": 2425,
+      "min_price_euros": 24.25,
+      "max_price_euros": 24.25,
+      "min_price_per_pizza_cents": null,
+      "min_price_per_pizza_euros": null,
+      "max_discount_percentage": null,
+      "pizza_count": null,
+      "pizza_size": "UNKNOWN",
+      "is_comparable_for_unit_price": false,
+      "has_uniform_price": true,
+      "image_url": null,
+      "source_url": "https://www.pizzahut.pt/ofertas/menu-dsc-tw/",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "ph_15049_promo",
+          "persistent_id": "pid_pizza_hut_15049_take_away",
+          "store_ids": [],
+          "store_names": [],
+          "price_cents": 2425,
+          "price_euros": 24.25,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": null,
+          "pizza_size": "UNKNOWN",
+          "is_comparable_for_unit_price": false,
+          "price_per_pizza_cents": null,
+          "conditions": "Menu completo com Double Stuffed Crust por 24,25€.",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_pizza_hut_15056_dine_in",
+      "vendor": "PIZZA_HUT",
+      "title": "DOUBLE STUFFED CRUST – Apenas 6€ por pessoa",
+      "description": "Double Stuffed Crust por apenas 6€ por pessoa. Válido em restaurantes aderentes.",
+      "dispatch_methods": [
+        "DINE_IN"
+      ],
+      "store_scope": "UNKNOWN",
+      "all_store_ids": [],
+      "all_store_names": [],
+      "display_price_label": "6,00€",
+      "min_price_cents": 600,
+      "max_price_cents": 600,
+      "min_price_euros": 6.0,
+      "max_price_euros": 6.0,
+      "min_price_per_pizza_cents": null,
+      "min_price_per_pizza_euros": null,
+      "max_discount_percentage": null,
+      "pizza_count": null,
+      "pizza_size": "UNKNOWN",
+      "is_comparable_for_unit_price": false,
+      "has_uniform_price": true,
+      "image_url": null,
+      "source_url": "https://www.pizzahut.pt/ofertas/dlsc6eur/",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "ph_15056_promo",
+          "persistent_id": "pid_pizza_hut_15056_dine_in",
+          "store_ids": [],
+          "store_names": [],
+          "price_cents": 600,
+          "price_euros": 6.0,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": null,
+          "pizza_size": "UNKNOWN",
+          "is_comparable_for_unit_price": false,
+          "price_per_pizza_cents": null,
+          "conditions": "Double Stuffed Crust por apenas 6€ por pessoa. Válido em restaurantes aderentes.",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_telepizza_2admmk_delivery",
+      "vendor": "TELEPIZZA",
+      "title": "1 Média Descomplicada por 10€",
+      "description": "1 Pizza Média com massa fofa até 3 ingredientes por apenas 10€.",
+      "dispatch_methods": [
+        "DELIVERY"
+      ],
+      "store_scope": "UNKNOWN",
+      "all_store_ids": [],
+      "all_store_names": [],
+      "display_price_label": "10,00€",
+      "min_price_cents": 1000,
+      "max_price_cents": 1000,
+      "min_price_euros": 10.0,
+      "max_price_euros": 10.0,
+      "min_price_per_pizza_cents": 1000,
+      "min_price_per_pizza_euros": 10.0,
+      "max_discount_percentage": null,
+      "pizza_count": 1,
+      "pizza_size": "MEDIUM",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://images.telepizza.pt/promos/2admmk.webp",
+      "source_url": "https://www.telepizza.pt/promocoes",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "tp_2ADMMK_delivery",
+          "persistent_id": "pid_telepizza_2admmk_delivery",
+          "store_ids": [],
+          "store_names": [],
+          "price_cents": 1000,
+          "price_euros": 10.0,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": 1,
+          "pizza_size": "MEDIUM",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": 1000,
+          "conditions": "1 Pizza Média com massa fofa até 3 ingredientes por apenas 10€.",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_telepizza_2admmk_take_away",
+      "vendor": "TELEPIZZA",
+      "title": "1 Média Descomplicada por 10€",
+      "description": "1 Pizza Média com massa fofa até 3 ingredientes por apenas 10€.",
+      "dispatch_methods": [
+        "TAKE_AWAY"
+      ],
+      "store_scope": "UNKNOWN",
+      "all_store_ids": [],
+      "all_store_names": [],
+      "display_price_label": "10,00€",
+      "min_price_cents": 1000,
+      "max_price_cents": 1000,
+      "min_price_euros": 10.0,
+      "max_price_euros": 10.0,
+      "min_price_per_pizza_cents": 1000,
+      "min_price_per_pizza_euros": 10.0,
+      "max_discount_percentage": null,
+      "pizza_count": 1,
+      "pizza_size": "MEDIUM",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://images.telepizza.pt/promos/2admmk.webp",
+      "source_url": "https://www.telepizza.pt/promocoes",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "tp_2ADMMK_takeaway",
+          "persistent_id": "pid_telepizza_2admmk_take_away",
+          "store_ids": [],
+          "store_names": [],
+          "price_cents": 1000,
+          "price_euros": 10.0,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": 1,
+          "pizza_size": "MEDIUM",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": 1000,
+          "conditions": "1 Pizza Média com massa fofa até 3 ingredientes por apenas 10€.",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_telepizza_2x1_nc_delivery",
+      "vendor": "TELEPIZZA",
+      "title": "2x1 em Todas as Pizzas",
+      "description": "Na compra de 1 pizza média ou familiar, recebe outra de valor igual ou inferior.",
+      "dispatch_methods": [
+        "DELIVERY"
+      ],
+      "store_scope": "UNKNOWN",
+      "all_store_ids": [],
+      "all_store_names": [],
+      "display_price_label": "Preço sob consulta",
+      "min_price_cents": null,
+      "max_price_cents": null,
+      "min_price_euros": null,
+      "max_price_euros": null,
+      "min_price_per_pizza_cents": null,
+      "min_price_per_pizza_euros": null,
+      "max_discount_percentage": null,
+      "pizza_count": 1,
+      "pizza_size": "INDIVIDUAL",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://images.telepizza.pt/promos/2x1.webp",
+      "source_url": "https://www.telepizza.pt/promocoes",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "tp_2X1_NC_delivery",
+          "persistent_id": "pid_telepizza_2x1_nc_delivery",
+          "store_ids": [],
+          "store_names": [],
+          "price_cents": null,
+          "price_euros": null,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": 1,
+          "pizza_size": "INDIVIDUAL",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": null,
+          "conditions": "Na compra de 1 pizza média ou familiar, recebe outra de valor igual ou inferior.",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_telepizza_2x1_nc_take_away",
+      "vendor": "TELEPIZZA",
+      "title": "2x1 em Todas as Pizzas",
+      "description": "Na compra de 1 pizza média ou familiar, recebe outra de valor igual ou inferior.",
+      "dispatch_methods": [
+        "TAKE_AWAY"
+      ],
+      "store_scope": "UNKNOWN",
+      "all_store_ids": [],
+      "all_store_names": [],
+      "display_price_label": "Preço sob consulta",
+      "min_price_cents": null,
+      "max_price_cents": null,
+      "min_price_euros": null,
+      "max_price_euros": null,
+      "min_price_per_pizza_cents": null,
+      "min_price_per_pizza_euros": null,
+      "max_discount_percentage": null,
+      "pizza_count": 1,
+      "pizza_size": "INDIVIDUAL",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://images.telepizza.pt/promos/2x1.webp",
+      "source_url": "https://www.telepizza.pt/promocoes",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "tp_2X1_NC_takeaway",
+          "persistent_id": "pid_telepizza_2x1_nc_take_away",
+          "store_ids": [],
+          "store_names": [],
+          "price_cents": null,
+          "price_euros": null,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": 1,
+          "pizza_size": "INDIVIDUAL",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": null,
+          "conditions": "Na compra de 1 pizza média ou familiar, recebe outra de valor igual ou inferior.",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    },
+    {
+      "persistent_id": "pid_telepizza_med595_tk_take_away",
+      "vendor": "TELEPIZZA",
+      "title": "Média ao Balcão por 5,95€",
+      "description": "Preço válido exclusivamente para levantamento em loja.",
+      "dispatch_methods": [
+        "TAKE_AWAY"
+      ],
+      "store_scope": "UNKNOWN",
+      "all_store_ids": [],
+      "all_store_names": [],
+      "display_price_label": "5,95€",
+      "min_price_cents": 595,
+      "max_price_cents": 595,
+      "min_price_euros": 5.95,
+      "max_price_euros": 5.95,
+      "min_price_per_pizza_cents": 595,
+      "min_price_per_pizza_euros": 5.95,
+      "max_discount_percentage": null,
+      "pizza_count": 1,
+      "pizza_size": "MEDIUM",
+      "is_comparable_for_unit_price": true,
+      "has_uniform_price": true,
+      "image_url": "https://images.telepizza.pt/promos/med595.webp",
+      "source_url": "https://www.telepizza.pt/promocoes",
+      "days_of_week": [],
+      "location_scope": "Lisboa",
+      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
+      "variants": [
+        {
+          "variant_id": "tp_Med595_TK_takeaway",
+          "persistent_id": "pid_telepizza_med595_tk_take_away",
+          "store_ids": [],
+          "store_names": [],
+          "price_cents": 595,
+          "price_euros": 5.95,
+          "original_price_cents": null,
+          "original_price_euros": null,
+          "computed_discount_percentage": null,
+          "pizza_count": 1,
+          "pizza_size": "MEDIUM",
+          "is_comparable_for_unit_price": true,
+          "price_per_pizza_cents": 595,
+          "conditions": "Preço válido exclusivamente para levantamento em loja.",
+          "valid_from": null,
+          "valid_until": null,
+          "observed_at": "2026-09-28T21:13:08.387354+00:00"
+        }
+      ]
+    }
+  ]
+}
