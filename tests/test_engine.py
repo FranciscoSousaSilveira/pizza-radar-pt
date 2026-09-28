@@ -263,6 +263,49 @@ class TestRecentlyObservedTimezoneAware(unittest.TestCase):
 
 
 # ===========================================================================
+# 4.1. Testes de HIGHEST_DISCOUNT e LOWEST_ABSOLUTE_PRICE
+# ===========================================================================
+
+class TestDiscountAndLowestPriceRankings(unittest.TestCase):
+    """Testa os rankings de maior desconto percentual e menor preço absoluto."""
+
+    def test_rank_by_discount(self) -> None:
+        """Ordena ofertas pela maior taxa percentual de desconto efetivo comprovado."""
+        # p1: 10,00€ de 20,00€ -> 50% de desconto
+        p1 = _make_promo("p1", price_cents=1000, original_price_cents=2000)
+        # p2: 15,00€ de 20,00€ -> 25% de desconto
+        p2 = _make_promo("p2", price_cents=1500, original_price_cents=2000)
+        # p3: 8,00€ sem original_price_cents (sem desconto comprovado) -> excluído do ranking
+        p3 = _make_promo("p3", price_cents=800, original_price_cents=None)
+
+        ranked = rank_by_discount([p1, p2, p3])
+        self.assertEqual(len(ranked), 2)
+        self.assertEqual(ranked[0].promo_id, "p1")
+        self.assertEqual(ranked[0].score, 50.0)
+        self.assertIn("50,0% de desconto", ranked[0].explanation)
+        self.assertIn("Poupança de 10,00€", ranked[0].explanation)
+
+        self.assertEqual(ranked[1].promo_id, "p2")
+        self.assertEqual(ranked[1].score, 25.0)
+
+    def test_rank_by_lowest_price(self) -> None:
+        """Ordena ofertas pelo menor desembolso financeiro absoluto."""
+        p_mid = _make_promo("p_mid", price_cents=1200)
+        p_low = _make_promo("p_low", price_cents=599)
+        p_high = _make_promo("p_high", price_cents=2500)
+        p_none = _make_promo("p_none", price_cents=None)
+
+        ranked = rank_by_lowest_price([p_mid, p_low, p_high, p_none])
+        self.assertEqual(len(ranked), 3)
+        self.assertEqual(ranked[0].promo_id, "p_low")
+        self.assertEqual(ranked[0].score, 599)
+        self.assertIn("5,99€", ranked[0].explanation)
+
+        self.assertEqual(ranked[1].promo_id, "p_mid")
+        self.assertEqual(ranked[2].promo_id, "p_high")
+
+
+# ===========================================================================
 # 5. Testes de Filtros Determinísticos
 # ===========================================================================
 
