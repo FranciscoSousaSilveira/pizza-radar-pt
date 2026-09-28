@@ -46,12 +46,12 @@ flowchart TD
 | Fornecedor | Quota de Armazenamento | Quota de Operações | Política de Inatividade (Suspensão) | Veredito |
 | :--- | :--- | :--- | :--- | :--- |
 | **Turso (libSQL)** | **5 GB** | **500M leituras / 10M escritas/mês** | **Sem suspensão por inatividade** (Permanentemente ativa) | **ESCOLHIDO (Primário)** |
-| **Supabase (PostgreSQL)** | 500 MB | Limitado por egress (5 GB) | **Pausa obrigatória após 7 dias sem queries SQL** | Rejeitado (risco de paragem do serviço) |
+| **Supabase (PostgreSQL)** | 500 MB | Limitado por egress (5 GB) | **Projetos Free com baixa atividade durante um período de 7 dias podem ser pausados** | Rejeitado (risco de paragem do serviço) |
 | **Neon (PostgreSQL)** | 500 MB | 100 CU-horas/mês | *Scale-to-zero* após 5 min (cold start de ~500ms) | Alternativa viável / Plano de Saída |
 | **Cloudflare D1** | 5 GB | 5M leituras / 100k escritas/dia | Sem suspensão (acoplado a Cloudflare Workers) | Forte acoplamento ao ecossistema |
 
 - **Racional da Escolha do Turso:**
-  1. **Ausência de Desativação por Inatividade:** Elimina o problema crítico do Supabase Free, onde projetos são suspensos ao fim de 7 dias sem atividade SQL direta.
+  1. **Ausência de Desativação por Inatividade:** Elimina o risco associado ao Supabase Free, onde projetos Free com baixa atividade durante um período de 7 dias podem ser pausados.
   2. **Compatibilidade SQL Padrão e Zero Lock-in:** O Turso utiliza o protocolo libSQL (fork aberto do SQLite). Em desenvolvimento local e na suíte de testes unitários, o sistema utiliza o motor `sqlite3` nativo da biblioteca padrão de Python sem necessidade de qualquer serviço em nuvem.
   3. **Dimensão e Quotas:** 5 GB de armazenamento e 10 milhões de escritas/mês cobrem largamente as necessidades do MVP (~150 promoções ativas em simultâneo, volume anual estimado inferior a 5 MB).
   4. **Particularidades do Cliente Remoto:** O acesso remoto ao Turso exige um cliente libSQL (utilizando o protocolo HTTP/WebSocket do libSQL com token de autenticação `TURSO_AUTH_TOKEN`), ao passo que o desenvolvimento local e os testes correm em `sqlite3` nativo. A portabilidade entre motores é gerida via interface abstrata de repositório (`PromotionRepository`).
@@ -273,7 +273,7 @@ Todas as quotas, limites e políticas dos fornecedores avaliados foram confirmad
 
 | Fornecedor / Serviço | Documento / Fonte Oficial Consultada | Data de Verificação | Quotas e Regras Confirmadas |
 | :--- | :--- | :--- | :--- |
-| **Turso (libSQL)** | [Turso Pricing](https://turso.tech/pricing) e [Plan Limits](https://docs.turso.tech/plans) | **2026-09-28** | **5 GB** de armazenamento, **10M de escritas/mês**, **500M de leituras/mês**. Confirmada a **ausência de pausa ou suspensão por inatividade** no plano gratuito. |
+| **Turso (libSQL)** | [Turso Pricing](https://turso.tech/pricing) | **2026-09-28** | **5 GB** de armazenamento, **10M de escritas/mês**, **500M de leituras/mês**. Confirmada a **ausência de pausa ou suspensão por inatividade** no plano gratuito. |
 | **Cloudflare Pages** | [Cloudflare Pages Limits](https://developers.cloudflare.com/pages/platform/limits/) e [Plans](https://www.cloudflare.com/plans/) | **2026-09-28** | **Largura de banda ilimitada**, **500 builds/mês**, 100 domínios personalizados, requisições estáticas ilimitadas. |
-| **GitHub Actions** | [About Billing for GitHub Actions](https://docs.github.com/en/billing/managing-billing-for-your-products/managing-billing-for-github-actions/about-billing-for-github-actions) | **2026-09-28** | **2.000 minutos/mês** gratuitos para contas padrão em repositórios privados (e ilimitado em repositórios públicos). |
-| **Supabase** | [Supabase Project Pausing](https://supabase.com/docs/guides/platform/pausing) e [Pricing](https://supabase.com/pricing) | **2026-09-28** | Projetos no plano Free entram em **pausa automática após 7 dias de inatividade** sem queries SQL ou chamadas API diretas. |
+| **GitHub Actions** | [About Billing for GitHub Actions](https://docs.github.com/en/billing/concepts/product-billing/github-actions) | **2026-09-28** | **2.000 minutos/mês** gratuitos para contas padrão em repositórios privados (e ilimitado em repositórios públicos). |
+| **Supabase** | [Supabase Free Project Pausing](https://supabase.com/docs/guides/platform/free-project-pausing) | **2026-09-28** | No plano Free, projetos com baixa atividade durante um período de 7 dias podem ser pausados. |

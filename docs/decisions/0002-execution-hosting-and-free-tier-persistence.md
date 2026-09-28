@@ -26,7 +26,7 @@ Os requisitos fundamentais eram:
 
 2. **Base de Dados Canónica:** **Turso (libSQL / SQLite Serverless)**
    - O Turso disponibiliza 5 GB de armazenamento gratuito e 10 milhões de escritas mensais.
-   - **Vantagem Crítica sobre o Supabase:** O Turso **não suspende nem pausa a base de dados por inatividade** no plano gratuito (ao contrário do Supabase, que pausa ao fim de 7 dias sem queries SQL).
+   - **Vantagem Crítica sobre o Supabase:** O Turso **não suspende nem pausa a base de dados por inatividade** no plano gratuito (ao contrário do Supabase, onde projetos Free com baixa atividade durante um período de 7 dias podem ser pausados).
    - **Protocolo e Autenticação:** O Turso remoto opera sobre o protocolo libSQL (HTTP/WebSocket) e exige autenticação por token (`TURSO_AUTH_TOKEN`).
    - **Portabilidade Real e Plano de Saída:** A portabilidade não se resume a alterar uma string `DATABASE_URL`. A migração apoia-se em:
      - **Abstração por Repositório (`PromotionRepository`):** Interface Python desacoplada da implementação concreta (`LibSqlPromotionRepository`, `SqlitePromotionRepository`, `PostgresPromotionRepository`).
@@ -85,7 +85,7 @@ Todas as quotas, limites e políticas dos fornecedores avaliados foram confirmad
 
 | Fornecedor / Serviço | Documento / Fonte Oficial Consultada | Data de Verificação | Quotas e Regras Confirmadas |
 | :--- | :--- | :--- | :--- |
-| **Turso (libSQL)** | [Turso Pricing](https://turso.tech/pricing) e [Plan Limits](https://docs.turso.tech/plans) | **2026-09-28** | **5 GB** de armazenamento, **10M de escritas/mês**, **500M de leituras/mês**. Confirmada a **ausência de pausa ou suspensão por inatividade** no plano gratuito. |
+| **Turso (libSQL)** | [Turso Pricing](https://turso.tech/pricing) | **2026-09-28** | **5 GB** de armazenamento, **10M de escritas/mês**, **500M de leituras/mês**. Confirmada a **ausência de pausa ou suspensão por inatividade** no plano gratuito. |
 | **Cloudflare Pages** | [Cloudflare Pages Limits](https://developers.cloudflare.com/pages/platform/limits/) e [Plans](https://www.cloudflare.com/plans/) | **2026-09-28** | **Largura de banda ilimitada**, **500 builds/mês**, 100 domínios personalizados, requisições estáticas ilimitadas. |
-| **GitHub Actions** | [About Billing for GitHub Actions](https://docs.github.com/en/billing/managing-billing-for-your-products/managing-billing-for-github-actions/about-billing-for-github-actions) | **2026-09-28** | **2.000 minutos/mês** gratuitos para contas padrão em repositórios privados (e ilimitado em repositórios públicos). |
-| **Supabase** | [Supabase Project Pausing](https://supabase.com/docs/guides/platform/pausing) e [Pricing](https://supabase.com/pricing) | **2026-09-28** | Projetos no plano Free entram em **pausa automática após 7 dias de inatividade** sem queries SQL ou chamadas API diretas. |
+| **GitHub Actions** | [About Billing for GitHub Actions](https://docs.github.com/en/billing/concepts/product-billing/github-actions) | **2026-09-28** | **2.000 minutos/mês** gratuitos para contas padrão em repositórios privados (e ilimitado em repositórios públicos). |
+| **Supabase** | [Supabase Free Project Pausing](https://supabase.com/docs/guides/platform/free-project-pausing) | **2026-09-28** | No plano Free, projetos com baixa atividade durante um período de 7 dias podem ser pausados. |
