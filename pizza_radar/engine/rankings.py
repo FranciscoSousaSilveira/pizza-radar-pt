@@ -4,7 +4,7 @@ Implementa quatro eixos de ordenação objetivos e independentes:
 1. BEST_UNIT_PRICE: Menor custo por pizza individual (estritamente para ofertas comparáveis).
 2. HIGHEST_DISCOUNT: Maior percentagem de desconto efetivo comprovado.
 3. LOWEST_ABSOLUTE_PRICE: Menor desembolso absoluto total.
-4. RECENTLY_OBSERVED: Ofertas mais recentemente observadas.
+4. RECENTLY_OBSERVED: Ofertas mais recentemente observadas (normalizadas em UTC).
 
 Regras de ouro:
 - Zero IA em runtime (cálculos 100% matemáticos e determinísticos).
@@ -15,6 +15,7 @@ Regras de ouro:
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -51,14 +52,19 @@ class RankedItem:
 def rank_by_unit_price(items: list[UnifiedPromo | VisualPromoGroup]) -> list[RankedItem]:
     """Ordena ofertas pelo menor preço unitário por pizza (apenas comparáveis).
 
-    Filtra estritamente itens que não possuem preço ou contagem comprovada de pizzas.
-    Explicação: 'X,XX€ por pizza (N pizzas por Y,YY€)'.
+    Regra estrita: apenas calcula a partir de variantes individualmente comparáveis.
+    Nunca divide o menor preço global do grupo pela contagem de pizzas de outra variante.
     """
     eligible: list[tuple[int, UnifiedPromo | VisualPromoGroup, str]] = []
 
     for item in items:
         if isinstance(item, UnifiedPromo):
-            if item.is_comparable_for_unit_price and item.price_per_pizza_cents is not None and item.price_euros is not None and item.pizza_count:
+            if (
+                item.is_comparable_for_unit_price
+                and item.price_per_pizza_cents is not None
+                and item.price_euros is not None
+                and item.pizza_count
+            ):
                 unit_cents = item.price_per_pizza_cents
                 unit_euros = unit_cents / 100.0
                 expl = (
@@ -67,15 +73,27 @@ def rank_by_unit_price(items: list[UnifiedPromo | VisualPromoGroup]) -> list[Ran
                 )
                 eligible.append((unit_cents, item, expl))
         elif isinstance(item, VisualPromoGroup):
-            if item.is_comparable_for_unit_price and item.min_price_per_pizza_cents is not None and item.min_price_euros is not None and item.pizza_count:
-                unit_cents = item.min_price_per_pizza_cents
-                unit_euros = unit_cents / 100.0
-                prefix = "desde " if not item.has_uniform_price else ""
-                expl = (
-                    f"{prefix}{unit_euros:.2f}€ por pizza ({item.pizza_count} pizzas por {item.min_price_euros:.2f}€)"
-                    .replace(".", ",")
+            # Encontra variantes estritamente comparáveis dentro do grupo
+            comp_variants = [
+                v for v in item.variants
+                if v.is_comparable_for_unit_price and v.price_per_pizza_cents is not None and v.pizza_count
+            ]
+            if comp_variants:
+                # Escolhe a melhor variante comparável do grupo
+                best_var = min(
+                    comp_variants,
+                    key=lambda v: (v.price_per_pizza_cents or 999999, v.price_cents or 999999)
                 )
-                eligible.append((unit_cents, item, expl))
+                if best_var.price_per_pizza_cents is not None and best_var.price_cents is not None:
+                    unit_cents = best_var.price_per_pizza_cents
+                    unit_euros = unit_cents / 100.0
+                    total_euros = best_var.price_cents / 100.0
+                    prefix = "desde " if not item.has_uniform_price else ""
+                    expl = (
+                        f"{prefix}{unit_euros:.2f}€ por pizza ({best_var.pizza_count} pizzas por {total_euros:.2f}€)"
+                        .replace(".", ",")
+                    )
+                    eligible.append((unit_cents, item, expl))
 
     # Ordenação: menor preço por pizza, desempate por menor preço total, depois por ID
     def sort_key(entry: tuple[int, Any, str]) -> tuple[int, int, str]:
@@ -185,37 +203,47 @@ def rank_by_lowest_price(items: list[UnifiedPromo | VisualPromoGroup]) -> list[R
 
 
 def rank_by_recently_observed(items: list[UnifiedPromo | VisualPromoGroup]) -> list[RankedItem]:
-    """Ordena ofertas por data de observação mais recente (novidades)."""
-    eligible: list[tuple[str, UnifiedPromo | VisualPromoGroup, str]] = []
+    """Ordena ofertas por data de observação mais recente normalizada para UTC."""
+    eligible: list[tuple[datetime, UnifiedPromo | VisualPromoGroup, str]] = []
 
     for item in items:
+        dt: datetime | None = None
         if isinstance(item, UnifiedPromo):
-            obs = item.observed_at
-            expl = f"Observado em {obs[:10]}"
-            eligible.append((obs, item, expl))
+            if item.observed_at:
+                try:
+                    d = datetime.fromisoformat(item.observed_at)
+                    dt = d.astimezone(timezone.utc) if d.tzinfo else d.replace(tzinfo=timezone.utc)
+                except ValueError:
+                    pass
         elif isinstance(item, VisualPromoGroup):
-            # Procura a observação mais recente entre as variantes
-            obs = "1970-01-01T00:00:00+00:00"
-            expl = "Atualizado recentemente"
-            eligible.append((obs, item, expl))
+            rec = item.most_recent_observed_at
+            if rec:
+                try:
+                    d = datetime.fromisoformat(rec)
+                    dt = d.astimezone(timezone.utc) if d.tzinfo else d.replace(tzinfo=timezone.utc)
+                except ValueError:
+                    pass
 
-    def sort_key(entry: tuple[str, Any, str]) -> tuple[str, str]:
-        obs, it, _ = entry
+        if dt is not None:
+            expl = f"Observado em {dt.strftime('%Y-%m-%d %H:%M UTC')}"
+            eligible.append((dt, item, expl))
+
+    def sort_key(entry: tuple[datetime, Any, str]) -> tuple[float, int, str]:
+        dt, it, _ = entry
+        total_c = it.price_cents if isinstance(it, UnifiedPromo) else (it.min_price_cents or 0)
         pid = it.id if isinstance(it, UnifiedPromo) else it.persistent_id
-        # Data decrescente (inverter string ISO funciona lexicalmente para ISO 8601)
-        return (obs, pid)
+        return (-dt.timestamp(), total_c or 0, pid)
 
-    # Inverter ordem de data
-    sorted_eligible = sorted(eligible, key=sort_key, reverse=True)
+    sorted_eligible = sorted(eligible, key=sort_key)
 
     ranked: list[RankedItem] = []
-    for idx, (obs, item, expl) in enumerate(sorted_eligible, start=1):
+    for idx, (dt, item, expl) in enumerate(sorted_eligible, start=1):
         ranked.append(
             RankedItem(
                 rank=idx,
                 item=item,
                 criteria=RankingCriteria.RECENTLY_OBSERVED,
-                score=0,
+                score=int(dt.timestamp()),
                 explanation=expl,
             )
         )

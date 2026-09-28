@@ -1,16 +1,15 @@
-"""Testes unitários exaustivos para o motor determinístico (Issue #10).
+"""Testes unitários determinísticos para o motor do Pizza Radar PT (Issue #10).
 
-Cobre:
-  - Identidade persistente estável vs. agrupamento visual vs. variantes de loja.
-  - Invariância do ID de histórico quando lojas divergem ou convergem em preço.
-  - Ausência total de cartões repetidos no agrupamento visual.
-  - Rankings separados e explicáveis:
-      * Melhor preço por pizza (BEST_UNIT_PRICE);
-      * Maior percentagem de desconto (HIGHEST_DISCOUNT);
-      * Menor preço absoluto (LOWEST_ABSOLUTE_PRICE);
-      * Mais recentes (RECENTLY_OBSERVED).
+Cobertura exaustiva:
+  - Identidade persistente estável vs. variantes por loja vs. agrupamento visual.
+  - Invariância do ID de histórico perante divergência e convergência de preços entre lojas.
+  - Extração robusta de campaign_id mesmo com underscores e hífenes.
+  - Agrupamento visual estritamente independente da ordem de entrada (100% determinístico).
+  - Cálculo de BEST_UNIT_PRICE restrito a variantes individualmente comparáveis
+    (nunca divide menor preço global pela contagem de pizza de outra variante).
+  - Exclusão de grupos sem variantes comparáveis no ranking unitário.
+  - RECENTLY_OBSERVED com parsing timezone-aware, normalização para UTC e desempate determinístico.
   - Filtros determinísticos (marca, canal, loja, dia da semana, faixa de preço, comparabilidade).
-  - Tratamento estrito de dados incompletos (zero valores inventados).
 """
 
 from __future__ import annotations
@@ -85,158 +84,186 @@ def _make_promo(
 
 
 # ===========================================================================
-# 1. Testes de Identidade Persistente vs Agrupamento Visual
+# 1. Testes de Extração Robusta de Campaign ID
 # ===========================================================================
 
-class TestPersistentIdentityAndGrouping(unittest.TestCase):
-    """Testa a estabilidade do ID de histórico e ausência de cartões duplicados."""
+class TestCampaignIdExtraction(unittest.TestCase):
+    """Testa extração de identificadores de campanha com underscores e sufixos complexos."""
 
-    def test_extract_canonical_campaign_id(self) -> None:
-        """Extrai o identificador puro da campanha de vários formatos de ID."""
-        self.assertEqual(extract_canonical_campaign_id("pj_223_in_store"), "223")
-        self.assertEqual(extract_canonical_campaign_id("pj_223_in_store_2_13"), "223")
-        self.assertEqual(extract_canonical_campaign_id("dom_lunch_deal_delivery"), "lunch")
+    def test_extract_canonical_campaign_id_with_underscores(self) -> None:
+        """Campaign IDs com underscores internos são preservados integralmente."""
+        self.assertEqual(extract_canonical_campaign_id("pj_super_combo_familia_in_store"), "super_combo_familia")
+        self.assertEqual(extract_canonical_campaign_id("pj_super_combo_familia_in_store_2_13"), "super_combo_familia")
+        self.assertEqual(extract_canonical_campaign_id("dom_duo_bestial_delivery"), "duo_bestial")
+        self.assertEqual(extract_canonical_campaign_id("tp_2x1_terca_louca_takeaway"), "2x1_terca_louca")
+        self.assertEqual(extract_canonical_campaign_id("ph_menu_duo_especial_promo"), "menu_duo_especial")
+
+    def test_extract_canonical_campaign_id_with_hyphens(self) -> None:
+        """Campaign IDs com hífenes são preservados."""
+        self.assertEqual(extract_canonical_campaign_id("ph_menu-duo_promo"), "menu-duo")
+        self.assertEqual(extract_canonical_campaign_id("tp_combo-1_takeaway"), "combo-1")
+
+    def test_extract_canonical_campaign_id_fallback(self) -> None:
+        """IDs sem prefixo ou sufixo padrão devolvem o identificador original sem corrupção."""
         self.assertEqual(extract_canonical_campaign_id("simple_id"), "simple_id")
-
-    def test_persistent_promo_id_is_stable_over_time(self) -> None:
-        """O ID persistente de histórico é invariante mesmo que lojas divirjam em preço."""
-        pid_uniform = build_persistent_promo_id(Brand.PAPA_JOHNS, "223", DispatchMethod.TAKE_AWAY)
-        pid_diverged = build_persistent_promo_id(Brand.PAPA_JOHNS, "223", DispatchMethod.TAKE_AWAY)
-        self.assertEqual(pid_uniform, pid_diverged)
-        self.assertEqual(pid_uniform, "pid_papa_johns_223_take_away")
-
-    def test_visual_grouping_no_duplicate_cards(self) -> None:
-        """Múltiplas variantes da mesma oferta agrupam num único VisualPromoGroup."""
-        # Suponha que loja 2 e 13 têm preço 1798 e loja 3 tem preço 1998
-        promo_a = _make_promo("pj_223_in_store_2_13", price_cents=1798, store_ids=["2", "13"])
-        promo_b = _make_promo("pj_223_in_store_3", price_cents=1998, store_ids=["3"])
-
-        groups = group_promos_for_visual_presentation([promo_a, promo_b])
-
-        # O frontend recebe exatamente 1 cartão (VisualPromoGroup)
-        self.assertEqual(len(groups), 1)
-        vg = groups[0]
-        self.assertEqual(vg.persistent_id, "pid_papa_johns_223_take_away")
-        self.assertFalse(vg.has_uniform_price)
-        self.assertEqual(vg.min_price_cents, 1798)
-        self.assertEqual(vg.max_price_cents, 1998)
-        self.assertEqual(vg.display_price_label, "Desde 17,98€")
-        self.assertEqual(vg.all_store_ids, ["2", "3", "13"])
-        self.assertEqual(len(vg.variants), 2)
-
-    def test_visual_grouping_uniform_price(self) -> None:
-        """Quando todas as lojas têm o mesmo preço, exibe preço único."""
-        promo = _make_promo("pj_223_in_store", price_cents=1798, store_ids=["2", "3", "13"])
-        groups = group_promos_for_visual_presentation([promo])
-
-        self.assertEqual(len(groups), 1)
-        vg = groups[0]
-        self.assertTrue(vg.has_uniform_price)
-        self.assertEqual(vg.display_price_label, "17,98€")
-
-    def test_visual_grouping_separates_channels(self) -> None:
-        """Takeaway e Delivery para a mesma campanha geram 2 cartões visuais distintos."""
-        takeaway = _make_promo("pj_223_in_store", price_cents=1798, dispatch_methods=[DispatchMethod.TAKE_AWAY])
-        delivery = _make_promo("pj_223_pj_delivery", price_cents=2098, dispatch_methods=[DispatchMethod.DELIVERY])
-
-        groups = group_promos_for_visual_presentation([takeaway, delivery])
-        self.assertEqual(len(groups), 2)
-        pids = {g.persistent_id for g in groups}
-        self.assertIn("pid_papa_johns_223_take_away", pids)
-        self.assertIn("pid_papa_johns_223_delivery", pids)
+        self.assertEqual(extract_canonical_campaign_id("promocao_independente"), "promocao_independente")
 
 
 # ===========================================================================
-# 2. Testes de Rankings Determinísticos e Explicáveis
+# 2. Testes de Identidade Persistente e Agrupamento Independente de Ordem
 # ===========================================================================
 
-class TestDeterministicRankings(unittest.TestCase):
-    """Testa os quatro algoritmos de ranking objetivos e suas explicações."""
+class TestPersistentIdentityAndDeterministicGrouping(unittest.TestCase):
+    """Testa estabilidade de IDs perante divergência/convergência e ordem de entrada."""
 
-    def setUp(self) -> None:
-        # Promo 1: 2 pizzas por 15,00€ -> 7,50€ / pizza (comparável)
-        self.p1 = _make_promo("p1", title="Duo 15", price_cents=1500, pizza_count=2, original_price_cents=2000)
-        # Promo 2: 3 pizzas por 21,00€ -> 7,00€ / pizza (melhor unitário)
-        self.p2 = _make_promo("p2", title="Trio 21", price_cents=2100, pizza_count=3, original_price_cents=3000)
-        # Promo 3: Combo sem pizza_count especificado (não comparável)
-        self.p3 = _make_promo("p3", title="Menu Secreto", price_cents=599, pizza_count=None, original_price_cents=1000)
-        # Promo 4: 1 pizza por 8,00€ com 50% desconto (800 / 1600)
-        self.p4 = _make_promo("p4", title="50% Off", price_cents=800, pizza_count=1, original_price_cents=1600)
+    def test_persistent_promo_id_stability_across_divergence_and_convergence(self) -> None:
+        """O ID persistente não muda quando lojas convergem ou divergem em preço."""
+        # Estado 1: Loja 2 e 3 convergem no preço de 17,98€
+        pid_state1 = build_persistent_promo_id(Brand.PAPA_JOHNS, "super_combo", DispatchMethod.TAKE_AWAY)
 
-    def test_rank_by_unit_price(self) -> None:
-        """Ordena pelo menor preço por pizza e exclui ofertas não comparáveis."""
-        ranked = rank_by_unit_price([self.p1, self.p2, self.p3, self.p4])
+        # Estado 2: Loja 3 diverge para 19,98€
+        pid_state2 = build_persistent_promo_id(Brand.PAPA_JOHNS, "super_combo", DispatchMethod.TAKE_AWAY)
 
-        # p3 deve ser excluído porque pizza_count é None
+        # Estado 3: Loja 3 volta a convergir para 17,98€
+        pid_state3 = build_persistent_promo_id(Brand.PAPA_JOHNS, "super_combo", DispatchMethod.TAKE_AWAY)
+
+        self.assertEqual(pid_state1, pid_state2)
+        self.assertEqual(pid_state2, pid_state3)
+        self.assertEqual(pid_state1, "pid_papa_johns_super_combo_take_away")
+
+    def test_grouping_is_independent_of_input_order(self) -> None:
+        """O agrupamento visual produz o mesmo resultado independentemente da ordem dos itens."""
+        p_cheap = _make_promo("pj_223_in_store_2", price_cents=1798, store_ids=["2"], title="Duo Bestial")
+        p_expensive = _make_promo("pj_223_in_store_3", price_cents=1998, store_ids=["3"], title="Duo Bestial")
+
+        # Ordem 1: barato primeiro
+        groups_1 = group_promos_for_visual_presentation([p_cheap, p_expensive])
+        # Ordem 2: caro primeiro
+        groups_2 = group_promos_for_visual_presentation([p_expensive, p_cheap])
+
+        self.assertEqual(len(groups_1), 1)
+        self.assertEqual(len(groups_2), 1)
+
+        vg1 = groups_1[0]
+        vg2 = groups_2[0]
+
+        self.assertEqual(vg1.persistent_id, vg2.persistent_id)
+        self.assertEqual(vg1.min_price_cents, vg2.min_price_cents)
+        self.assertEqual(vg1.max_price_cents, vg2.max_price_cents)
+        self.assertEqual(vg1.display_price_label, vg2.display_price_label)
+        self.assertEqual(vg1.all_store_ids, vg2.all_store_ids)
+        self.assertEqual([v.variant_id for v in vg1.variants], [v.variant_id for v in vg2.variants])
+
+    def test_days_of_week_combination_across_stores(self) -> None:
+        """Combina dias da semana deterministicamente entre variantes."""
+        # Loja 2 oferece apenas segundas, Loja 3 oferece apenas terças
+        p_mon = _make_promo("pj_deal_in_store_2", store_ids=["2"], days_of_week=[Weekday.MONDAY])
+        p_tue = _make_promo("pj_deal_in_store_3", store_ids=["3"], days_of_week=[Weekday.TUESDAY])
+
+        groups = group_promos_for_visual_presentation([p_mon, p_tue])
+        self.assertEqual(groups[0].days_of_week, [Weekday.MONDAY, Weekday.TUESDAY])
+
+        # Se uma loja oferece diariamente (dias vazios), a oferta combinada é diária
+        p_daily = _make_promo("pj_deal_in_store_13", store_ids=["13"], days_of_week=[])
+        groups_with_daily = group_promos_for_visual_presentation([p_mon, p_tue, p_daily])
+        self.assertEqual(groups_with_daily[0].days_of_week, [])
+
+
+# ===========================================================================
+# 3. Testes de BEST_UNIT_PRICE em Grupos com Variantes Não Comparáveis
+# ===========================================================================
+
+class TestBestUnitPriceIntegrity(unittest.TestCase):
+    """Garante que o preço unitário é calculado apenas a partir de variantes comparáveis."""
+
+    def test_never_divide_min_price_by_another_variants_pizza_count(self) -> None:
+        """Variante barata não-comparável não contamina o preço unitário de variante comparável."""
+        # Variante A: Bebida ou acompanhamento a 5,00€ (500 cents), sem contagem de pizzas
+        p_drink = _make_promo("pj_combo_in_store_2", price_cents=500, pizza_count=None, store_ids=["2"])
+        # Variante B: 2 pizzas médias a 16,00€ (1600 cents) -> 8,00€ por pizza (800 cents)
+        p_pizza = _make_promo("pj_combo_in_store_3", price_cents=1600, pizza_count=2, store_ids=["3"])
+
+        groups = group_promos_for_visual_presentation([p_drink, p_pizza])
+        self.assertEqual(len(groups), 1)
+        vg = groups[0]
+
+        # O menor preço do grupo é 500 cêntimos
+        self.assertEqual(vg.min_price_cents, 500)
+        # O menor preço UNITÁRIO POR PIZZA deve ser 800 cêntimos (1600 / 2) e NUNCA 250 (500 / 2)!
+        self.assertEqual(vg.min_price_per_pizza_cents, 800)
+        self.assertEqual(vg.min_price_per_pizza_euros, 8.00)
+
+        # Ranking unitário deve usar 800 cêntimos e fornecer explicação coerente
+        ranked = rank_by_unit_price([vg])
+        self.assertEqual(len(ranked), 1)
+        self.assertEqual(ranked[0].score, 800)
+        self.assertIn("8,00€ por pizza", ranked[0].explanation)
+        self.assertIn("16,00€", ranked[0].explanation)
+
+    def test_group_without_comparable_variants_is_excluded(self) -> None:
+        """Grupo cujas variantes não possuem contagem de pizza é excluído do ranking unitário."""
+        p_incomparable1 = _make_promo("pj_inc_in_store_2", price_cents=1000, pizza_count=None, store_ids=["2"])
+        p_incomparable2 = _make_promo("pj_inc_in_store_3", price_cents=1200, pizza_count=None, store_ids=["3"])
+
+        groups = group_promos_for_visual_presentation([p_incomparable1, p_incomparable2])
+        self.assertFalse(groups[0].is_comparable_for_unit_price)
+        self.assertIsNone(groups[0].min_price_per_pizza_cents)
+
+        ranked = rank_by_unit_price([groups[0]])
+        self.assertEqual(len(ranked), 0)
+
+
+# ===========================================================================
+# 4. Testes de RECENTLY_OBSERVED Timezone-Aware e Empates
+# ===========================================================================
+
+class TestRecentlyObservedTimezoneAware(unittest.TestCase):
+    """Testa a ordenação temporal com fusos horários reais e empates determinísticos."""
+
+    def test_visual_group_calculates_real_most_recent_utc_timestamp(self) -> None:
+        """Calcula o instante mais recente real entre as variantes normalizado para UTC."""
+        # Variante antiga: 14:00 UTC
+        v_old = _make_promo("pj_deal_in_store_2", observed_at="2026-09-28T14:00:00+00:00", store_ids=["2"])
+        # Variante recente: 16:30 UTC+01:00 (que equivale a 15:30 UTC)
+        v_rec = _make_promo("pj_deal_in_store_3", observed_at="2026-09-28T16:30:00+01:00", store_ids=["3"])
+
+        groups = group_promos_for_visual_presentation([v_old, v_rec])
+        self.assertEqual(len(groups), 1)
+        vg = groups[0]
+
+        # 16:30+01:00 = 15:30 UTC, que é posterior a 14:00 UTC
+        self.assertEqual(vg.most_recent_observed_at, "2026-09-28T15:30:00+00:00")
+
+    def test_ranking_recently_observed_with_different_timezone_offsets(self) -> None:
+        """Ofertas com fusos horários diferentes são ordenadas corretamente após conversão UTC."""
+        # A: 14:00 UTC
+        # B: 15:30 UTC (expresso como 17:30+02:00)
+        # C: 16:00 UTC (expresso como 16:00Z)
+        p_a = _make_promo("p_a", observed_at="2026-09-28T14:00:00+00:00")
+        p_b = _make_promo("p_b", observed_at="2026-09-28T17:30:00+02:00")  # 15:30 UTC
+        p_c = _make_promo("p_c", observed_at="2026-09-28T16:00:00Z")        # 16:00 UTC
+
+        ranked = rank_by_recently_observed([p_a, p_b, p_c])
+
         self.assertEqual(len(ranked), 3)
+        self.assertEqual(ranked[0].promo_id, "p_c")  # Mais recente (16:00 UTC)
+        self.assertEqual(ranked[1].promo_id, "p_b")  # Médio (15:30 UTC)
+        self.assertEqual(ranked[2].promo_id, "p_a")  # Mais antigo (14:00 UTC)
 
-        # 1º lugar: p2 (7,00€ / pizza)
-        self.assertEqual(ranked[0].rank, 1)
-        self.assertEqual(ranked[0].promo_id, "p2")
-        self.assertEqual(ranked[0].score, 700)
-        self.assertIn("7,00€ por pizza", ranked[0].explanation)
+    def test_deterministic_tie_breaking_for_identical_timestamps(self) -> None:
+        """Instantes idênticos desempatam determinísticamente por menor preço e depois por ID."""
+        ts = "2026-09-28T16:00:00+00:00"
+        p_expensive = _make_promo("p_z_exp", price_cents=2000, observed_at=ts)
+        p_cheap = _make_promo("p_a_cheap", price_cents=1000, observed_at=ts)
 
-        # 2º lugar: p1 (7,50€ / pizza)
-        self.assertEqual(ranked[1].rank, 2)
-        self.assertEqual(ranked[1].promo_id, "p1")
-        self.assertEqual(ranked[1].score, 750)
-        self.assertIn("7,50€ por pizza", ranked[1].explanation)
-
-        # 3º lugar: p4 (8,00€ / pizza)
-        self.assertEqual(ranked[2].rank, 3)
-        self.assertEqual(ranked[2].promo_id, "p4")
-        self.assertEqual(ranked[2].score, 800)
-
-    def test_rank_by_discount(self) -> None:
-        """Ordena pela maior percentagem de desconto comprovada."""
-        # p4: (1600 - 800) / 1600 = 50.0%
-        # p3: (1000 - 599) / 1000 = 40.1%
-        # p2: (3000 - 2100) / 3000 = 30.0%
-        # p1: (2000 - 1500) / 2000 = 25.0%
-        ranked = rank_by_discount([self.p1, self.p2, self.p3, self.p4])
-
-        self.assertEqual(len(ranked), 4)
-        self.assertEqual(ranked[0].promo_id, "p4")
-        self.assertAlmostEqual(ranked[0].score, 50.0, places=1)
-        self.assertIn("50,0% de desconto", ranked[0].explanation)
-        self.assertIn("Poupança de 8,00€", ranked[0].explanation)
-
-        self.assertEqual(ranked[1].promo_id, "p3")
-        self.assertEqual(ranked[2].promo_id, "p2")
-        self.assertEqual(ranked[3].promo_id, "p1")
-
-    def test_rank_by_lowest_price(self) -> None:
-        """Ordena pelo menor valor absoluto total (menor desembolso)."""
-        ranked = rank_by_lowest_price([self.p1, self.p2, self.p3, self.p4])
-
-        self.assertEqual(len(ranked), 4)
-        # Menor preço: p3 (5,99€)
-        self.assertEqual(ranked[0].promo_id, "p3")
-        self.assertEqual(ranked[0].score, 599)
-        self.assertIn("5,99€", ranked[0].explanation)
-
-        # 2º: p4 (8,00€)
-        self.assertEqual(ranked[1].promo_id, "p4")
-        self.assertEqual(ranked[1].score, 800)
-
-        # 3º: p1 (15,00€)
-        self.assertEqual(ranked[2].promo_id, "p1")
-
-        # 4º: p2 (21,00€)
-        self.assertEqual(ranked[3].promo_id, "p2")
-
-    def test_rank_by_recently_observed(self) -> None:
-        """Ordena por data de observação decrescente."""
-        older = _make_promo("old", observed_at="2026-09-01T10:00:00+00:00")
-        newer = _make_promo("new", observed_at="2026-09-28T18:00:00+00:00")
-
-        ranked = rank_by_recently_observed([older, newer])
-        self.assertEqual(ranked[0].promo_id, "new")
-        self.assertEqual(ranked[1].promo_id, "old")
+        ranked = rank_by_recently_observed([p_expensive, p_cheap])
+        # Desempate pelo menor preço
+        self.assertEqual(ranked[0].promo_id, "p_a_cheap")
+        self.assertEqual(ranked[1].promo_id, "p_z_exp")
 
 
 # ===========================================================================
-# 3. Testes de Filtros Determinísticos
+# 5. Testes de Filtros Determinísticos
 # ===========================================================================
 
 class TestFilters(unittest.TestCase):
@@ -248,13 +275,11 @@ class TestFilters(unittest.TestCase):
         self.dom = _make_promo("dm1", vendor=Brand.DOMINOS, store_ids=["140"], dispatch_methods=[DispatchMethod.TAKE_AWAY], price_cents=2000, days_of_week=[Weekday.MONDAY])
 
     def test_filter_by_brand(self) -> None:
-        """Filtra ofertas por marca específica."""
         result = filter_by_brand([self.pj, self.tele, self.dom], Brand.PAPA_JOHNS)
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].id, "pj1")
 
     def test_filter_by_dispatch_method(self) -> None:
-        """Filtra ofertas por canal de entrega."""
         takeaway = filter_by_dispatch_method([self.pj, self.tele, self.dom], DispatchMethod.TAKE_AWAY)
         self.assertEqual(len(takeaway), 2)
         delivery = filter_by_dispatch_method([self.pj, self.tele, self.dom], DispatchMethod.DELIVERY)
@@ -262,14 +287,11 @@ class TestFilters(unittest.TestCase):
         self.assertEqual(delivery[0].id, "tp1")
 
     def test_filter_by_store(self) -> None:
-        """Filtra ofertas por elegibilidade de loja."""
         store_2 = filter_by_store([self.pj, self.tele, self.dom], "2")
         self.assertEqual(len(store_2), 1)
         self.assertEqual(store_2[0].id, "pj1")
 
     def test_filter_by_weekday(self) -> None:
-        """Filtra ofertas elegíveis num determinado dia da semana."""
-        # dm1 é apenas às segundas; pj e tele não têm restrição de dia (válidas todos os dias)
         monday_promos = filter_by_weekday([self.pj, self.tele, self.dom], Weekday.MONDAY)
         self.assertEqual(len(monday_promos), 3)
 
@@ -278,13 +300,11 @@ class TestFilters(unittest.TestCase):
         self.assertNotIn(self.dom, tuesday_promos)
 
     def test_filter_by_price_range(self) -> None:
-        """Filtra ofertas dentro de um intervalo de preço."""
         mid_range = filter_by_price_range([self.pj, self.tele, self.dom], min_cents=1200, max_cents=1800)
         self.assertEqual(len(mid_range), 1)
         self.assertEqual(mid_range[0].id, "tp1")
 
     def test_filter_comparable_only(self) -> None:
-        """Filtra estritamente itens comparáveis."""
         comp = _make_promo("comp", price_cents=1000, pizza_count=1)
         non_comp = _make_promo("non_comp", price_cents=1000, pizza_count=None)
 

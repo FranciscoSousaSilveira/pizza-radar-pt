@@ -7,17 +7,19 @@ Resolve formalmente os três níveis de identidade de dados promocionais:
      diferentes, nem quando voltam a convergir.
    - Baseia-se no identificador intrínseco da campanha na marca e canal de atendimento.
 2. Variante por Loja (StoreVariant):
-   - Modela divergências reais de preço, datas de validade ou condições entre lojas físicas.
+   - Modela divergências reais de preço, contagem de pizzas, datas de validade ou condições.
 3. Agrupamento Visual (VisualPromoGroup):
    - Garante que a interface do utilizador nunca exibe cartões duplicados para a mesma campanha.
-   - Consolida lojas aderentes, exibindo preço único quando uniforme ou faixa de preços
-     ("desde X€") quando existirem divergências entre estabelecimentos.
+   - Independente da ordem de entrada dos dados (100% determinístico e idempotente).
+   - Calcula preço unitário por pizza estritamente a partir de variantes individualmente comparáveis.
+   - Calcula o instante mais recente de observação normalizado para UTC.
 """
 
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any
 
@@ -31,20 +33,36 @@ from pizza_radar.core.models import (
     Weekday,
 )
 
+_KNOWN_VENDOR_PREFIXES = ("pj_", "dom_", "tp_", "ph_")
+_KNOWN_CHANNEL_SUFFIX_PATTERNS = [
+    r"_in_store(?:_[0-9]+)*$",
+    r"_pj_delivery(?:_[0-9]+)*$",
+    r"_takeaway(?:_[0-9]+)*$",
+    r"_delivery(?:_[0-9]+)*$",
+    r"_promo(?:_[0-9]+)*$",
+]
+_SUFFIX_REGEX = re.compile("|".join(_KNOWN_CHANNEL_SUFFIX_PATTERNS), re.IGNORECASE)
+
 
 def extract_canonical_campaign_id(promo_id: str) -> str:
     """Extrai o identificador canónico da campanha a partir de um ID de UnifiedPromo.
 
-    Formatos de ID padronizados pelos adaptadores:
-    - pj_<offer_id>_<channel> (ex: 'pj_223_in_store' -> '223')
-    - dom_<offer_id>_<channel> (ex: 'dom_2434_delivery' -> '2434')
-    - tp_<offer_id>_<channel> (ex: 'tp_2admmk_takeaway' -> '2admmk')
-    - ph_<offer_id>_<channel> (ex: 'ph_101_delivery' -> '101')
+    Remove prefixos conhecidos de marca (ex.: 'pj_', 'dom_', 'tp_', 'ph_') e sufixos
+    de canal e lojas aderentes (ex.: '_in_store', '_delivery_2_13', '_takeaway').
+    Preserva underscores ou hífenes internos ao identificador da campanha
+    (ex.: 'pj_super_combo_familia_in_store' -> 'super_combo_familia').
     """
-    parts = promo_id.split("_")
-    if len(parts) >= 2 and parts[0].lower() in ("pj", "dom", "tp", "ph"):
-        return parts[1]
-    return promo_id
+    s = promo_id.strip()
+    for pfx in _KNOWN_VENDOR_PREFIXES:
+        if s.lower().startswith(pfx):
+            s = s[len(pfx):]
+            break
+
+    match = _SUFFIX_REGEX.search(s)
+    if match:
+        s = s[:match.start()]
+
+    return s if s else promo_id
 
 
 def build_persistent_promo_id(vendor: Brand, campaign_id: str, dispatch_method: DispatchMethod) -> str:
@@ -68,6 +86,10 @@ class StoreVariant:
     store_names: list[str] = field(default_factory=list)
     price_cents: int | None = None
     original_price_cents: int | None = None
+    pizza_count: int | None = None
+    pizza_size: PizzaSize = PizzaSize.UNKNOWN
+    is_comparable_for_unit_price: bool = False
+    observed_at: str | None = None
     conditions: str = ""
     valid_from: str | None = None
     valid_until: str | None = None
@@ -79,6 +101,13 @@ class StoreVariant:
     @property
     def original_price_euros(self) -> float | None:
         return round(self.original_price_cents / 100.0, 2) if self.original_price_cents is not None else None
+
+    @property
+    def price_per_pizza_cents(self) -> int | None:
+        """Calcula o preço unitário apenas se esta variante for individualmente comparável."""
+        if self.is_comparable_for_unit_price and self.price_cents is not None and self.pizza_count and self.pizza_count > 0:
+            return round(self.price_cents / self.pizza_count)
+        return None
 
     @property
     def computed_discount_percentage(self) -> float | None:
@@ -112,11 +141,15 @@ class VisualPromoGroup:
     variants: list[StoreVariant] = field(default_factory=list)
     pizza_count: int | None = None
     pizza_size: PizzaSize = PizzaSize.UNKNOWN
-    is_comparable_for_unit_price: bool = False
     image_url: str | None = None
     source_url: str = ""
     days_of_week: list[Weekday] = field(default_factory=list)
     location_scope: str = "Lisboa"
+
+    @property
+    def is_comparable_for_unit_price(self) -> bool:
+        """Verdadeiro se existir pelo menos uma variante individualmente comparável."""
+        return any(v.is_comparable_for_unit_price for v in self.variants)
 
     @property
     def has_uniform_price(self) -> bool:
@@ -159,11 +192,16 @@ class VisualPromoGroup:
 
     @property
     def min_price_per_pizza_cents(self) -> int | None:
-        """Menor preço unitário por pizza quando comparável."""
-        if not self.is_comparable_for_unit_price or not self.pizza_count or self.pizza_count <= 0:
-            return None
-        min_p = self.min_price_cents
-        return round(min_p / self.pizza_count) if min_p is not None else None
+        """Menor preço unitário por pizza calculado apenas entre variantes comparáveis.
+
+        Regra estrita: nunca divide o menor preço global do grupo pela contagem de pizzas
+        de outra variante.
+        """
+        unit_prices = [
+            v.price_per_pizza_cents for v in self.variants
+            if v.is_comparable_for_unit_price and v.price_per_pizza_cents is not None
+        ]
+        return min(unit_prices) if unit_prices else None
 
     @property
     def min_price_per_pizza_euros(self) -> float | None:
@@ -176,47 +214,62 @@ class VisualPromoGroup:
         discounts = [v.computed_discount_percentage for v in self.variants if v.computed_discount_percentage is not None]
         return max(discounts) if discounts else None
 
+    @property
+    def most_recent_observed_at(self) -> str | None:
+        """Calcula o instante mais recente real entre as variantes normalizado para UTC."""
+        timestamps: list[datetime] = []
+        for v in self.variants:
+            if v.observed_at:
+                try:
+                    dt = datetime.fromisoformat(v.observed_at)
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    timestamps.append(dt.astimezone(timezone.utc))
+                except ValueError:
+                    pass
+        if not timestamps:
+            return None
+        return max(timestamps).isoformat()
+
 
 def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[VisualPromoGroup]:
     """Agrupa deterministicamente uma lista de UnifiedPromo em VisualPromoGroup.
 
     Garante:
     - 1 único cartão por par (campanha, canal).
-    - Agregação de todas as lojas aderentes e suas respetivas variantes de preço.
-    - Ordenação determinística e estável.
+    - Independente da ordem de inserção na lista de entrada.
+    - Preserva e agrega lojas aderentes e variantes de preço com rigor.
     """
-    # Mapeia: persistent_id -> (promos_da_campanha)
     grouped: dict[str, list[UnifiedPromo]] = {}
 
     for promo in promos:
         campaign_id = extract_canonical_campaign_id(promo.id)
-        # Se uma promoção tiver múltiplos dispatch_methods, agrupamos pelo canal primário
         method = promo.dispatch_methods[0] if promo.dispatch_methods else DispatchMethod.DELIVERY
         pid = build_persistent_promo_id(promo.vendor, campaign_id, method)
         grouped.setdefault(pid, []).append(promo)
 
     visual_groups: list[VisualPromoGroup] = []
 
-    # Ordenação determinística das chaves
+    # Ordem determinística estável de chaves
     for pid in sorted(grouped.keys()):
-        group_items = grouped[pid]
-        first = group_items[0]
+        raw_items = grouped[pid]
+
+        # Ordenar deterministicamente as ofertas do grupo para eliminar dependência da ordem de entrada
+        def _item_sort_key(p: UnifiedPromo) -> tuple:
+            return (
+                p.price_cents if p.price_cents is not None else 999999,
+                p.title,
+                p.id,
+            )
+        sorted_items = sorted(raw_items, key=_item_sort_key)
+        best_item = sorted_items[0]
 
         # Extrair lojas e variantes
         all_store_ids_set: set[str] = set()
         all_store_names_set: set[str] = set()
         variants: list[StoreVariant] = []
 
-        # Determinar se a promoção tem comparabilidade de pizza unitária
-        is_comparable = any(p.is_comparable_for_unit_price for p in group_items)
-        pizza_count = next((p.pizza_count for p in group_items if p.pizza_count is not None), None)
-        pizza_size = next((p.pizza_size for p in group_items if p.pizza_size != PizzaSize.UNKNOWN), PizzaSize.UNKNOWN)
-
-        # Imagem e dias da semana
-        image_url = next((p.image_url for p in group_items if p.image_url), None)
-        days_of_week = first.days_of_week
-
-        for promo in group_items:
+        for promo in sorted_items:
             for sid in promo.store_ids:
                 all_store_ids_set.add(sid)
             for sname in promo.store_names:
@@ -226,10 +279,14 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
                 StoreVariant(
                     variant_id=promo.id,
                     persistent_id=pid,
-                    store_ids=list(promo.store_ids),
-                    store_names=list(promo.store_names),
+                    store_ids=sorted(promo.store_ids, key=lambda s: (0, int(s)) if s.isdigit() else (1, s)),
+                    store_names=sorted(promo.store_names),
                     price_cents=promo.price_cents,
                     original_price_cents=promo.original_price_cents,
+                    pizza_count=promo.pizza_count,
+                    pizza_size=promo.pizza_size,
+                    is_comparable_for_unit_price=promo.is_comparable_for_unit_price,
+                    observed_at=promo.observed_at,
                     conditions=promo.conditions,
                     valid_from=promo.valid_from,
                     valid_until=promo.valid_until,
@@ -239,23 +296,40 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
         sorted_store_ids = sorted(all_store_ids_set, key=lambda s: (0, int(s)) if s.isdigit() else (1, s))
         sorted_store_names = sorted(all_store_names_set)
 
+        # Imagem determinística (primeira válida encontrada na ordem ordenada)
+        image_url = next((p.image_url for p in sorted_items if p.image_url), None)
+
+        # Combinação determinística de dias da semana
+        all_day_sets = [set(p.days_of_week) for p in sorted_items]
+        if any(len(s) == 0 for s in all_day_sets):
+            # Se pelo menos uma loja oferece diariamente sem restrição, a oferta é diária
+            combined_days: list[Weekday] = []
+        else:
+            union_days = set().union(*all_day_sets)
+            weekday_order = {w: idx for idx, w in enumerate(Weekday)}
+            combined_days = sorted(union_days, key=lambda w: weekday_order[w])
+
+        # pizza_count representativo da melhor variante comparável (ou da primeira variante)
+        comp_variant = next((v for v in variants if v.is_comparable_for_unit_price), None)
+        pizza_count = comp_variant.pizza_count if comp_variant else best_item.pizza_count
+        pizza_size = comp_variant.pizza_size if comp_variant else best_item.pizza_size
+
         vg = VisualPromoGroup(
             persistent_id=pid,
-            vendor=first.vendor,
-            title=first.title,
-            description=first.description,
-            dispatch_methods=first.dispatch_methods,
-            store_scope=first.store_scope,
+            vendor=best_item.vendor,
+            title=best_item.title,
+            description=best_item.description,
+            dispatch_methods=best_item.dispatch_methods,
+            store_scope=best_item.store_scope,
             all_store_ids=sorted_store_ids,
             all_store_names=sorted_store_names,
             variants=variants,
             pizza_count=pizza_count,
             pizza_size=pizza_size,
-            is_comparable_for_unit_price=is_comparable,
             image_url=image_url,
-            source_url=first.source_url,
-            days_of_week=days_of_week,
-            location_scope=first.location_scope,
+            source_url=best_item.source_url,
+            days_of_week=combined_days,
+            location_scope=best_item.location_scope,
         )
         visual_groups.append(vg)
 
