@@ -2,29 +2,22 @@
 
 Implementa PromoAdapterInterface com separação explícita das camadas:
   - fetch_raw(): HTTP GET ao endpoint público sem autenticação.
-  - parse(): extração determinística dos campos relevantes do JSON.
-  - adapt(): normalização para o contrato UnifiedPromo.
+  - parse(): extração e validação determinística dos campos relevantes do JSON.
+  - adapt(): normalização para o contrato UnifiedPromo com agregação de lojas.
 
 Regras de engenharia estritamente aplicadas:
   - Zero IA em runtime (sem chamadas a LLMs).
   - Zero segredos (sem API keys ou tokens).
-  - Preços em cêntimos inteiros (integer cents).
-  - Campos opcionais nunca inventados: pizza_count é None porque o endpoint
-    /v1/offers/promotions não expõe offer_groups; image_url, valid_from,
-    valid_until e conditions apenas preenchidos quando a fonte os fornece.
+  - Preços em cêntimos inteiros (integer cents), calculados via Decimal
+    com ROUND_HALF_UP (zero conversão ou aritmética através de float).
+  - Se um preço estiver presente mas for inválido, emite ParseError explicitamente.
+  - Não publica itens com hidden=true.
+  - Desduplicação determinística entre lojas: ofertas com preço, condições e
+    validade idênticos produzem um único UnifiedPromo agregando store_ids e store_names.
+  - Ofertas com variações reais entre lojas mantêm variantes separadas.
+  - Canais delivery e takeaway mantêm resultados separados.
   - observed_at obrigatoriamente timezone-aware.
   - Erros de rede isolados em NetworkError; erros de parsing em ParseError.
-
-Nota de implementação (confirmada via source-researcher, 2026-09-28):
-  - O endpoint /v1/offers/promotions responde com um array JSON direto (sem wrapper).
-  - Campos: id, dispatch_method, name, name_delivery, description,
-    description_delivery, price, original_price, start_datetime, end_datetime,
-    availability, pictures, offer_type, position, hidden, promoted, etc.
-  - NÃO existe offer_groups neste endpoint; pizza_count fica sempre None.
-  - dispatch_method no payload pode ser "in_store", "pj_delivery" ou "both".
-  - price e original_price são Decimal (float); convertidos para int cents.
-  - pictures é array de objetos com url, key, thumbnails e category
-    (valores: "photo", "delivery_photo", "photo_app", "delivery_photo_app").
 """
 
 from __future__ import annotations
@@ -33,6 +26,7 @@ import json
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Any
 
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
@@ -43,14 +37,13 @@ from pizza_radar.core.models import (
     PizzaSize,
     StoreScope,
     UnifiedPromo,
+    Weekday,
 )
 
 # ---------------------------------------------------------------------------
 # Configuração pública (sem segredos)
 # ---------------------------------------------------------------------------
 
-# Endpoint público utilizado pelo frontend oficial da marca.
-# Sem garantia de estabilidade contratual — monitorizar alterações.
 _API_BASE = "https://api.papajohns.pt/v1"
 
 # Três lojas confirmadas no concelho de Lisboa (source-feasibility.md, 2026-09-28)
@@ -63,19 +56,19 @@ LISBON_STORES: dict[str, str] = {
 # Modalidades de serviço a recolher
 _DISPATCH_METHODS = ("in_store", "pj_delivery")
 
-# Mapeamento dos dispatch_method da API para DispatchMethod do contrato
+# Mapeamento dos dispatch_method da API para DispatchMethod do contrato canónico
 _DISPATCH_MAP: dict[str, DispatchMethod] = {
     "in_store": DispatchMethod.TAKE_AWAY,
     "pj_delivery": DispatchMethod.DELIVERY,
 }
 
-# Categorias de imagem preferidas por modalidade (ordem decrescente de preferência)
+# Categorias de imagem preferidas por modalidade
 _IMAGE_CATEGORY_PREFERENCE: dict[str, list[str]] = {
     "pj_delivery": ["delivery_photo", "delivery_photo_app", "photo", "photo_app"],
     "in_store": ["photo", "photo_app", "delivery_photo", "delivery_photo_app"],
 }
 
-# Headers que replicam o tráfego normal do frontend oficial (sem contornar proteções)
+# Headers padrão de navegador moderno
 _REQUEST_HEADERS: dict[str, str] = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -87,8 +80,73 @@ _REQUEST_HEADERS: dict[str, str] = {
 }
 
 # ---------------------------------------------------------------------------
-# Funções auxiliares
+# Funções auxiliares determinísticas
 # ---------------------------------------------------------------------------
+
+def parse_price_to_cents(
+    value: Any,
+    field_name: str = "price",
+    offer_id: Any = None,
+) -> int | None:
+    """Converte um valor monetário em euros para cêntimos inteiros sem float.
+
+    Usa Decimal e arredondamento determinístico ROUND_HALF_UP.
+    Se o valor for None, devolve None.
+    Se estiver presente mas for inválido, emite ParseError explicitamente.
+    """
+    if value is None:
+        return None
+
+    if isinstance(value, bool):
+        raise ParseError(
+            f"Valor booleano inválido no campo '{field_name}' da oferta {offer_id!r}: {value!r}",
+            vendor=Brand.PAPA_JOHNS,
+        )
+
+    try:
+        if isinstance(value, Decimal):
+            d = value
+        elif isinstance(value, int):
+            d = Decimal(value)
+        elif isinstance(value, str):
+            cleaned = value.strip().replace(",", ".")
+            if not cleaned:
+                raise ParseError(
+                    f"String vazia no campo monetário '{field_name}' da oferta {offer_id!r}",
+                    vendor=Brand.PAPA_JOHNS,
+                )
+            d = Decimal(cleaned)
+        elif isinstance(value, float):
+            d = Decimal(str(value))
+        else:
+            raise ParseError(
+                f"Tipo inválido para campo monetário '{field_name}' na oferta {offer_id!r}: {type(value).__name__}",
+                vendor=Brand.PAPA_JOHNS,
+            )
+
+        if not d.is_finite():
+            raise ParseError(
+                f"Valor monetário não-finito no campo '{field_name}' da oferta {offer_id!r}: {value!r}",
+                vendor=Brand.PAPA_JOHNS,
+            )
+
+        cents = (d * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+        cents_int = int(cents)
+
+        if cents_int < 0:
+            raise ParseError(
+                f"Valor monetário negativo no campo '{field_name}' da oferta {offer_id!r}: {cents_int}",
+                vendor=Brand.PAPA_JOHNS,
+            )
+
+        return cents_int
+
+    except (InvalidOperation, ValueError, TypeError) as exc:
+        raise ParseError(
+            f"Valor monetário inválido no campo '{field_name}' da oferta {offer_id!r}: {value!r}",
+            vendor=Brand.PAPA_JOHNS,
+        ) from exc
+
 
 def _parse_pizza_size(raw_size: str | None) -> PizzaSize:
     """Normaliza uma string de tamanho para PizzaSize sem inventar valores."""
@@ -107,17 +165,12 @@ def _parse_pizza_size(raw_size: str | None) -> PizzaSize:
 
 
 def _select_image_url(pictures: list[dict[str, Any]] | None, dispatch_method: str) -> str | None:
-    """Seleciona o URL de imagem mais apropriado para a modalidade de serviço.
-
-    Prefere a categoria de imagem adequada ao canal (delivery/in_store).
-    Devolve None se não houver imagens válidas.
-    """
+    """Seleciona o URL de imagem mais apropriado para a modalidade de serviço."""
     if not pictures:
         return None
 
     preference = _IMAGE_CATEGORY_PREFERENCE.get(dispatch_method, ["photo"])
 
-    # Indexa as imagens por categoria
     by_category: dict[str, str] = {}
     for pic in pictures:
         if not isinstance(pic, dict):
@@ -128,19 +181,15 @@ def _select_image_url(pictures: list[dict[str, Any]] | None, dispatch_method: st
             if category not in by_category:
                 by_category[category] = url
 
-    # Seleciona pela ordem de preferência
     for cat in preference:
         if cat in by_category:
             return by_category[cat]
 
-    # Fallback: qualquer URL válida disponível
     return next(iter(by_category.values()), None)
 
 
-def _parse_availability(availability: Any) -> list:
-    """Normaliza o campo availability para lista de Weekday."""
-    from pizza_radar.core.models import Weekday  # local import para evitar ciclos circulares
-
+def _parse_availability(availability: Any) -> list[Weekday]:
+    """Normaliza o campo availability para lista ordenada de Weekday."""
     _API_DAYS: dict[str, Weekday] = {
         "monday": Weekday.MONDAY,
         "tuesday": Weekday.TUESDAY,
@@ -149,7 +198,6 @@ def _parse_availability(availability: Any) -> list:
         "friday": Weekday.FRIDAY,
         "saturday": Weekday.SATURDAY,
         "sunday": Weekday.SUNDAY,
-        # Português possível
         "segunda": Weekday.MONDAY,
         "terça": Weekday.TUESDAY,
         "quarta": Weekday.WEDNESDAY,
@@ -175,6 +223,11 @@ def _parse_availability(availability: Any) -> list:
     return days
 
 
+def _sort_store_ids(store_ids: list[str] | set[str]) -> list[str]:
+    """Ordena store_ids deterministicamente (ordem numérica quando aplicável)."""
+    return sorted(set(store_ids), key=lambda s: (0, int(s)) if s.isdigit() else (1, s))
+
+
 # ---------------------------------------------------------------------------
 # Adaptador principal
 # ---------------------------------------------------------------------------
@@ -182,16 +235,10 @@ def _parse_availability(availability: Any) -> list:
 class PapaJohnsAdapter(PromoAdapterInterface):
     """Adaptador para a Papa John's Portugal (concelho de Lisboa).
 
-    Recolhe promoções das 3 lojas de Lisboa (Amoreiras, Areeiro, Benfica)
+    Recolhe e normaliza promoções das 3 lojas de Lisboa (Amoreiras, Areeiro, Benfica)
     para ambas as modalidades de serviço (in_store e pj_delivery).
-    Devolve a união desduplicada das promoções, uma entrada por oferta×modalidade.
-
-    Nota: pizza_count é sempre None neste adaptador porque o endpoint
-    /v1/offers/promotions não expõe a composição interna dos combos
-    (offer_groups). Futura evolução pode usar /v1/offers/{id} para enriquecer.
     """
 
-    # Timeout por defeito: 15 segundos conforme especificado no Issue #8
     DEFAULT_TIMEOUT: float = 15.0
 
     @property
@@ -208,20 +255,7 @@ class PapaJohnsAdapter(PromoAdapterInterface):
         dispatch_method: str,
         timeout: float = DEFAULT_TIMEOUT,
     ) -> list[dict[str, Any]]:
-        """Faz um GET ao endpoint de promoções e devolve o array JSON bruto.
-
-        Args:
-            store_id: Identificador da loja (ex.: "2" para Amoreiras).
-            dispatch_method: "in_store" ou "pj_delivery".
-            timeout: Timeout em segundos.
-
-        Returns:
-            Lista de dicionários brutos (resposta JSON da API).
-
-        Raises:
-            NetworkError: Em caso de falha HTTP, timeout ou rede.
-            ParseError: Se a resposta não for JSON válido ou não for uma lista.
-        """
+        """Faz um GET ao endpoint de promoções com parsing Decimal nativo."""
         url = (
             f"{_API_BASE}/offers/promotions"
             f"?store_id={store_id}&dispatch_method={dispatch_method}"
@@ -253,7 +287,7 @@ class PapaJohnsAdapter(PromoAdapterInterface):
             ) from exc
 
         try:
-            data = json.loads(body)
+            data = json.loads(body, parse_float=Decimal)
         except json.JSONDecodeError as exc:
             raise ParseError(
                 f"Resposta de {url} não é JSON válido: {exc}",
@@ -280,26 +314,11 @@ class PapaJohnsAdapter(PromoAdapterInterface):
     ) -> list[dict[str, Any]]:
         """Extrai e valida os campos relevantes do payload bruto.
 
-        Aplica verificações de presença e tipo sem modificar valores.
-        Emite ParseError se a estrutura do payload tiver mudado de forma
-        que impeça a extração dos campos mínimos obrigatórios.
-
-        Nota sobre dispatch_method no payload vs. no pedido:
-        O campo dispatch_method de cada item pode ser "in_store", "pj_delivery"
-        ou "both". O pedido HTTP usa "in_store" ou "pj_delivery" para filtrar,
-        mas itens com dispatch_method="both" aparecem nos dois pedidos.
-        O campo `request_dispatch_method` preserva a modalidade do pedido HTTP.
-
-        Args:
-            raw: Lista bruta devolvida por fetch_raw().
-            store_id: ID da loja (para compor o ID canónico).
-            dispatch_method: Modalidade de serviço do pedido HTTP.
-
-        Returns:
-            Lista de dicionários com os campos normalizados extraídos.
-
-        Raises:
-            ParseError: Se o payload tiver estrutura inesperada.
+        Regras estritas:
+        - Não publica itens com hidden=true.
+        - Campos obrigatórios ausentes ou inválidos emitem ParseError.
+        - Preços são convertidos para cêntimos inteiros via parse_price_to_cents (sem float).
+        - Preço inválido emite ParseError explicitamente.
         """
         if not isinstance(raw, list):
             raise ParseError(
@@ -316,23 +335,48 @@ class PapaJohnsAdapter(PromoAdapterInterface):
                     vendor=self.vendor,
                 )
 
-            # Campos mínimos obrigatórios
+            # 1. Filtro de ofertas ocultas: não publicar itens com hidden=true
+            is_hidden = item.get("hidden", False)
+            if is_hidden is not None and not isinstance(is_hidden, bool):
+                raise ParseError(
+                    f"Elemento {idx}: campo 'hidden' deve ser booleano, recebido {type(is_hidden).__name__}",
+                    vendor=self.vendor,
+                )
+            if is_hidden is True:
+                continue
+
+            # 2. Campos mínimos obrigatórios
             offer_id = item.get("id")
+            if offer_id is None or (isinstance(offer_id, str) and not offer_id.strip()):
+                raise ParseError(
+                    f"Elemento {idx} sem campo 'id' válido — payload alterado",
+                    vendor=self.vendor,
+                )
+
             name = item.get("name")
-
-            if offer_id is None:
+            if name is None or not isinstance(name, str) or not name.strip():
                 raise ParseError(
-                    f"Elemento {idx} sem campo 'id' — payload alterado inesperadamente",
-                    vendor=self.vendor,
-                )
-            if not name:
-                raise ParseError(
-                    f"Elemento {idx} (id={offer_id!r}) sem campo 'name' — payload alterado",
+                    f"Elemento {idx} (id={offer_id!r}) sem campo 'name' válido — payload alterado",
                     vendor=self.vendor,
                 )
 
-            # Para itens com dispatch_method="both", usa nome/descrição de delivery
-            # quando a modalidade solicitada é pj_delivery
+            # 3. Validação estrita de preços sem float
+            # Se presente mas inválido, emite ParseError explicitamente
+            price_cents = parse_price_to_cents(item.get("price"), "price", offer_id)
+            original_price_cents = parse_price_to_cents(
+                item.get("original_price"), "original_price", offer_id
+            )
+
+            # Se o original_price for menor que o promotional price (anomalia de catálogo),
+            # descarta original_price_cents deterministicamente (nunca inventa PVP)
+            if (
+                price_cents is not None
+                and original_price_cents is not None
+                and original_price_cents < price_cents
+            ):
+                original_price_cents = None
+
+            # 4. Contexto de canal (delivery vs in_store)
             item_dispatch = str(item.get("dispatch_method", ""))
             if dispatch_method == "pj_delivery" and item_dispatch == "both":
                 effective_name = item.get("name_delivery") or name
@@ -341,22 +385,36 @@ class PapaJohnsAdapter(PromoAdapterInterface):
                 effective_name = str(name)
                 effective_description = str(item.get("description") or "")
 
+            # 5. Validação de tipos de campos secundários
+            pictures = item.get("pictures")
+            if pictures is not None and not isinstance(pictures, list):
+                raise ParseError(
+                    f"Elemento {idx} (id={offer_id!r}): campo 'pictures' deve ser lista",
+                    vendor=self.vendor,
+                )
+
+            availability = item.get("availability")
+            if availability is not None and not isinstance(availability, (list, dict)):
+                raise ParseError(
+                    f"Elemento {idx} (id={offer_id!r}): campo 'availability' inválido",
+                    vendor=self.vendor,
+                )
+
             parsed.append({
                 "id": str(offer_id),
                 "name": str(effective_name),
-                "description": effective_description,
-                "price": item.get("price"),            # Decimal (float) ou None
-                "original_price": item.get("original_price"),  # Decimal (float) ou None
+                "description": str(effective_description),
+                "price_cents": price_cents,
+                "original_price_cents": original_price_cents,
                 "request_dispatch_method": dispatch_method,
                 "item_dispatch_method": item_dispatch,
-                "store_id": store_id,
-                "availability": item.get("availability"),      # lista de dias em inglês ou None
-                "start_datetime": item.get("start_datetime"),  # str ISO com Z ou None
-                "end_datetime": item.get("end_datetime"),      # str ISO com Z ou None
-                "pictures": item.get("pictures"),              # lista de dicts ou None
-                "position": item.get("position"),              # int — ordem de exibição
-                "hidden": item.get("hidden", False),           # bool — se oculto
-                "promoted": item.get("promoted", False),       # bool — se destacado
+                "store_id": str(store_id),
+                "availability": availability,
+                "start_datetime": item.get("start_datetime"),
+                "end_datetime": item.get("end_datetime"),
+                "pictures": pictures,
+                "position": item.get("position"),
+                "promoted": item.get("promoted", False),
                 "conditions": item.get("conditions") or item.get("terms") or "",
             })
 
@@ -370,70 +428,35 @@ class PapaJohnsAdapter(PromoAdapterInterface):
         self,
         parsed_item: dict[str, Any],
         observed_at: datetime,
+        store_ids: list[str] | None = None,
+        variant_id: str | None = None,
     ) -> UnifiedPromo:
         """Normaliza um item parseado para o contrato UnifiedPromo.
 
-        Regras estritas:
-        - Preços convertidos de euros Decimal (float) para cêntimos inteiros.
-        - Nunca inventa pizza_count (não disponível neste endpoint).
-        - valid_from e valid_until preenchidos a partir de start/end_datetime.
-        - image_url: URL preferida por modalidade (delivery_photo / photo).
-        - observed_at obrigatoriamente timezone-aware.
-        - store_scope = SPECIFIC_STORES com IDs e nomes das lojas de Lisboa.
-        - original_price inconsistente (original < promo) é ignorado.
-
-        Args:
-            parsed_item: Dicionário devolvido por parse().
-            observed_at: Momento de observação timezone-aware.
-
-        Returns:
-            UnifiedPromo validável pelo contrato canónico.
+        Suporta agregação de lojas: quando uma oferta é idêntica em várias
+        lojas, store_ids e store_names contêm a lista agregada.
         """
         if observed_at.tzinfo is None:
             raise ValueError(
                 f"observed_at deve ser timezone-aware, recebido: {observed_at!r}"
             )
 
-        store_id = parsed_item["store_id"]
         dispatch_method_raw = parsed_item["request_dispatch_method"]
         dispatch_method = _DISPATCH_MAP.get(dispatch_method_raw, DispatchMethod.DELIVERY)
 
-        # --- Preços em cêntimos inteiros ---
-        price_cents: int | None = None
-        raw_price = parsed_item.get("price")
-        if raw_price is not None:
-            try:
-                price_cents = int(round(float(raw_price) * 100))
-            except (TypeError, ValueError):
-                price_cents = None
+        price_cents = parsed_item.get("price_cents")
+        original_price_cents = parsed_item.get("original_price_cents")
 
-        original_price_cents: int | None = None
-        raw_original = parsed_item.get("original_price")
-        if raw_original is not None:
-            try:
-                original_price_cents = int(round(float(raw_original) * 100))
-            except (TypeError, ValueError):
-                original_price_cents = None
-
-        # Garante que o preço original não é inferior ao promocional (anomalia conhecida, ex: ID 218)
-        if (
-            price_cents is not None
-            and original_price_cents is not None
-            and original_price_cents < price_cents
-        ):
-            original_price_cents = None  # Ignora original inconsistente — nunca fabricar
-
-        # --- Tipo de desconto ---
+        # Tipo de desconto
         if original_price_cents is not None and price_cents is not None:
             discount_type = DiscountType.FIXED_PRICE
         else:
             discount_type = DiscountType.SPECIAL_MENU
 
-        # --- Dias da semana ---
+        # Dias da semana
         days_of_week = _parse_availability(parsed_item.get("availability"))
 
-        # --- Datas de validade anunciadas pela marca ---
-        # A API devolve ISO 8601 com milissegundos e 'Z' (ex: "2028-12-31T00:00:00.000Z")
+        # Validade anunciada pela marca
         valid_from: str | None = None
         valid_until: str | None = None
         raw_start = parsed_item.get("start_datetime")
@@ -443,20 +466,27 @@ class PapaJohnsAdapter(PromoAdapterInterface):
         if raw_end and isinstance(raw_end, str):
             valid_until = raw_end
 
-        # --- Imagem (preferência por categoria de canal) ---
+        # Imagem contextual
         image_url = _select_image_url(
             parsed_item.get("pictures"), dispatch_method_raw
         )
 
-        # --- pizza_count e pizza_size: não disponíveis neste endpoint ---
-        # O endpoint /v1/offers/promotions não expõe offer_groups.
-        # pizza_count fica None — nunca inventado a partir da descrição.
+        # Lojas agregadas
+        if store_ids:
+            effective_store_ids = _sort_store_ids(store_ids)
+        else:
+            effective_store_ids = [parsed_item["store_id"]]
 
-        # --- ID canónico (vendedor+id da oferta+loja+modalidade do pedido) ---
-        canonical_id = f"pj_{parsed_item['id']}_{store_id}_{dispatch_method_raw}"
+        store_names = [
+            LISBON_STORES.get(sid, f"Loja {sid}")
+            for sid in effective_store_ids
+        ]
 
-        # --- Âmbito geográfico: lojas específicas de Lisboa ---
-        store_name = LISBON_STORES.get(store_id, f"Loja {store_id}")
+        # ID canónico determinístico
+        if variant_id:
+            canonical_id = variant_id
+        else:
+            canonical_id = f"pj_{parsed_item['id']}_{dispatch_method_raw}"
 
         return UnifiedPromo(
             id=canonical_id,
@@ -473,45 +503,104 @@ class PapaJohnsAdapter(PromoAdapterInterface):
             days_of_week=days_of_week,
             dispatch_methods=[dispatch_method],
             store_scope=StoreScope.SPECIFIC_STORES,
-            store_ids=[store_id],
-            store_names=[store_name],
-            pizza_count=None,       # Não disponível em /v1/offers/promotions
+            store_ids=effective_store_ids,
+            store_names=store_names,
+            pizza_count=None,
             pizza_size=PizzaSize.UNKNOWN,
-            included_items=[],      # Não disponível em /v1/offers/promotions
+            included_items=[],
             image_url=image_url,
             source_url="https://www.papajohns.pt/promocoes/",
             location_scope="Lisboa",
         )
 
     # ------------------------------------------------------------------
-    # 4. Ponto de entrada principal
+    # 4. Ponto de entrada principal com agregação determinística entre lojas
     # ------------------------------------------------------------------
 
+    def _variant_signature(self, item: dict[str, Any]) -> tuple:
+        """Assinatura determinística para agrupamento de variantes idênticas."""
+        days = tuple(sorted(d.value for d in _parse_availability(item.get("availability"))))
+        image = _select_image_url(item.get("pictures"), item["request_dispatch_method"])
+        return (
+            item.get("price_cents"),
+            item.get("original_price_cents"),
+            item.get("name"),
+            item.get("description"),
+            item.get("conditions"),
+            item.get("start_datetime"),
+            item.get("end_datetime"),
+            days,
+            image,
+        )
+
     def fetch_promotions(self, timeout: float = DEFAULT_TIMEOUT) -> list[UnifiedPromo]:
-        """Recolhe e normaliza todas as promoções das 3 lojas de Lisboa.
+        """Recolhe, agrega e normaliza as promoções das lojas de Lisboa.
 
-        Itera sobre as 3 lojas e as 2 modalidades (in_store, pj_delivery).
-        Uma falha numa loja/modalidade específica propaga NetworkError ou
-        ParseError sem suprimir a exceção — o caller (orquestrador) decide
-        se continua ou aborta. Não incrementa consecutive_misses: esse
-        controlo fica na camada de pipeline (ver ADR-002).
-
-        Returns:
-            Lista de UnifiedPromo únicos (uma entrada por oferta×modalidade×loja),
-            validados pelo contrato canónico.
+        Agrupamento determinístico:
+        - Para cada par (offer_id, canal):
+          - Se a oferta for idêntica em várias lojas, produz um único UnifiedPromo
+            com store_ids e store_names agregados e ID canónico 'pj_{id}_{canal}'.
+          - Se houver variações reais de preço/condições entre lojas, mantém
+            variantes separadas com IDs diferenciados 'pj_{id}_{canal}_{lojas}'.
+          - Delivery e takeaway mantêm resultados separados.
         """
         observed_at = datetime.now(tz=timezone.utc)
-        promos: list[UnifiedPromo] = []
-        seen_ids: set[str] = set()
+
+        # 1. Recolhe dados de todas as lojas e canais
+        collected: dict[tuple[str, str], list[tuple[str, dict[str, Any]]]] = {}
 
         for store_id in LISBON_STORES:
             for dispatch_method in _DISPATCH_METHODS:
                 raw = self.fetch_raw(store_id, dispatch_method, timeout)
                 parsed = self.parse(raw, store_id, dispatch_method)
                 for item in parsed:
-                    promo = self.adapt(item, observed_at)
-                    if promo.id not in seen_ids:
-                        seen_ids.add(promo.id)
-                        promos.append(promo)
+                    key = (item["id"], dispatch_method)
+                    collected.setdefault(key, []).append((store_id, item))
+
+        # 2. Agregação determinística de variantes
+        promos: list[UnifiedPromo] = []
+
+        sorted_keys = sorted(
+            collected.keys(),
+            key=lambda k: (k[1], int(k[0]) if k[0].isdigit() else k[0])
+        )
+
+        for offer_id, dispatch_method in sorted_keys:
+            store_items = collected[(offer_id, dispatch_method)]
+
+            # Agrupar por assinatura de conteúdo da oferta
+            variants: dict[tuple, tuple[dict[str, Any], set[str]]] = {}
+            for store_id, item in store_items:
+                sig = self._variant_signature(item)
+                if sig not in variants:
+                    variants[sig] = (item, {store_id})
+                else:
+                    variants[sig][1].add(store_id)
+
+            has_multiple_variants = len(variants) > 1
+
+            # Ordenar variantes deterministicamente por preço e lojas
+            sorted_variants = sorted(
+                variants.values(),
+                key=lambda v: (
+                    v[0].get("price_cents") or 0,
+                    _sort_store_ids(v[1])
+                )
+            )
+
+            for item, store_ids_set in sorted_variants:
+                sorted_store_ids = _sort_store_ids(store_ids_set)
+                if has_multiple_variants:
+                    variant_id = f"pj_{offer_id}_{dispatch_method}_{'_'.join(sorted_store_ids)}"
+                else:
+                    variant_id = f"pj_{offer_id}_{dispatch_method}"
+
+                promo = self.adapt(
+                    item,
+                    observed_at=observed_at,
+                    store_ids=sorted_store_ids,
+                    variant_id=variant_id,
+                )
+                promos.append(promo)
 
         return self.validate_and_filter(promos)

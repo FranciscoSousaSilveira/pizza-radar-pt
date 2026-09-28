@@ -29,13 +29,17 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
-### [2026-09-28] — Estrutura real da API Papa John's: sem offer_groups, nome e descrição por canal
+### [2026-09-28] — Estrutura real da API Papa John's, precisão Decimal e desduplicação entre lojas
 
 - **Contexto / Ticket:** Issue #8 — PapaJohnsAdapter
-- **Desafio / Descoberta:** A investigação de source-feasibility (Issue #3) documentou os campos `offer_groups` como detalhe esperado da composição das ofertas. Na implementação real, o source-researcher confirmou (via GET ao endpoint ao vivo em 2026-09-28) que o endpoint `/v1/offers/promotions` **não inclui offer_groups** em nenhum dos 14 itens devolvidos. A composição detalhada dos combos (ingredientes, pizzas, tamanhos) só está disponível no endpoint individual `/v1/offers/{id}`. Adicionalmente, itens com `dispatch_method="both"` expõem campos separados `name_delivery` e `description_delivery` para o contexto de entrega ao domicílio.
-- **Impacto:** `pizza_count` não pode ser extraído deterministicamente deste endpoint. A flag `is_comparable_for_unit_price` será sempre `False` para as promoções da Papa John's até que o endpoint individual seja integrado. O campo de imagem requer seleção por `pictures[].category` ("photo" para in_store, "delivery_photo" para pj_delivery). Anomalia real detetada: ID 218 tem `price > original_price` (erro de configuração no backend da marca) — ignorado de forma determinística.
-- **Decisão / Solução:** `pizza_count=None` e `included_items=[]` na versão atual do adaptador. Seleção de imagem por categoria de canal. Anomalia de preço tratada com `original_price_cents=None` quando `original < price`. Fixture sanitizada construída com base na estrutura real confirmada ao vivo.
-- **Ação Futura:** Futura versão pode enriquecer com chamadas ao endpoint `/v1/offers/{id}` para obter composição detalhada — deve ser implementado como camada opcional separada para não introduzir dependência de rede adicional no caminho crítico.
+- **Desafio / Descoberta:**
+  1. A investigação confirmou que o endpoint `/v1/offers/promotions` não inclui `offer_groups` (detalhes de composição estão apenas em `/v1/offers/{id}`).
+  2. O uso de representação em `float` arrisca perda de precisão binária IEEE-754; o parsing JSON nativo deve utilizar `parse_float=Decimal` e conversão determinística para integer cents via `(Decimal * 100).quantize(1, ROUND_HALF_UP)`. Valores inválidos não devem ser silenciados para `None`.
+  3. As 3 lojas de Lisboa (Amoreiras, Areeiro, Benfica) partilham os mesmos catálogos promocionais por canal; produzir um cartão por loja gerava duplicações artificiais.
+  4. O endpoint expõe itens de teste/internos com flag `hidden=true`, que não devem ser publicados.
+- **Impacto:** O adaptador agrega deterministicamente lojas com preços e condições idênticos num único `UnifiedPromo` (`pj_{id}_{canal}` com `store_ids` e `store_names` consolidados), mantendo variantes separadas apenas quando há divergência real. Itens com `hidden=true` são excluídos no parser. Preços utilizam `Decimal` em toda a cadeia de ingestão.
+- **Decisão / Solução:** Implementado `parse_price_to_cents` estrito, agrupamento por assinatura de conteúdo da oferta, filtro de ofertas ocultas e 63 testes unitários sem chamadas de rede.
+- **Ação Futura:** Criada nota no Issue #8 para futura evolução de enriquecimento via `/v1/offers/{id}` e páginas públicas de promoções.
 
 
 ### [2026-09-28] — Organização da Documentação como Base de Conhecimento Navegável

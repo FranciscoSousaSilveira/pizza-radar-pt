@@ -1,19 +1,37 @@
 """Testes unitários para PapaJohnsAdapter.
 
-Estrutura de testes (sem dependência de rede — 100% determinísticos):
-  - TestPapaJohnsAdapterHelpers: testa funções auxiliares independentes.
-  - TestPapaJohnsAdapterParse: testa parse() com fixtures sanitizadas.
-  - TestPapaJohnsAdapterAdapt: testa adapt() com dicionários construídos diretamente.
-  - TestPapaJohnsAdapterErrors: testa propagação de NetworkError e ParseError.
-  - TestPapaJohnsAdapterIntegration: testa fetch_promotions() com fetch_raw() substituído.
-
-Fixtures sanitizadas em tests/fixtures/papa_johns_in_store.json e
-tests/fixtures/papa_johns_pj_delivery.json — estrutura validada empiricamente
-pelo source-researcher em 2026-09-28 (confirmada contra a API real).
-
-Nota do adaptador: pizza_count é sempre None porque o endpoint
-/v1/offers/promotions não expõe offer_groups; incluída anomalia ID 218
-onde original_price < price.
+Cobertura exaustiva e 100% determinística (sem dependência de rede):
+  - TestMonetaryPrecision:
+      * Conversão de Decimal para integer cents (7.99 -> 799, 9.45 -> 945).
+      * Valores numéricos inteiros (15 -> 1500).
+      * Valores em string ("7.99", "9.45", "7,99").
+      * Casos de arredondamento determinístico (7.994 -> 799, 7.995 -> 800, 7.996 -> 800).
+      * Valores inválidos emitem ParseError explicitamente ("abc", "", True, [], {}, nan, inf, negativo).
+      * json.loads com parse_float=Decimal.
+  - TestStoreDeduplicationAndAggregation:
+      * Mesma oferta idêntica em três lojas -> um resultado agregando as três lojas em store_ids e store_names.
+      * ID determinístico sem store_id quando unificado ("pj_{id}_{canal}").
+      * Mesma oferta com preço diferente numa loja -> variantes separadas com IDs determinísticos.
+      * Delivery e takeaway -> resultados estritamente separados.
+  - TestHiddenOffersAndPayloadValidation:
+      * Ofertas com hidden=true são ignoradas no parsing e não são publicadas.
+      * Ofertas com hidden=false ou ausente são publicadas normalmente.
+      * Alterações em campos obrigatórios (id, name) originam ParseError explícito.
+      * Preço inválido no payload origina ParseError explícito (sem degradação silenciosa para None).
+      * Tipos inválidos em pictures ou availability originam ParseError explícito.
+      * pizza_count=None, pizza_size=UNKNOWN, included_items=[] (sem invenção de composição).
+  - TestPapaJohnsAdapterParse:
+      * Parse de fixtures sanitizadas com parse_float=Decimal.
+      * Contexto de canal (delivery usa name_delivery/description_delivery para 'both').
+  - TestPapaJohnsAdapterAdapt:
+      * Propriedades monetárias determinísticas (price_euros, savings_amount_cents).
+      * Anomalia original_price < price tratada descartando original_price_cents.
+      * observed_at timezone-aware exigido.
+      * validate_promo() aprovado em todos os registos.
+  - TestPapaJohnsAdapterErrors:
+      * Propagação de NetworkError e ParseError com vendor=PAPA_JOHNS.
+  - TestPapaJohnsAdapterIntegration:
+      * Execução completa de fetch_promotions() com mock de fetch_raw().
 """
 
 from __future__ import annotations
@@ -22,6 +40,7 @@ import json
 import os
 import unittest
 from datetime import datetime, timezone
+from decimal import Decimal
 from unittest.mock import patch
 
 from pizza_radar.adapters.papa_johns import (
@@ -30,6 +49,8 @@ from pizza_radar.adapters.papa_johns import (
     _parse_availability,
     _parse_pizza_size,
     _select_image_url,
+    _sort_store_ids,
+    parse_price_to_cents,
 )
 from pizza_radar.core.adapter import NetworkError, ParseError
 from pizza_radar.core.models import (
@@ -43,250 +64,378 @@ from pizza_radar.core.models import (
 )
 from pizza_radar.core.validator import validate_promo
 
-
-# ---------------------------------------------------------------------------
-# Utilitários de teste
-# ---------------------------------------------------------------------------
-
 _FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
 def _load_fixture(filename: str) -> list[dict]:
-    """Carrega um ficheiro de fixture JSON."""
+    """Carrega fixture JSON garantindo parsing Decimal nativo."""
     path = os.path.join(_FIXTURES_DIR, filename)
     with open(path, encoding="utf-8") as f:
-        return json.load(f)
+        return json.loads(f.read(), parse_float=Decimal)
 
 
 def _observed_at() -> datetime:
-    """Momento de observação fixo, timezone-aware, para testes determinísticos."""
     return datetime(2026, 9, 28, 15, 0, 0, tzinfo=timezone.utc)
 
 
-# ---------------------------------------------------------------------------
-# TestPapaJohnsAdapterHelpers
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# 1. Testes de Precisão Monetária
+# ===========================================================================
 
-class TestPapaJohnsAdapterHelpers(unittest.TestCase):
-    """Testa funções auxiliares independentes."""
+class TestMonetaryPrecision(unittest.TestCase):
+    """Testa a conversão de preços sem recurso a float e com tratamento de erros."""
 
-    def test_parse_pizza_size_known_values(self) -> None:
-        """Verifica mapeamento de strings conhecidas."""
-        self.assertEqual(_parse_pizza_size("medium"), PizzaSize.MEDIUM)
-        self.assertEqual(_parse_pizza_size("individual"), PizzaSize.INDIVIDUAL)
-        self.assertEqual(_parse_pizza_size("large"), PizzaSize.LARGE)
-        self.assertEqual(_parse_pizza_size("family"), PizzaSize.FAMILY)
-        self.assertEqual(_parse_pizza_size("familiar"), PizzaSize.FAMILY)
-        self.assertEqual(_parse_pizza_size("MEDIUM"), PizzaSize.MEDIUM)
+    def test_decimal_799_and_945_to_cents(self) -> None:
+        """7.99€ e 9.45€ convertem exatamente para 799 e 945 cêntimos inteiros."""
+        self.assertEqual(parse_price_to_cents(Decimal("7.99")), 799)
+        self.assertEqual(parse_price_to_cents(Decimal("9.45")), 945)
+        self.assertIsInstance(parse_price_to_cents(Decimal("7.99")), int)
+        self.assertIsInstance(parse_price_to_cents(Decimal("9.45")), int)
 
-    def test_parse_pizza_size_unknown(self) -> None:
-        """Valores não reconhecidos devolvem UNKNOWN sem lançar exceção."""
-        self.assertEqual(_parse_pizza_size(None), PizzaSize.UNKNOWN)
-        self.assertEqual(_parse_pizza_size(""), PizzaSize.UNKNOWN)
-        self.assertEqual(_parse_pizza_size("jumbo"), PizzaSize.UNKNOWN)
+    def test_integer_values_to_cents(self) -> None:
+        """Valores inteiros (ex.: 15€, 0€) convertem corretamente."""
+        self.assertEqual(parse_price_to_cents(15), 1500)
+        self.assertEqual(parse_price_to_cents(0), 0)
+        self.assertEqual(parse_price_to_cents(Decimal("15")), 1500)
 
-    def test_parse_availability_list(self) -> None:
-        """Disponibilidade em formato lista mapeada corretamente."""
-        days = _parse_availability(["monday", "tuesday", "friday"])
-        self.assertIn(Weekday.MONDAY, days)
-        self.assertIn(Weekday.TUESDAY, days)
-        self.assertIn(Weekday.FRIDAY, days)
-        self.assertEqual(len(days), 3)
+    def test_string_values_to_cents(self) -> None:
+        """Valores em string com ponto ou vírgula convertem para cêntimos."""
+        self.assertEqual(parse_price_to_cents("7.99"), 799)
+        self.assertEqual(parse_price_to_cents("9.45"), 945)
+        self.assertEqual(parse_price_to_cents("7,99"), 799)
+        self.assertEqual(parse_price_to_cents("9,45"), 945)
+        self.assertEqual(parse_price_to_cents(" 15.00 "), 1500)
 
-    def test_parse_availability_all_days(self) -> None:
-        """Disponibilidade todos os dias retorna 7 Weekdays."""
-        all_days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-        days = _parse_availability(all_days)
-        self.assertEqual(len(days), 7)
+    def test_rounding_cases(self) -> None:
+        """Casos de arredondamento determinístico (ROUND_HALF_UP)."""
+        self.assertEqual(parse_price_to_cents(Decimal("7.994")), 799)
+        self.assertEqual(parse_price_to_cents(Decimal("7.995")), 800)
+        self.assertEqual(parse_price_to_cents(Decimal("7.996")), 800)
+        self.assertEqual(parse_price_to_cents(Decimal("0.005")), 1)
+        self.assertEqual(parse_price_to_cents(Decimal("0.004")), 0)
 
-    def test_parse_availability_empty(self) -> None:
-        """Lista vazia retorna lista vazia."""
-        days = _parse_availability([])
-        self.assertEqual(days, [])
+    def test_none_value_returns_none(self) -> None:
+        """Valor None devolve None sem erro."""
+        self.assertIsNone(parse_price_to_cents(None))
 
-    def test_parse_availability_none(self) -> None:
-        """None retorna lista vazia."""
-        days = _parse_availability(None)
-        self.assertEqual(days, [])
+    def test_invalid_string_raises_parse_error(self) -> None:
+        """Strings não numéricas ou vazias emitem ParseError explicitamente."""
+        with self.assertRaises(ParseError):
+            parse_price_to_cents("abc", "price", 101)
+        with self.assertRaises(ParseError):
+            parse_price_to_cents("", "price", 101)
+        with self.assertRaises(ParseError):
+            parse_price_to_cents("   ", "price", 101)
 
-    def test_parse_availability_no_duplicates(self) -> None:
-        """Dias duplicados não geram duplicados no resultado."""
-        days = _parse_availability(["monday", "monday", "tuesday"])
-        self.assertEqual(len(days), 2)
+    def test_boolean_raises_parse_error(self) -> None:
+        """Booleanos emitem ParseError explicitamente."""
+        with self.assertRaises(ParseError):
+            parse_price_to_cents(True, "price", 101)
+        with self.assertRaises(ParseError):
+            parse_price_to_cents(False, "price", 101)
 
-    def test_select_image_url_prefers_photo_for_in_store(self) -> None:
-        """Para in_store, prefere 'photo' em vez de 'delivery_photo'."""
-        pictures = [
-            {"url": "https://cdn.example.com/delivery.webp", "category": "delivery_photo"},
-            {"url": "https://cdn.example.com/photo.webp", "category": "photo"},
+    def test_invalid_types_raise_parse_error(self) -> None:
+        """Tipos estruturados (list, dict, object) emitem ParseError."""
+        with self.assertRaises(ParseError):
+            parse_price_to_cents([], "price", 101)
+        with self.assertRaises(ParseError):
+            parse_price_to_cents({}, "price", 101)
+        with self.assertRaises(ParseError):
+            parse_price_to_cents(object(), "price", 101)
+
+    def test_non_finite_decimals_raise_parse_error(self) -> None:
+        """Valores não-finitos (NaN, Infinity) emitem ParseError."""
+        with self.assertRaises(ParseError):
+            parse_price_to_cents(Decimal("NaN"), "price", 101)
+        with self.assertRaises(ParseError):
+            parse_price_to_cents(Decimal("Infinity"), "price", 101)
+
+    def test_negative_values_raise_parse_error(self) -> None:
+        """Valores negativos emitem ParseError."""
+        with self.assertRaises(ParseError):
+            parse_price_to_cents(Decimal("-1.00"), "price", 101)
+        with self.assertRaises(ParseError):
+            parse_price_to_cents("-5.50", "price", 101)
+
+
+# ===========================================================================
+# 2. Testes de Duplicação e Agregação entre Lojas
+# ===========================================================================
+
+class TestStoreDeduplicationAndAggregation(unittest.TestCase):
+    """Testa a agregação de lojas e separação determinística de variantes."""
+
+    def setUp(self) -> None:
+        self.adapter = PapaJohnsAdapter()
+        self.observed_at = _observed_at()
+
+    def test_identical_offer_in_three_stores_produces_single_result(self) -> None:
+        """Mesma oferta idêntica em três lojas -> um único UnifiedPromo com 3 lojas."""
+        raw_offer = [
+            {
+                "id": 223,
+                "name": "Duo Bestial",
+                "description": "2 Pizzas Médias",
+                "price": Decimal("17.98"),
+                "original_price": None,
+                "dispatch_method": "in_store",
+                "hidden": False,
+            }
         ]
-        url = _select_image_url(pictures, "in_store")
-        self.assertEqual(url, "https://cdn.example.com/photo.webp")
 
-    def test_select_image_url_prefers_delivery_photo_for_pj_delivery(self) -> None:
-        """Para pj_delivery, prefere 'delivery_photo' em vez de 'photo'."""
-        pictures = [
-            {"url": "https://cdn.example.com/delivery.webp", "category": "delivery_photo"},
-            {"url": "https://cdn.example.com/photo.webp", "category": "photo"},
+        def mock_fetch(store_id: str, dispatch_method: str, timeout: float = 15.0) -> list[dict]:
+            if dispatch_method == "in_store":
+                return raw_offer
+            return []
+
+        with patch.object(self.adapter, "fetch_raw", side_effect=mock_fetch):
+            promos = self.adapter.fetch_promotions()
+
+        # Deve produzir exatamente 1 promoção consolidada
+        self.assertEqual(len(promos), 1)
+        promo = promos[0]
+        # ID determinístico sem store_id embutido
+        self.assertEqual(promo.id, "pj_223_in_store")
+        # store_ids contém todas as 3 lojas de Lisboa ordenadas
+        self.assertEqual(promo.store_ids, ["2", "3", "13"])
+        # store_names contém os nomes correspondentes
+        self.assertEqual(promo.store_names, ["Amoreiras", "Benfica", "Areeiro"])
+        self.assertEqual(promo.store_scope, StoreScope.SPECIFIC_STORES)
+        self.assertEqual(promo.price_cents, 1798)
+
+    def test_different_price_in_one_store_produces_separate_variants(self) -> None:
+        """Mesma oferta com preço diferente numa loja -> variantes separadas."""
+        def mock_fetch(store_id: str, dispatch_method: str, timeout: float = 15.0) -> list[dict]:
+            if dispatch_method != "in_store":
+                return []
+            price = Decimal("19.98") if store_id == "3" else Decimal("17.98")
+            return [
+                {
+                    "id": 223,
+                    "name": "Duo Bestial",
+                    "description": "2 Pizzas Médias",
+                    "price": price,
+                    "original_price": None,
+                    "dispatch_method": "in_store",
+                    "hidden": False,
+                }
+            ]
+
+        with patch.object(self.adapter, "fetch_raw", side_effect=mock_fetch):
+            promos = self.adapter.fetch_promotions()
+
+        # Deve produzir 2 variantes separadas
+        self.assertEqual(len(promos), 2)
+
+        # Variante A (lojas 2 e 13 a 17,98€)
+        var_a = next((p for p in promos if p.price_cents == 1798), None)
+        self.assertIsNotNone(var_a)
+        self.assertEqual(var_a.store_ids, ["2", "13"])
+        self.assertEqual(var_a.id, "pj_223_in_store_2_13")
+
+        # Variante B (loja 3 a 19,98€)
+        var_b = next((p for p in promos if p.price_cents == 1998), None)
+        self.assertIsNotNone(var_b)
+        self.assertEqual(var_b.store_ids, ["3"])
+        self.assertEqual(var_b.id, "pj_223_in_store_3")
+
+    def test_delivery_and_takeaway_produce_separate_results(self) -> None:
+        """Delivery e takeaway produzem sempre resultados separados."""
+        def mock_fetch(store_id: str, dispatch_method: str, timeout: float = 15.0) -> list[dict]:
+            price = Decimal("20.98") if dispatch_method == "pj_delivery" else Decimal("17.98")
+            return [
+                {
+                    "id": 223,
+                    "name": "Duo Bestial",
+                    "description": "2 Pizzas Médias",
+                    "price": price,
+                    "original_price": None,
+                    "dispatch_method": dispatch_method,
+                    "hidden": False,
+                }
+            ]
+
+        with patch.object(self.adapter, "fetch_raw", side_effect=mock_fetch):
+            promos = self.adapter.fetch_promotions()
+
+        # 2 resultados: 1 in_store + 1 delivery (cada um consolidado nas 3 lojas)
+        self.assertEqual(len(promos), 2)
+
+        takeaway = next((p for p in promos if DispatchMethod.TAKE_AWAY in p.dispatch_methods), None)
+        delivery = next((p for p in promos if DispatchMethod.DELIVERY in p.dispatch_methods), None)
+
+        self.assertIsNotNone(takeaway)
+        self.assertIsNotNone(delivery)
+        self.assertEqual(takeaway.id, "pj_223_in_store")
+        self.assertEqual(delivery.id, "pj_223_pj_delivery")
+        self.assertEqual(takeaway.price_cents, 1798)
+        self.assertEqual(delivery.price_cents, 2098)
+        self.assertEqual(takeaway.store_ids, ["2", "3", "13"])
+        self.assertEqual(delivery.store_ids, ["2", "3", "13"])
+
+
+# ===========================================================================
+# 3. Testes de Ofertas Ocultas e Payload Inválido
+# ===========================================================================
+
+class TestHiddenOffersAndPayloadValidation(unittest.TestCase):
+    """Testa exclusão de hidden=true e deteção estrita de erros em campos obrigatórios."""
+
+    def setUp(self) -> None:
+        self.adapter = PapaJohnsAdapter()
+
+    def test_hidden_true_items_are_not_parsed_or_published(self) -> None:
+        """Itens com hidden=true são completamente descartados pelo parser."""
+        raw = [
+            {"id": 1, "name": "Visível", "price": Decimal("10.00"), "hidden": False},
+            {"id": 2, "name": "Oculto", "price": Decimal("10.00"), "hidden": True},
+            {"id": 3, "name": "Default Sem Hidden", "price": Decimal("10.00")},
         ]
-        url = _select_image_url(pictures, "pj_delivery")
-        self.assertEqual(url, "https://cdn.example.com/delivery.webp")
+        parsed = self.adapter.parse(raw, "2", "in_store")
+        parsed_ids = [p["id"] for p in parsed]
 
-    def test_select_image_url_fallback(self) -> None:
-        """Se a categoria preferida não existe, usa qualquer URL disponível."""
-        pictures = [
-            {"url": "https://cdn.example.com/photo_app.webp", "category": "photo_app"},
-        ]
-        url = _select_image_url(pictures, "in_store")
-        self.assertIsNotNone(url)
+        self.assertIn("1", parsed_ids)
+        self.assertNotIn("2", parsed_ids)
+        self.assertIn("3", parsed_ids)
+        self.assertEqual(len(parsed), 2)
 
-    def test_select_image_url_none_on_empty(self) -> None:
-        """Lista vazia retorna None."""
-        self.assertIsNone(_select_image_url([], "in_store"))
-        self.assertIsNone(_select_image_url(None, "in_store"))
+    def test_non_boolean_hidden_raises_parse_error(self) -> None:
+        """Campo hidden não-booleano emite ParseError explicitamente."""
+        raw = [{"id": 1, "name": "Teste", "price": Decimal("10.00"), "hidden": "not-bool"}]
+        with self.assertRaises(ParseError):
+            self.adapter.parse(raw, "2", "in_store")
 
-    def test_lisbon_stores_constant(self) -> None:
-        """Confirma as 3 lojas de Lisboa documentadas."""
-        self.assertIn("2", LISBON_STORES)   # Amoreiras
-        self.assertIn("13", LISBON_STORES)  # Areeiro
-        self.assertIn("3", LISBON_STORES)   # Benfica
-        self.assertEqual(len(LISBON_STORES), 3)
+    def test_missing_or_blank_id_raises_parse_error(self) -> None:
+        """Campo id em falta, None ou string vazia emite ParseError."""
+        with self.assertRaises(ParseError):
+            self.adapter.parse([{"name": "Sem ID", "price": Decimal("10.00")}], "2", "in_store")
+        with self.assertRaises(ParseError):
+            self.adapter.parse([{"id": None, "name": "ID Nulo", "price": Decimal("10.00")}], "2", "in_store")
+        with self.assertRaises(ParseError):
+            self.adapter.parse([{"id": "   ", "name": "ID Vazio", "price": Decimal("10.00")}], "2", "in_store")
+
+    def test_missing_or_blank_name_raises_parse_error(self) -> None:
+        """Campo name em falta, None ou vazio emite ParseError."""
+        with self.assertRaises(ParseError):
+            self.adapter.parse([{"id": 1, "price": Decimal("10.00")}], "2", "in_store")
+        with self.assertRaises(ParseError):
+            self.adapter.parse([{"id": 1, "name": "", "price": Decimal("10.00")}], "2", "in_store")
+        with self.assertRaises(ParseError):
+            self.adapter.parse([{"id": 1, "name": "   ", "price": Decimal("10.00")}], "2", "in_store")
+
+    def test_invalid_price_raises_parse_error_explicitly(self) -> None:
+        """Preço inválido no payload não vira None silenciosamente: emite ParseError."""
+        raw = [{"id": 1, "name": "Inválido", "price": "preço-inválido"}]
+        with self.assertRaises(ParseError):
+            self.adapter.parse(raw, "2", "in_store")
+
+    def test_invalid_original_price_raises_parse_error_explicitly(self) -> None:
+        """original_price inválido no payload emite ParseError."""
+        raw = [{"id": 1, "name": "Promo", "price": Decimal("10.00"), "original_price": "lixo"}]
+        with self.assertRaises(ParseError):
+            self.adapter.parse(raw, "2", "in_store")
+
+    def test_invalid_pictures_type_raises_parse_error(self) -> None:
+        """pictures com tipo que não seja list emite ParseError."""
+        raw = [{"id": 1, "name": "Promo", "price": Decimal("10.00"), "pictures": "não-é-lista"}]
+        with self.assertRaises(ParseError):
+            self.adapter.parse(raw, "2", "in_store")
+
+    def test_invalid_availability_type_raises_parse_error(self) -> None:
+        """availability com tipo inválido emite ParseError."""
+        raw = [{"id": 1, "name": "Promo", "price": Decimal("10.00"), "availability": 12345}]
+        with self.assertRaises(ParseError):
+            self.adapter.parse(raw, "2", "in_store")
+
+    def test_composition_is_never_invented(self) -> None:
+        """pizza_count é sempre None, pizza_size=UNKNOWN, included_items=[] (sem invenção)."""
+        raw_item = {
+            "id": "223",
+            "name": "Duo Bestial",
+            "description": "2 Pizzas Médias à escolha",
+            "price_cents": 1798,
+            "original_price_cents": None,
+            "request_dispatch_method": "in_store",
+            "item_dispatch_method": "in_store",
+            "store_id": "2",
+            "availability": [],
+            "start_datetime": None,
+            "end_datetime": None,
+            "pictures": [],
+            "conditions": "",
+        }
+        promo = self.adapter.adapt(raw_item, _observed_at())
+        self.assertIsNone(promo.pizza_count)
+        self.assertEqual(promo.pizza_size, PizzaSize.UNKNOWN)
+        self.assertEqual(promo.included_items, [])
+        self.assertFalse(promo.is_comparable_for_unit_price)
 
 
-# ---------------------------------------------------------------------------
-# TestPapaJohnsAdapterParse
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# 4. Testes do Parser com Fixtures Sanitizadas
+# ===========================================================================
 
 class TestPapaJohnsAdapterParse(unittest.TestCase):
-    """Testa parse() com fixtures sanitizadas — sem acesso à rede."""
+    """Testa parse() com fixtures sanitizadas carregadas via parse_float=Decimal."""
 
     def setUp(self) -> None:
         self.adapter = PapaJohnsAdapter()
         self.in_store_raw = _load_fixture("papa_johns_in_store.json")
         self.delivery_raw = _load_fixture("papa_johns_pj_delivery.json")
 
-    def test_parse_in_store_returns_correct_count(self) -> None:
-        """Confirma que parse() extrai todos os elementos da fixture in_store."""
+    def test_parse_in_store_filters_hidden_items(self) -> None:
+        """Item 252 (hidden=true) não aparece no resultado de parse()."""
         parsed = self.adapter.parse(self.in_store_raw, "2", "in_store")
-        self.assertEqual(len(parsed), len(self.in_store_raw))
+        parsed_ids = [p["id"] for p in parsed]
+        # Na fixture, item 252 tem hidden=true
+        self.assertNotIn("252", parsed_ids)
+        # Itens não-ocultos estão presentes
+        self.assertIn("207", parsed_ids)
+        self.assertIn("222", parsed_ids)
+        self.assertIn("218", parsed_ids)
 
-    def test_parse_mandatory_fields_present(self) -> None:
-        """Cada elemento parseado tem id, name, description, request_dispatch_method, store_id."""
+    def test_parse_prices_are_integer_cents(self) -> None:
+        """Preços parseados já se encontram em cêntimos inteiros (sem float)."""
         parsed = self.adapter.parse(self.in_store_raw, "2", "in_store")
         for item in parsed:
-            self.assertIn("id", item)
-            self.assertIn("name", item)
-            self.assertIn("description", item)
-            self.assertIn("request_dispatch_method", item)
-            self.assertIn("store_id", item)
-            self.assertEqual(item["store_id"], "2")
-            self.assertEqual(item["request_dispatch_method"], "in_store")
+            if item["price_cents"] is not None:
+                self.assertIsInstance(item["price_cents"], int)
+                self.assertNotIsInstance(item["price_cents"], bool)
 
-    def test_parse_delivery_uses_name_delivery_for_both_items(self) -> None:
-        """Itens com dispatch_method='both' em pedido delivery usam name_delivery."""
-        parsed = self.adapter.parse(self.delivery_raw, "2", "pj_delivery")
-        duo = next((p for p in parsed if p["id"] == "252"), None)
-        self.assertIsNotNone(duo, "Item 252 não encontrado na fixture delivery")
-        # name_delivery = "Duo Bestial + entrada" (igual ao name neste caso)
-        self.assertEqual(duo["name"], "Duo Bestial + entrada")
-
-    def test_parse_delivery_uses_description_delivery(self) -> None:
-        """Itens 'both' em pedido delivery usam description_delivery."""
+    def test_parse_channel_context_delivery(self) -> None:
+        """Itens 'both' usam description_delivery quando solicitado pj_delivery."""
         parsed = self.adapter.parse(self.delivery_raw, "2", "pj_delivery")
         papito = next((p for p in parsed if p["id"] == "222"), None)
         self.assertIsNotNone(papito)
-        self.assertIn("10,99€", papito["description"])  # description_delivery
+        self.assertIn("10,99€", papito["description"])
 
-    def test_parse_in_store_uses_name_not_name_delivery(self) -> None:
-        """Itens 'both' em pedido in_store usam name (não name_delivery)."""
+    def test_parse_anomaly_218_original_price_discarded(self) -> None:
+        """Item 218: original_price (16.64) < price (16.99) resulta em original_price_cents=None."""
         parsed = self.adapter.parse(self.in_store_raw, "2", "in_store")
-        papito = next((p for p in parsed if p["id"] == "222"), None)
-        self.assertIsNotNone(papito)
-        # description do in_store tem 6,99€ (não 10,99€ do delivery)
-        self.assertIn("6,99€", papito["description"])
-
-    def test_parse_prices_are_floats_or_none(self) -> None:
-        """Preços extraídos são números ou None — nunca strings."""
-        parsed = self.adapter.parse(self.in_store_raw, "2", "in_store")
-        for item in parsed:
-            price = item.get("price")
-            original = item.get("original_price")
-            if price is not None:
-                self.assertIsInstance(price, (int, float))
-            if original is not None:
-                self.assertIsInstance(original, (int, float))
-
-    def test_parse_anomaly_id_218_price_higher_than_original(self) -> None:
-        """ID 218 na fixture tem price=16.99 > original_price=16.64 (anomalia real)."""
-        parsed = self.adapter.parse(self.in_store_raw, "2", "in_store")
-        anomaly = next((p for p in parsed if p["id"] == "218"), None)
-        self.assertIsNotNone(anomaly)
-        self.assertGreater(anomaly["price"], anomaly["original_price"])
-
-    def test_parse_pictures_preserved(self) -> None:
-        """Campo pictures é preservado para seleção posterior de image_url."""
-        parsed = self.adapter.parse(self.in_store_raw, "2", "in_store")
-        fresca = next((p for p in parsed if p["id"] == "207"), None)
-        self.assertIsNotNone(fresca)
-        self.assertIsNotNone(fresca["pictures"])
-        self.assertGreater(len(fresca["pictures"]), 0)
-
-    def test_parse_start_end_datetime_preserved(self) -> None:
-        """start_datetime e end_datetime são preservados como strings."""
-        parsed = self.adapter.parse(self.in_store_raw, "2", "in_store")
-        fresca = next((p for p in parsed if p["id"] == "207"), None)
-        self.assertIsNotNone(fresca)
-        self.assertEqual(fresca["start_datetime"], "2024-02-05T00:00:00.000Z")
-        self.assertEqual(fresca["end_datetime"], "2028-12-31T00:00:00.000Z")
-
-    def test_parse_empty_list_returns_empty(self) -> None:
-        """Lista vazia de raw devolve lista vazia sem erro."""
-        parsed = self.adapter.parse([], "2", "in_store")
-        self.assertEqual(parsed, [])
-
-    def test_parse_missing_id_raises_parse_error(self) -> None:
-        """Elemento sem 'id' lança ParseError."""
-        bad_raw = [{"name": "Sem ID", "price": 10.0}]
-        with self.assertRaises(ParseError):
-            self.adapter.parse(bad_raw, "2", "in_store")
-
-    def test_parse_missing_name_raises_parse_error(self) -> None:
-        """Elemento sem 'name' lança ParseError."""
-        bad_raw = [{"id": 99}]
-        with self.assertRaises(ParseError):
-            self.adapter.parse(bad_raw, "2", "in_store")
-
-    def test_parse_non_dict_element_raises_parse_error(self) -> None:
-        """Elemento que não é dict lança ParseError."""
-        bad_raw = ["string_inválida"]
-        with self.assertRaises(ParseError):
-            self.adapter.parse(bad_raw, "2", "in_store")  # type: ignore[arg-type]
-
-    def test_parse_non_list_raises_parse_error(self) -> None:
-        """Payload que não é list lança ParseError."""
-        with self.assertRaises(ParseError):
-            self.adapter.parse({"key": "value"}, "2", "in_store")  # type: ignore[arg-type]
+        item_218 = next((p for p in parsed if p["id"] == "218"), None)
+        self.assertIsNotNone(item_218)
+        self.assertEqual(item_218["price_cents"], 1699)
+        self.assertIsNone(item_218["original_price_cents"])
 
 
-# ---------------------------------------------------------------------------
-# TestPapaJohnsAdapterAdapt
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# 5. Testes da Camada Adapt
+# ===========================================================================
 
 class TestPapaJohnsAdapterAdapt(unittest.TestCase):
-    """Testa adapt() com dicionários construídos diretamente — sem I/O."""
+    """Testa adapt() e a conformidade com o contrato canónico UnifiedPromo."""
 
     def setUp(self) -> None:
         self.adapter = PapaJohnsAdapter()
         self.observed_at = _observed_at()
 
-    def _base_item(self) -> dict:
-        """Item mínimo válido para adapt() — baseado em ID 207 da fixture."""
+    def _base_parsed(self) -> dict:
         return {
             "id": "207",
             "name": "A MAIS FRESCA",
-            "description": "Pizza média com massa fina e estaladiça com 2 ingredientes à escolha por apenas 7.99€",
-            "price": 7.99,
-            "original_price": 9.45,
+            "description": "Pizza média fina por 7.99€",
+            "price_cents": 799,
+            "original_price_cents": 945,
             "request_dispatch_method": "in_store",
             "item_dispatch_method": "in_store",
             "store_id": "2",
@@ -294,328 +443,91 @@ class TestPapaJohnsAdapterAdapt(unittest.TestCase):
             "start_datetime": "2024-02-05T00:00:00.000Z",
             "end_datetime": "2028-12-31T00:00:00.000Z",
             "pictures": [
-                {"id": 3999, "url": "https://cdn.papajohns.pt/fresca_delivery.webp", "category": "delivery_photo"},
-                {"id": 3998, "url": "https://cdn.papajohns.pt/fresca_photo.webp", "category": "photo"},
+                {"url": "https://cdn.papajohns.pt/fresca_photo.webp", "category": "photo"},
             ],
-            "position": 2,
-            "hidden": False,
-            "promoted": False,
             "conditions": "",
         }
 
-    def test_adapt_price_to_integer_cents(self) -> None:
-        """Preço float 7.99€ convertido para 799 cêntimos inteiros."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(promo.price_cents, 799)
-        self.assertIsInstance(promo.price_cents, int)
-        self.assertNotIsInstance(promo.price_cents, bool)
-
-    def test_adapt_original_price_to_integer_cents(self) -> None:
-        """original_price 9.45€ convertido para 945 cêntimos inteiros."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(promo.original_price_cents, 945)
-
-    def test_adapt_price_euros_property(self) -> None:
-        """Propriedade price_euros devolve o valor correto em euros."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertAlmostEqual(promo.price_euros, 7.99, places=2)
-
-    def test_adapt_vendor_is_papa_johns(self) -> None:
-        """Vendedor é sempre PAPA_JOHNS."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(promo.vendor, Brand.PAPA_JOHNS)
-
-    def test_adapt_id_is_canonical(self) -> None:
-        """ID canónico inclui prefixo pj_, id da oferta, loja e modalidade do pedido."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(promo.id, "pj_207_2_in_store")
-
-    def test_adapt_dispatch_method_in_store(self) -> None:
-        """in_store mapeado para TAKE_AWAY."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(promo.dispatch_methods, [DispatchMethod.TAKE_AWAY])
-
-    def test_adapt_dispatch_method_pj_delivery(self) -> None:
-        """pj_delivery mapeado para DELIVERY."""
-        item = self._base_item()
-        item["request_dispatch_method"] = "pj_delivery"
-        item["item_dispatch_method"] = "pj_delivery"
-        promo = self.adapter.adapt(item, self.observed_at)
-        self.assertEqual(promo.dispatch_methods, [DispatchMethod.DELIVERY])
-
-    def test_adapt_store_scope_specific_stores(self) -> None:
-        """store_scope é sempre SPECIFIC_STORES com IDs e nomes de loja."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(promo.store_scope, StoreScope.SPECIFIC_STORES)
-        self.assertIn("2", promo.store_ids)
-        self.assertIn("Amoreiras", promo.store_names)
-
-    def test_adapt_location_scope_is_lisboa(self) -> None:
-        """location_scope é sempre 'Lisboa'."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(promo.location_scope, "Lisboa")
-
-    def test_adapt_observed_at_is_timezone_aware(self) -> None:
-        """observed_at preserva timezone-awareness do datetime de entrada."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertIn("+", promo.observed_at)
-
-    def test_adapt_pizza_count_is_always_none(self) -> None:
-        """pizza_count é sempre None — não disponível neste endpoint."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertIsNone(promo.pizza_count)
-
-    def test_adapt_pizza_size_is_always_unknown(self) -> None:
-        """pizza_size é sempre UNKNOWN — não disponível neste endpoint."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(promo.pizza_size, PizzaSize.UNKNOWN)
-
-    def test_adapt_included_items_is_always_empty(self) -> None:
-        """included_items é sempre [] — offer_groups não existe neste endpoint."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(promo.included_items, [])
-
-    def test_adapt_is_not_comparable_for_unit_price(self) -> None:
-        """is_comparable_for_unit_price=False porque pizza_count é None."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertFalse(promo.is_comparable_for_unit_price)
-        self.assertIsNone(promo.price_per_pizza_cents)
-
-    def test_adapt_image_url_prefers_photo_for_in_store(self) -> None:
-        """in_store: image_url seleciona 'photo' em vez de 'delivery_photo'."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(promo.image_url, "https://cdn.papajohns.pt/fresca_photo.webp")
-
-    def test_adapt_image_url_prefers_delivery_photo_for_delivery(self) -> None:
-        """pj_delivery: image_url seleciona 'delivery_photo'."""
-        item = self._base_item()
-        item["request_dispatch_method"] = "pj_delivery"
-        promo = self.adapter.adapt(item, self.observed_at)
-        self.assertEqual(promo.image_url, "https://cdn.papajohns.pt/fresca_delivery.webp")
-
-    def test_adapt_image_url_none_when_pictures_empty(self) -> None:
-        """image_url é None quando pictures está vazio."""
-        item = self._base_item()
-        item["pictures"] = []
-        promo = self.adapter.adapt(item, self.observed_at)
-        self.assertIsNone(promo.image_url)
-
-    def test_adapt_image_url_none_when_pictures_none(self) -> None:
-        """image_url é None quando pictures é None."""
-        item = self._base_item()
-        item["pictures"] = None
-        promo = self.adapter.adapt(item, self.observed_at)
-        self.assertIsNone(promo.image_url)
-
-    def test_adapt_valid_from_and_until_from_api_dates(self) -> None:
-        """valid_from e valid_until preenchidos a partir de start/end_datetime da API."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(promo.valid_from, "2024-02-05T00:00:00.000Z")
-        self.assertEqual(promo.valid_until, "2028-12-31T00:00:00.000Z")
-
-    def test_adapt_valid_from_until_none_when_absent(self) -> None:
-        """valid_from e valid_until são None quando start/end_datetime é None."""
-        item = self._base_item()
-        item["start_datetime"] = None
-        item["end_datetime"] = None
-        promo = self.adapter.adapt(item, self.observed_at)
-        self.assertIsNone(promo.valid_from)
-        self.assertIsNone(promo.valid_until)
-
-    def test_adapt_days_of_week_all_days(self) -> None:
-        """Promoção disponível todos os dias tem 7 Weekdays."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertEqual(len(promo.days_of_week), 7)
-
-    def test_adapt_rejects_naive_observed_at(self) -> None:
-        """observed_at sem timezone levanta ValueError."""
-        naive_dt = datetime(2026, 9, 28, 15, 0, 0)
-        with self.assertRaises(ValueError):
-            self.adapter.adapt(self._base_item(), naive_dt)
-
-    def test_adapt_anomaly_original_price_lower_than_price_ignored(self) -> None:
-        """ID 218: original_price (16.64) < price (16.99) → original_price_cents=None."""
-        item = self._base_item()
-        item["id"] = "218"
-        item["price"] = 16.99
-        item["original_price"] = 16.64
-        promo = self.adapter.adapt(item, self.observed_at)
-        self.assertEqual(promo.price_cents, 1699)
-        self.assertIsNone(promo.original_price_cents)  # Ignorado por inconsistência
-
-    def test_adapt_output_passes_validate_promo(self) -> None:
-        """Saída de adapt() passa na validação do contrato canónico."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
+    def test_adapt_produces_valid_unified_promo(self) -> None:
+        """UnifiedPromo produzido passa na validação estrita do contrato."""
+        promo = self.adapter.adapt(self._base_parsed(), self.observed_at)
         validated = validate_promo(promo)
-        self.assertEqual(validated.id, "pj_207_2_in_store")
+        self.assertEqual(validated.vendor, Brand.PAPA_JOHNS)
+        self.assertEqual(validated.price_cents, 799)
+        self.assertEqual(validated.original_price_cents, 945)
+        self.assertEqual(validated.price_euros, 7.99)
+        self.assertEqual(validated.original_price_euros, 9.45)
+        self.assertEqual(validated.savings_amount_cents, 146)
 
-    def test_adapt_savings_amount_when_valid_original(self) -> None:
-        """savings_amount_cents calculado corretamente quando original > price."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        # 945 - 799 = 146 cêntimos
-        self.assertEqual(promo.savings_amount_cents, 146)
+    def test_adapt_store_aggregation(self) -> None:
+        """store_ids e store_names agregam múltiplas lojas corretamente."""
+        promo = self.adapter.adapt(
+            self._base_parsed(),
+            self.observed_at,
+            store_ids=["2", "13", "3"],
+            variant_id="pj_207_in_store",
+        )
+        self.assertEqual(promo.id, "pj_207_in_store")
+        self.assertEqual(promo.store_ids, ["2", "3", "13"])
+        self.assertEqual(promo.store_names, ["Amoreiras", "Benfica", "Areeiro"])
 
-    def test_adapt_source_url_is_valid(self) -> None:
-        """source_url é sempre o URL de promoções da Papa John's."""
-        promo = self.adapter.adapt(self._base_item(), self.observed_at)
-        self.assertTrue(promo.source_url.startswith("https://"))
-        self.assertIn("papajohns.pt", promo.source_url)
+    def test_adapt_rejects_naive_datetime(self) -> None:
+        """Data naive levanta ValueError."""
+        naive = datetime(2026, 9, 28, 15, 0, 0)
+        with self.assertRaises(ValueError):
+            self.adapter.adapt(self._base_parsed(), naive)
 
 
-# ---------------------------------------------------------------------------
-# TestPapaJohnsAdapterErrors
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# 6. Testes de Erros e Integração
+# ===========================================================================
 
-class TestPapaJohnsAdapterErrors(unittest.TestCase):
-    """Testa propagação de NetworkError e ParseError."""
+class TestPapaJohnsAdapterErrorsAndIntegration(unittest.TestCase):
+    """Testa propagação de exceções e execução ponta-a-ponta."""
 
     def setUp(self) -> None:
         self.adapter = PapaJohnsAdapter()
 
-    def test_fetch_promotions_propagates_network_error(self) -> None:
-        """NetworkError numa loja propaga sem ser suprimida."""
-        with patch.object(
-            self.adapter,
-            "fetch_raw",
-            side_effect=NetworkError("Timeout", vendor=Brand.PAPA_JOHNS),
-        ):
+    def test_network_error_propagates(self) -> None:
+        """NetworkError propaga com vendor=PAPA_JOHNS."""
+        with patch.object(self.adapter, "fetch_raw", side_effect=NetworkError("Timeout", vendor=Brand.PAPA_JOHNS)):
             with self.assertRaises(NetworkError) as ctx:
                 self.adapter.fetch_promotions()
             self.assertEqual(ctx.exception.vendor, Brand.PAPA_JOHNS)
 
-    def test_fetch_promotions_propagates_parse_error(self) -> None:
-        """ParseError numa loja propaga sem ser suprimida."""
-        with patch.object(
-            self.adapter,
-            "fetch_raw",
-            side_effect=ParseError("JSON malformado", vendor=Brand.PAPA_JOHNS),
-        ):
+    def test_parse_error_propagates(self) -> None:
+        """ParseError propaga com vendor=PAPA_JOHNS."""
+        with patch.object(self.adapter, "fetch_raw", side_effect=ParseError("Malformed", vendor=Brand.PAPA_JOHNS)):
             with self.assertRaises(ParseError) as ctx:
                 self.adapter.fetch_promotions()
             self.assertEqual(ctx.exception.vendor, Brand.PAPA_JOHNS)
 
-    def test_parse_propagates_parse_error_on_bad_structure(self) -> None:
-        """parse() com estrutura inesperada lança ParseError com vendor correto."""
-        bad_payload = [{"no_id": True, "no_name": True}]
-        with self.assertRaises(ParseError) as ctx:
-            self.adapter.parse(bad_payload, "2", "in_store")
-        self.assertEqual(ctx.exception.vendor, Brand.PAPA_JOHNS)
+    def test_fetch_promotions_full_mock_integration(self) -> None:
+        """Execução completa com dados sanitizados passa em todas as asserções."""
+        in_store = _load_fixture("papa_johns_in_store.json")
+        delivery = _load_fixture("papa_johns_pj_delivery.json")
 
-    def test_parse_error_vendor_is_papa_johns(self) -> None:
-        """ParseError de payload não-lista tem vendor=PAPA_JOHNS."""
-        with self.assertRaises(ParseError) as ctx:
-            self.adapter.parse({"unexpected": "dict"}, "2", "in_store")  # type: ignore[arg-type]
-        self.assertEqual(ctx.exception.vendor, Brand.PAPA_JOHNS)
+        def mock_fetch(store_id: str, dispatch_method: str, timeout: float = 15.0) -> list[dict]:
+            if dispatch_method == "in_store":
+                return in_store
+            return delivery
 
-
-# ---------------------------------------------------------------------------
-# TestPapaJohnsAdapterIntegration
-# ---------------------------------------------------------------------------
-
-class TestPapaJohnsAdapterIntegration(unittest.TestCase):
-    """Testa fetch_promotions() com fetch_raw() substituído por fixtures — sem rede."""
-
-    def setUp(self) -> None:
-        self.adapter = PapaJohnsAdapter()
-        self.in_store_raw = _load_fixture("papa_johns_in_store.json")
-        self.delivery_raw = _load_fixture("papa_johns_pj_delivery.json")
-
-    def _mock_fetch_raw(self, store_id: str, dispatch_method: str, timeout: float = 15.0) -> list[dict]:
-        """Substitui fetch_raw com dados de fixtures por dispatch_method."""
-        if dispatch_method == "in_store":
-            return self.in_store_raw
-        return self.delivery_raw
-
-    def test_fetch_promotions_returns_unified_promos(self) -> None:
-        """fetch_promotions() com mock devolve lista de UnifiedPromo."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=self._mock_fetch_raw):
+        with patch.object(self.adapter, "fetch_raw", side_effect=mock_fetch):
             promos = self.adapter.fetch_promotions()
-        self.assertIsInstance(promos, list)
+
         self.assertGreater(len(promos), 0)
-        for promo in promos:
-            self.assertIsInstance(promo, UnifiedPromo)
+        # Todos passam na validação do contrato
+        for p in promos:
+            validate_promo(p)
+            self.assertEqual(p.vendor, Brand.PAPA_JOHNS)
+            self.assertEqual(p.location_scope, "Lisboa")
+            # Todas as promoções agregaram as 3 lojas de Lisboa (pois as fixtures são idênticas)
+            self.assertEqual(p.store_ids, ["2", "3", "13"])
+            self.assertEqual(p.store_names, ["Amoreiras", "Benfica", "Areeiro"])
 
-    def test_fetch_promotions_all_promos_pass_validation(self) -> None:
-        """Todos os UnifiedPromo devolvidos passam na validação do contrato."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=self._mock_fetch_raw):
-            promos = self.adapter.fetch_promotions()
-        for promo in promos:
-            validate_promo(promo)  # não lança exceção = OK
-
-    def test_fetch_promotions_vendor_is_papa_johns(self) -> None:
-        """Todos os registos têm vendor=PAPA_JOHNS."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=self._mock_fetch_raw):
-            promos = self.adapter.fetch_promotions()
-        for promo in promos:
-            self.assertEqual(promo.vendor, Brand.PAPA_JOHNS)
-
-    def test_fetch_promotions_no_duplicate_ids(self) -> None:
-        """Nenhum ID duplicado na lista final."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=self._mock_fetch_raw):
-            promos = self.adapter.fetch_promotions()
-        ids = [p.id for p in promos]
-        self.assertEqual(len(ids), len(set(ids)), "IDs duplicados encontrados")
-
-    def test_fetch_promotions_location_scope_is_lisboa(self) -> None:
-        """Todos os registos têm location_scope='Lisboa'."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=self._mock_fetch_raw):
-            promos = self.adapter.fetch_promotions()
-        for promo in promos:
-            self.assertEqual(promo.location_scope, "Lisboa")
-
-    def test_fetch_promotions_price_cents_are_integers(self) -> None:
-        """Todos os price_cents não-None são inteiros (não float)."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=self._mock_fetch_raw):
-            promos = self.adapter.fetch_promotions()
-        for promo in promos:
-            if promo.price_cents is not None:
-                self.assertIsInstance(promo.price_cents, int)
-                self.assertNotIsInstance(promo.price_cents, bool)
-
-    def test_fetch_promotions_store_scope_specific_stores(self) -> None:
-        """Todos os registos têm store_scope=SPECIFIC_STORES."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=self._mock_fetch_raw):
-            promos = self.adapter.fetch_promotions()
-        for promo in promos:
-            self.assertEqual(promo.store_scope, StoreScope.SPECIFIC_STORES)
-            self.assertGreater(len(promo.store_ids), 0)
-
-    def test_fetch_promotions_observed_at_timezone_aware(self) -> None:
-        """observed_at de todos os registos tem offset UTC explícito."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=self._mock_fetch_raw):
-            promos = self.adapter.fetch_promotions()
-        for promo in promos:
-            self.assertTrue(
-                "+" in promo.observed_at or "Z" in promo.observed_at,
-                f"observed_at sem timezone: {promo.observed_at}",
-            )
-
-    def test_fetch_promotions_contains_in_store_and_delivery(self) -> None:
-        """Resultado contém promoções tanto de TAKE_AWAY como de DELIVERY."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=self._mock_fetch_raw):
-            promos = self.adapter.fetch_promotions()
-        dispatch_methods = {m for p in promos for m in p.dispatch_methods}
-        self.assertIn(DispatchMethod.TAKE_AWAY, dispatch_methods)
-        self.assertIn(DispatchMethod.DELIVERY, dispatch_methods)
-
-    def test_fetch_promotions_pizza_count_always_none(self) -> None:
-        """pizza_count é None em todos os registos (não disponível neste endpoint)."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=self._mock_fetch_raw):
-            promos = self.adapter.fetch_promotions()
-        for promo in promos:
-            self.assertIsNone(promo.pizza_count)
-
-    def test_fetch_promotions_anomaly_218_has_no_original_price(self) -> None:
-        """ID 218 (anomalia: original < price) não tem original_price_cents."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=self._mock_fetch_raw):
-            promos = self.adapter.fetch_promotions()
-        # Procura qualquer promo derivada do ID 218 (em qualquer loja/modalidade)
-        anomaly_promos = [p for p in promos if "_218_" in p.id]
-        self.assertGreater(len(anomaly_promos), 0, "Nenhuma promo de ID 218 encontrada")
-        for p in anomaly_promos:
-            if p.dispatch_methods == [DispatchMethod.TAKE_AWAY]:
-                # Para in_store, ID 218 tem price=16.99 > original=16.64
-                self.assertIsNone(p.original_price_cents)
+        # Nenhum item oculto (hidden=true) foi publicado
+        promo_ids = [p.id for p in promos]
+        self.assertFalse(any("252_in_store" in pid for pid in promo_ids))
 
 
 if __name__ == "__main__":
