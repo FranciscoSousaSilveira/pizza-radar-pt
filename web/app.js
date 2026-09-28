@@ -1,6 +1,6 @@
 /**
  * Pizza Radar Lisboa — Lógica da Interface Web
- * 
+ *
  * Invariantes de Engenharia:
  * 1. Zero IA em runtime (100% determinístico e previsível).
  * 2. 4 rankings explicáveis e separados.
@@ -95,7 +95,7 @@
       const data = await response.json();
       state.allGroups = data.groups || [];
       state.stats = data.stats || {};
-      
+
       updateMetricsBanner(data);
       applyFiltersAndRender();
     } catch (err) {
@@ -360,7 +360,7 @@
 
     // Preço e Desconto
     const displayPrice = group.display_price_label || 'Preço sob consulta';
-    
+
     // Preço Original e Poupança
     let originalPriceHTML = '';
     let discountTagHTML = '';
