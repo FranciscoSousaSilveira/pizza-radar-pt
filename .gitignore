@@ -79,3 +79,10 @@ Thumbs.db
 *.log
 *.tmp
 *.temp
+
+# SQLite Databases & Local Caches
+*.db
+*.sqlite
+*.sqlite3
+local_cache.db
+pizza_radar.db

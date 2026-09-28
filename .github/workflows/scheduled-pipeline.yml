@@ -1,0 +1,72 @@
+name: Scheduled Pipeline & Deployment
+
+on:
+  schedule:
+    # Executa duas vezes ao dia: 10:30 UTC e 17:30 UTC (antes do almoço e jantar)
+    - cron: '30 10,17 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Executar apenas recolha e testes sem deploy'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  pipeline:
+    name: Sync Promos & Publish Snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Run automated test suite
+        run: |
+          python -m unittest discover tests -v
+
+      - name: Run deterministic sync pipeline
+        env:
+          # Segredos a configurar nas GitHub Actions Secrets do repositório:
+          # - TURSO_DATABASE_URL: URL do endpoint libSQL (ex.: libsql://pizza-radar-org.turso.io)
+          # - TURSO_AUTH_TOKEN: Token de autenticação gerado via Turso CLI
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+        run: |
+          # Cria pasta de dados para o snapshot estático da web
+          mkdir -p web/data
+          # Executa a pipeline determinística dos 4 adaptadores
+          python -m pizza_radar.pipeline.cli --db-path ./local_cache.db --snapshot-output ./web/data/promotions.json
+
+      - name: Verify generated snapshot integrity
+        run: |
+          python -c "
+          import json
+          with open('web/data/promotions.json', encoding='utf-8') as f:
+              data = json.load(f)
+          assert 'groups' in data, 'Snapshot inválido: campo groups ausente'
+          assert 'stats' in data, 'Snapshot inválido: campo stats ausente'
+          print(f'Snapshot válido: {len(data[\"groups\"])} grupos promocionais exportados.')
+          "
+
+      - name: Upload diagnostic snapshot artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: promotions-snapshot
+          path: web/data/promotions.json
+          retention-days: 7
+
+      - name: Deploy to Cloudflare Pages
+        if: ${{ github.ref == 'refs/heads/main' && !inputs.dry_run }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy web --project-name=pizza-radar-pt --branch=main

@@ -29,6 +29,19 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-28] — Pipeline de automação, persistência relacional e resiliência a falhas de fornecedores
+
+- **Contexto / Ticket:** Issue #12 — [CHORE] Pipeline de automação para recolha periódica e persistência estática
+- **Desafio / Descoberta:**
+  1. **Isolamento de Falhas por Vendedor:** Em scrapers agregadores é comum a falha de uma API externa (ex.: timeout, 502, alteração de layout) provocar a remoção ou expiração indevida de dados na base de dados. Era indispensável garantir que a falha de um adaptador deixa intactas as promoções ativas desse operador.
+  2. **Contador Condicional de Ausências (`consecutive_misses`):** O contador de ausências só pode ser incrementado se a execução desse vendedor tiver terminado comprovadamente com sucesso. Se o coletor falhou, `consecutive_misses` não é alterado.
+  3. **Persistência Relacional vs. Snapshot CDN:** A base de dados relacional (`PromotionRepository` com SQLite local e libSQL remoto) mantém a integridade e histórico de observações (`observation_history`), enquanto o snapshot determinístico (`promotions.json`) é exportado e publicado via CDN no Cloudflare Pages sem cometer ficheiros à `main`.
+  4. **Abortamento Seguro:** Se a base de dados falhar durante a recolha, o pipeline aborta a geração e publicação de snapshot, garantindo que a versão estável pré-existente na CDN continua a servir os utilizadores.
+- **Impacto:** Arquitetura robusta de recolha 2x/dia (10:30 e 17:30 UTC via GitHub Actions), com tolerância total a falhas isoladas de fornecedores e 119 testes unitários determinísticos cobrindo persistência, isolamento e exportação.
+- **Decisão / Solução:** Implementados os módulos `pizza_radar.persistence` (`schema.sql`, `PromotionRepository`, `SQLitePromotionRepository`, `export_snapshot`) e `pizza_radar.pipeline` (`run_pipeline`, `cli`), e workflow agendado `.github/workflows/scheduled-pipeline.yml`.
+- **Ação Futura:** Conectar os segredos do repositório (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) quando o utilizador desejar ativar a infraestrutura na nuvem.
+
+
 ### [2026-09-28] — Adaptadores Telepizza, Domino's e Pizza Hut: especificidades de parsing, âmbito geográfico e isolamento
 
 - **Contexto / Ticket:** Issue #9 — Implementar adaptadores para Telepizza, Domino's e Pizza Hut (Lisboa)
