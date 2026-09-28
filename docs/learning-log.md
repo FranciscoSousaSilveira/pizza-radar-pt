@@ -29,6 +29,19 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-28] — Adaptadores Telepizza, Domino's e Pizza Hut: especificidades de parsing, âmbito geográfico e isolamento
+
+- **Contexto / Ticket:** Issue #9 — Implementar adaptadores para Telepizza, Domino's e Pizza Hut (Lisboa)
+- **Desafio / Descoberta:**
+  1. **Domino's:** O endpoint `POST ajax/order.php` devolve `Content-Type: text/html` apesar de o payload ser JSON estrito; títulos incluem preços inteiros (`12€`, `27€`) e decimais (`10,95€`), exigindo conversão direta para `Decimal`. A loja 140 (Areeiro) é utilizada estritamente como amostra/âncora de Lisboa sem extrapolar cobertura de todo o concelho. Campos obrigatórios ausentes (`id`, `title`) emitem `ParseError` explícito.
+  2. **Telepizza:** O catálogo público em `/promocoes` possui cartões HTML cuja ordem de atributos varia. Foi implementado `TelepizzaHTMLParser` (`html.parser.HTMLParser`) para extração imune à permutação de atributos. Não se assume delivery + takeaway por omissão: os canais são extraídos apenas mediante evidência na fonte (`data-tab-content` ou texto), emitindo `ParseError` se não houver canal comprovado. `store_scope` é explicitamente `StoreScope.UNKNOWN` pois a página pública não comprova a lista de lojas participantes no concelho.
+  3. **Pizza Hut:** O endpoint WP REST API (`/wp-json/wp/v2/ofertas`) devolve 26 ofertas ativas; títulos contêm entidades HTML (`&#8211;`). Os canais são identificados determinísticamente pelo slug (`-tw` balcão, `-dlv` entrega, `-ei` sala) e texto, nunca presumindo entrega e takeaway em simultâneo sem evidência. O âmbito de lojas é definido como `StoreScope.UNKNOWN` (a menos que lojas aderentes venham comprovadas no payload).
+  4. **Isolamento de Falhas e Orquestração:** Os testes unitários verificam o isolamento contratual entre adaptadores (falha de um não propaga para outros). Fica expressamente documentado que a orquestração de produção, agendamento de execução e recuperação de falhas no runner efémero pertencem ao escopo do Issue #12 (pipeline de automação).
+- **Impacto:** Cobertura determinística das 4 marcas do MVP de Lisboa com contratos auditáveis, precisão monetária estrita em Decimal/cêntimos e representação fidedigna de incerteza geográfica e de canais.
+- **Decisão / Solução:** Implementados `DominosAdapter`, `TelepizzaAdapter` e `PizzaHutAdapter` com testes unitários determinísticos cobrindo permutações de atributos HTML, lojas conhecidas vs. desconhecidas, canais e isolamento contratual.
+- **Ação Futura:** Integrar no pipeline agendado do GitHub Actions no Issue #12.
+
+
 ### [2026-09-28] — Identidade persistente de histórico vs. agrupamento visual e rankings explicáveis
 
 - **Contexto / Ticket:** Issue #10 — Motor determinístico de normalização, cálculo de descontos e ranking de ofertas
@@ -37,7 +50,7 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
   2. A variante concreta por loja que retém especificidades de preço e validade;
   3. O agrupamento visual para o frontend, que deve garantir que o utilizador nunca vê cartões duplicados para a mesma campanha no mesmo canal.
 - **Impacto:** Criada a distinção formal entre `PersistentIdentity` (chave lógica imutável `vendor + campaign + channel`), `StoreVariant` e `VisualPromoGroup`. Os rankings (`BEST_UNIT_PRICE`, `HIGHEST_DISCOUNT`, `LOWEST_ABSOLUTE_PRICE`, `RECENTLY_OBSERVED`) fornecem justificações explícitas e operam 100% matematicamente sem modelos de IA.
-- **Decisão / Solução:** Implementado módulo `pizza_radar/engine/` com 78 testes unitários determinísticos a cobrir estabilidade de IDs, cálculos de métricas, filtros e ausência de cartões duplicados.
+- **Decisão / Solução:** Implementado módulo `pizza_radar/engine/` com 82 testes unitários determinísticos a cobrir estabilidade de IDs, cálculos de métricas, filtros e ausência de cartões duplicados.
 - **Ação Futura:** Integrar com o motor de persistência SQLite/Turso no Issue #12.
 
 

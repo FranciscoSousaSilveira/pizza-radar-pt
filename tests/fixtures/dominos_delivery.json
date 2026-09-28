@@ -1,0 +1,54 @@
+{
+  "combos": {
+    "data": [
+      {
+        "id": 2420,
+        "title": "MÉDIA DESDE 10,95€",
+        "description": "Pizza Média a partir de 10,95€ na entrega",
+        "promo": "✓ Poupa até 8,50€",
+        "delivery_type": 1,
+        "terms": "Válido para entrega ao domicílio.",
+        "image_url": "https://cache.dominos.pt/combos/media_1095.webp",
+        "repetition": false,
+        "allow_half": true,
+        "steps": []
+      },
+      {
+        "id": 3433,
+        "title": "Grande desde 12€ cada",
+        "description": "Pizzas Grandes desde 12€ na compra de 2 ou mais",
+        "promo": "✓ Melhor valor",
+        "delivery_type": 1,
+        "terms": null,
+        "image_url": "https://cache.dominos.pt/combos/grande_12.webp",
+        "repetition": true,
+        "allow_half": true,
+        "steps": []
+      },
+      {
+        "id": 3445,
+        "title": "MENU FAMÍLIA GRANDES | Desde 27€",
+        "description": "2 Pizzas Grandes + Pão de Alho + Bebida 1,5L",
+        "promo": "✓ Menu Família",
+        "delivery_type": 1,
+        "terms": null,
+        "image_url": "https://cache.dominos.pt/combos/familia_27.webp",
+        "repetition": false,
+        "allow_half": false,
+        "steps": []
+      },
+      {
+        "id": 2434,
+        "title": "SEGUNDAS A DOBRAR | 40% DESCONTO",
+        "description": "40% de desconto em todas as pizzas médias e grandes às segundas",
+        "promo": "✓ Só às segundas",
+        "delivery_type": 1,
+        "terms": "Válido exclusivamente às segundas-feiras.",
+        "image_url": "https://cache.dominos.pt/combos/segundas_dobrar.webp",
+        "repetition": false,
+        "allow_half": true,
+        "steps": []
+      }
+    ]
+  }
+}
