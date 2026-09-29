@@ -15,6 +15,10 @@ on:
 jobs:
   pipeline:
     name: Sync Promos & Publish Snapshot
+    # Proteção da execução agendada:
+    # - Execuções agendadas (schedule) só correm quando vars.PIPELINE_ENABLED == 'true'
+    # - Execuções manuais (workflow_dispatch) continuam sempre disponíveis para testes
+    if: ${{ github.event_name != 'schedule' || vars.PIPELINE_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -72,7 +76,13 @@ jobs:
           retention-days: 7
 
       - name: Deploy to Cloudflare Pages
-        if: ${{ github.ref == 'refs/heads/main' && !inputs.dry_run }}
+        # Proteção estrita contra deploy automático:
+        # Exige simultaneamente:
+        # - Todos os passos anteriores concluídos com sucesso (success())
+        # - Branch main (github.ref == 'refs/heads/main')
+        # - Variável de repositório DEPLOY_ENABLED == 'true' (vars.DEPLOY_ENABLED == 'true')
+        # - dry_run diferente de true (inputs.dry_run != true)
+        if: ${{ success() && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true' && inputs.dry_run != true }}
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

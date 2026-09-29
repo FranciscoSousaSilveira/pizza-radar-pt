@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import tempfile
 import unittest
 from datetime import datetime, timezone
@@ -349,6 +350,50 @@ class TestCliRepositorySelection(unittest.TestCase):
                     self.assertFalse(snap_out.exists())
 
 
+class TestWorkflowProtectionGuards(unittest.TestCase):
+    """Validação estática e estrutural das proteções de deploy e pipeline agendada."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        workflow_path = (
+            Path(__file__).resolve().parent.parent / ".github" / "workflows" / "scheduled-pipeline.yml"
+        )
+        cls.workflow_content = workflow_path.read_text(encoding="utf-8")
+
+    def test_workflow_file_exists(self) -> None:
+        self.assertTrue(len(self.workflow_content) > 0, "O workflow scheduled-pipeline.yml deve existir e conter texto.")
+
+    def test_pipeline_scheduled_execution_requires_pipeline_enabled(self) -> None:
+        """Confirma que o job agendado exige vars.PIPELINE_ENABLED == 'true'
+
+        e mantém execuções manuais (workflow_dispatch) disponíveis.
+        """
+        self.assertIn("vars.PIPELINE_ENABLED == 'true'", self.workflow_content)
+        self.assertIn("github.event_name != 'schedule'", self.workflow_content)
+
+    def test_deploy_step_requires_deploy_enabled_and_all_conditions(self) -> None:
+        """Confirma que o passo de deploy exige simultaneamente:
+
+        - success()
+        - branch main (github.ref == 'refs/heads/main')
+        - vars.DEPLOY_ENABLED == 'true'
+        - dry_run diferente de true (inputs.dry_run != true)
+        """
+        # Extrair a seção do Deploy to Cloudflare Pages (permitindo comentários entre o nome e o if)
+        deploy_section_match = re.search(
+            r"- name: Deploy to Cloudflare Pages[\s\S]*?if:\s*\$\{\{\s*([^}]+)\s*\}\}",
+            self.workflow_content,
+        )
+        self.assertIsNotNone(
+            deploy_section_match,
+            "Não foi encontrada a diretiva 'if' no passo 'Deploy to Cloudflare Pages'",
+        )
+        deploy_condition = deploy_section_match.group(1)
+
+        self.assertIn("success()", deploy_condition)
+        self.assertIn("github.ref == 'refs/heads/main'", deploy_condition)
+        self.assertIn("vars.DEPLOY_ENABLED == 'true'", deploy_condition)
+        self.assertIn("inputs.dry_run != true", deploy_condition)
 
 
 if __name__ == "__main__":
