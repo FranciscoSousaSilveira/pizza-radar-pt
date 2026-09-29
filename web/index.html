@@ -63,17 +63,6 @@
           <strong class="telemetry-value" id="stat-location">Lisboa</strong>
         </div>
       </div>
-
-      <!-- Barra de Transparência de Fontes por Marca -->
-      <div class="sources-strip" aria-label="Transparência de fontes por marca">
-        <div class="sources-strip-header">
-          <span class="sources-strip-title">📡 Fontes Oficiais:</span>
-          <span class="sources-strip-summary" id="sources-summary-text">A verificar cobertura...</span>
-        </div>
-        <div class="sources-chips-grid" id="sources-grid">
-          <!-- Renderizado dinamicamente via app.js -->
-        </div>
-      </div>
     </div>
   </header>
 
@@ -102,15 +91,10 @@
             <span class="tab-icon" aria-hidden="true">🍕</span>
             <span class="tab-title">Melhor Preço / Pizza</span>
           </button>
-
-          <button type="button" class="ranking-tab" role="tab" id="tab-recently-observed" aria-selected="false" aria-controls="promos-grid" data-ranking="RECENTLY_OBSERVED">
-            <span class="tab-icon" aria-hidden="true">🕒</span>
-            <span class="tab-title">Recém Observadas</span>
-          </button>
         </div>
 
-        <!-- Micro-legenda do Ranking Ativo (Subtil e Não-Intrusiva) -->
-        <div class="ranking-explanation" id="ranking-explanation" role="region" aria-live="polite">
+        <!-- Micro-legenda acessível para leitores de ecrã -->
+        <div class="ranking-explanation sr-only" id="ranking-explanation" role="region" aria-live="polite">
           <span class="explanation-icon" aria-hidden="true">ℹ️</span>
           <span class="explanation-text" id="explanation-text">
             <strong>Menor Preço Absoluto:</strong> Apresenta primeiro as opções com o desembolso mais baixo em euros (€).
@@ -222,20 +206,13 @@
         </p>
       </div>
       <div class="footer-col">
-        <h3 class="footer-heading">Arquitetura Zero-Cost</h3>
+        <h3 class="footer-heading">Cobertura em Lisboa</h3>
         <p class="footer-text">
-          Pipeline determinístico com capacidade de execução periódica agendada via GitHub Actions.
-          Zero chamadas a modelos de inteligência artificial em produção.
-          Alojado na CDN global gratuita do Cloudflare Pages.
-        </p>
-      </div>
-      <div class="footer-col">
-        <h3 class="footer-heading">Cobertura</h3>
-        <p class="footer-text">
-          Atualmente focado no concelho de Lisboa (Domino's, Papa John's, Pizza Hut e Telepizza).
+          Monitorização de Domino's, Papa John's, Pizza Hut e Telepizza no concelho de Lisboa.
           <br>
-          <span class="footer-legal">Última sincronização aferida às 17:30 UTC.</span>
+          <span class="footer-legal" id="sources-summary-text">Sincronização oficial diária.</span>
         </p>
+        <div class="sources-chips-grid" id="sources-grid" style="margin-top: 10px;"></div>
       </div>
     </div>
   </footer>

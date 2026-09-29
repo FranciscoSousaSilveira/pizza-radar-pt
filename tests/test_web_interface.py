@@ -31,7 +31,6 @@ class TestWebInterfaceIntegrity(unittest.TestCase):
         self.assertIn('tab-lowest-price', html)
         self.assertIn('tab-highest-discount', html)
         self.assertIn('tab-unit-price', html)
-        self.assertIn('tab-recently-observed', html)
         # Sem formulários de checkout nem inputs de pagamento
         self.assertNotIn("<form", html.lower())
         self.assertNotIn('type="password"', html.lower())
