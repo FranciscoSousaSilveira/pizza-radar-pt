@@ -151,60 +151,63 @@ body {
 }
 
 /* ==========================================================================
-   Cabeçalho Editorial (Clean Food App Identity)
+   Barra de Navegação Sticky (Estilo Preço da Jola)
    ========================================================================== */
 .site-header {
-  background: var(--color-surface);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border);
-  padding: 24px 20px 20px;
+  padding: 12px 20px;
+  transition: background-color 0.2s var(--ease-tactile);
 }
 
 .header-container {
   max-width: 1240px;
   margin: 0 auto;
+}
+
+.nav-brand-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: 16px;
 }
 
-.header-top-row {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-@media (min-width: 768px) {
-  .header-top-row {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
-
-.brand-block {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.brand-title-wrap {
-  display: flex;
+.brand-link {
+  display: inline-flex;
   align-items: center;
   gap: 10px;
+  text-decoration: none;
+  color: inherit;
 }
 
-/* better-typography: text-wrap balance, tracking negativo no título */
-.site-title {
-  font-size: 1.85rem;
+.brand-nav-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.brand-text-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-title {
+  font-size: 1.25rem;
   font-weight: 850;
   color: var(--color-text-primary);
   letter-spacing: -0.03em;
-  line-height: 1.15;
-  text-wrap: balance;
-  overflow-wrap: break-word;
+  line-height: 1;
 }
 
-/* better-typography: letter-spacing positivo em rótulos maiúsculos pequenos */
 .city-badge {
   background: #FFEDD5;
   color: #9A3412;
@@ -212,17 +215,28 @@ body {
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: var(--radius-pill);
   white-space: nowrap;
 }
 
-/* better-typography: text-wrap pretty, medida máxima de 65ch */
-.site-tagline {
-  font-size: 0.94rem;
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.nav-link {
+  font-size: 0.88rem;
+  font-weight: 600;
   color: var(--color-text-muted);
-  text-wrap: pretty;
-  max-width: 65ch;
+  text-decoration: none;
+  transition: color 0.15s var(--ease-tactile);
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  color: var(--color-text-primary);
 }
 
 .header-status-badge {
@@ -236,7 +250,6 @@ body {
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--color-text-body);
-  width: fit-content;
   white-space: nowrap;
 }
 
@@ -248,16 +261,128 @@ body {
   box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.2);
 }
 
-/* Faixa Rápida de Resumo de Mercado */
-.header-market-strip {
+/* ==========================================================================
+   Hero Section Dinâmica (Mascote / Logótipo com Halo e CTAs)
+   ========================================================================== */
+.hero-section {
+  width: 100%;
+  padding: 36px 16px 20px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 10%, rgba(194, 65, 12, 0.05) 0%, transparent 65%);
+}
+
+.hero-container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-badge-wrap {
+  margin-bottom: 16px;
+}
+
+.hero-logo-halo {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 8px 24px -4px rgba(194, 65, 12, 0.22), 0 2px 8px rgba(28, 25, 23, 0.08);
+  transition: transform 0.3s var(--ease-tactile), box-shadow 0.3s var(--ease-tactile);
+  background: #FFFFFF;
+}
+
+.hero-logo-halo:hover {
+  transform: scale(1.06) rotate(3deg);
+  box-shadow: 0 12px 28px -4px rgba(194, 65, 12, 0.3), 0 4px 12px rgba(28, 25, 23, 0.1);
+}
+
+.hero-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hero-title {
+  font-size: clamp(1.85rem, 4vw, 2.75rem);
+  font-weight: 850;
+  letter-spacing: -0.035em;
+  color: var(--color-text-primary);
+  line-height: 1.15;
+  text-wrap: balance;
+  margin-bottom: 14px;
+}
+
+.hero-subtitle {
+  font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+  color: var(--color-text-body);
+  line-height: 1.55;
+  max-width: 58ch;
+  text-wrap: pretty;
+  margin-bottom: 22px;
+}
+
+.hero-actions {
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.btn-hero-primary {
+  background: var(--color-accent-radar);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.94rem;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 10px rgba(194, 65, 12, 0.28);
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.btn-hero-primary:hover {
+  background: #9A3412;
+  transform: translateY(-1px);
+}
+
+.btn-hero-secondary {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-weight: 600;
+  font-size: 0.94rem;
+  padding: 12px 22px;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.btn-hero-secondary:hover {
+  background: var(--color-surface-subtle);
+  border-color: #D6D3D1;
+}
+
+/* Faixa Rápida de Resumo de Mercado */
+.header-market-strip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
-  padding: 8px 14px;
-  background: var(--color-surface-subtle);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
+  padding: 8px 18px;
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-subtle);
   font-size: 0.86rem;
   color: var(--color-text-muted);
 }
@@ -277,22 +402,137 @@ body {
 }
 
 /* ==========================================================================
+   Secção de Destaques / Vantagens (Features Grid)
+   ========================================================================== */
+.features-section {
+  width: 100%;
+  padding: 24px 0 12px;
+}
+
+.features-header {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.features-heading {
+  font-size: 1.45rem;
+  font-weight: 850;
+  color: var(--color-text-primary);
+  letter-spacing: -0.025em;
+  margin-bottom: 6px;
+}
+
+.features-intro {
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  max-width: 50ch;
+  margin: 0 auto;
+  text-wrap: pretty;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.feature-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 22px 20px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s var(--ease-tactile), box-shadow 0.25s var(--ease-tactile), border-color 0.25s var(--ease-tactile);
+  display: flex;
+  flex-direction: column;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: #CBD5E1;
+}
+
+.feature-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #FFEDD5;
+  color: #9A3412;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  transition: transform 0.3s var(--ease-tactile);
+}
+
+.feature-card:hover .feature-icon-box {
+  transform: scale(1.08) rotate(8deg);
+}
+
+.feature-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+.feature-text {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Secção do Radar de Ofertas (App & Filtros)
+   ========================================================================== */
+.radar-app-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding-top: 12px;
+}
+
+.radar-section-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.radar-section-title {
+  font-size: 1.5rem;
+  font-weight: 850;
+  color: var(--color-text-primary);
+  letter-spacing: -0.025em;
+}
+
+.radar-section-subtitle {
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
    Layout Principal
    ========================================================================== */
 .main-layout {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 24px 20px 60px;
+  padding: 16px 20px 60px;
   width: 100%;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 32px;
 }
-
-/* ==========================================================================
-   Segmented Control de Ordenação (De-chatified & Polido)
-   ========================================================================== */
 /* ==========================================================================
    Segmented Control de Ordenação (Editorial Tabs)
    ========================================================================== */
@@ -1152,6 +1392,28 @@ body {
   }
 }
 
+.footer-brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.footer-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid #332E2B;
+}
+
+.footer-brand-title {
+  font-size: 1.15rem;
+  font-weight: 850;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+}
+
 .footer-heading {
   font-size: 0.88rem;
   font-weight: 800;
@@ -1274,29 +1536,67 @@ body {
    ========================================================================== */
 @media (max-width: 640px) {
   .site-header {
-    padding: 16px 14px 16px;
+    padding: 10px 14px;
   }
-  .header-container {
-    gap: 12px;
+  .header-nav .nav-link {
+    display: none;
   }
-  .site-title {
-    font-size: 1.45rem;
-  }
-  .site-tagline {
-    font-size: 0.84rem;
+  .brand-title {
+    font-size: 1.15rem;
   }
   .header-status-badge {
-    padding: 4px 10px;
-    font-size: 0.76rem;
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
+  .hero-section {
+    padding: 24px 12px 16px;
+  }
+  .hero-logo-halo {
+    width: 86px;
+    height: 86px;
+  }
+  .hero-title {
+    font-size: 1.45rem;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  .hero-subtitle {
+    font-size: 0.86rem;
+    line-height: 1.45;
+    margin-bottom: 18px;
+  }
+  .btn-hero-primary {
+    padding: 10px 18px;
+    font-size: 0.88rem;
+  }
+  .btn-hero-secondary {
+    padding: 10px 16px;
+    font-size: 0.88rem;
   }
   .header-market-strip {
-    font-size: 0.8rem;
-    padding: 6px 10px;
+    font-size: 0.78rem;
+    padding: 6px 12px;
     gap: 6px;
+    border-radius: var(--radius-md);
+  }
+  .features-section {
+    padding: 16px 0 8px;
+  }
+  .features-heading {
+    font-size: 1.25rem;
+  }
+  .features-intro {
+    font-size: 0.84rem;
+  }
+  .feature-card {
+    padding: 16px 14px;
   }
   .main-layout {
-    padding: 14px 12px 40px;
-    gap: 14px;
+    padding: 8px 12px 40px;
+    gap: 20px;
+  }
+  .radar-section-title {
+    font-size: 1.25rem;
   }
   .ranking-segmented-control {
     max-width: 100%;

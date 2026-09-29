@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pizza Radar PT — Promoções de Pizza em Lisboa</title>
-  <meta name="description" content="Comparador independente de promoções oficiais de pizza no concelho de Lisboa. Preços e descontos reais de Domino's, Papa John's, Pizza Hut e Telepizza sem comissões.">
+  <meta name="description" content="Comparador independente de promoções oficiais de pizza no concelho de Lisboa. Compara preços reais e custos unitários por pizza de Domino's, Papa John's, Pizza Hut e Telepizza.">
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,33 +17,26 @@
     <span id="data-mode-text">Dados de demonstração — atualização automática ainda não ativa</span>
   </div>
 
-  <!-- Cabeçalho Principal (Editorial Food Guide) -->
+  <!-- Barra de Navegação Superior Sticky (Estilo Preço da Jola) -->
   <header class="site-header" role="banner">
     <div class="header-container">
-      <div class="header-top-row">
-        <div class="brand-block">
-          <div class="brand-title-wrap">
-            <h1 class="site-title">Pizza Radar</h1>
+      <div class="nav-brand-row">
+        <a class="brand-link" href="#" aria-label="Pizza Radar PT — Início">
+          <img src="assets/logo.jpg" alt="Pizza Radar Logo" class="brand-nav-logo" width="38" height="38">
+          <div class="brand-text-wrap">
+            <span class="brand-title">Pizza Radar</span>
             <span class="city-badge">LISBOA</span>
           </div>
-          <p class="site-tagline">O radar independente de promoções oficiais em Lisboa</p>
-        </div>
+        </a>
 
-        <div class="header-status-badge" aria-label="Estado da monitorização">
-          <span class="status-indicator" aria-hidden="true"></span>
-          <span class="status-text" id="status-text">4 marcas monitorizadas</span>
-        </div>
-      </div>
-
-      <!-- Resumo Rápido de Mercado -->
-      <div class="header-market-strip" aria-label="Resumo do mercado de pizzas">
-        <span class="market-metric"><strong id="stat-total-promos">20</strong> ofertas ativas</span>
-        <span class="market-sep" aria-hidden="true">•</span>
-        <span class="market-metric">Pizzas desde <strong id="stat-min-price">5,95 €</strong></span>
-        <span class="market-sep" aria-hidden="true">•</span>
-        <span class="market-metric">Menor por pizza: <strong id="stat-unit-price">5,95 € / pizza</strong></span>
-        <span class="market-sep" aria-hidden="true">•</span>
-        <span class="market-metric" id="stat-location">Lisboa</span>
+        <nav class="header-nav" aria-label="Navegação rápida">
+          <a href="#radar-section" class="nav-link">Promoções</a>
+          <a href="#how-it-works" class="nav-link">Como Funciona</a>
+          <div class="header-status-badge" aria-label="Estado da monitorização">
+            <span class="status-indicator" aria-hidden="true"></span>
+            <span class="status-text" id="status-text">4 marcas monitorizadas</span>
+          </div>
+        </nav>
       </div>
     </div>
   </header>
@@ -50,9 +44,96 @@
   <!-- Conteúdo Principal -->
   <main id="main-content" class="main-layout" role="main">
 
-    <!-- Segmented Control para Ordenação -->
-    <section class="rankings-section" aria-labelledby="rankings-heading">
-      <h2 id="rankings-heading" class="sr-only">Critérios de Ordenação</h2>
+    <!-- Hero Section Dinâmica com Logo Oficial e Chamada Principal -->
+    <section class="hero-section" aria-labelledby="hero-title">
+      <div class="hero-container">
+        <div class="hero-badge-wrap">
+          <div class="hero-logo-halo">
+            <img src="assets/logo.jpg" alt="Logótipo Oficial Pizza Radar" class="hero-logo-img" width="120" height="120">
+          </div>
+        </div>
+
+        <h1 class="hero-title" id="hero-title">Onde pedir a melhor pizza ao melhor preço em Lisboa?</h1>
+        <p class="hero-subtitle">
+          Comparamos em tempo real as promoções oficiais das maiores pizzarias de Lisboa — sem intermediários, sem comissões e com descontos reais auditados por pizza individual.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#radar-section" class="btn-hero-primary">
+            <span>Explorar Promoções</span>
+            <svg class="hero-icon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M10 4v12m0 0l-5-5m5 5l5-5"></path>
+            </svg>
+          </a>
+          <a href="#how-it-works" class="btn-hero-secondary">
+            <span>Como Funciona</span>
+          </a>
+        </div>
+
+        <!-- Resumo Rápido de Mercado -->
+        <div class="header-market-strip" aria-label="Resumo do mercado de pizzas">
+          <span class="market-metric"><strong id="stat-total-promos">20</strong> ofertas ativas</span>
+          <span class="market-sep" aria-hidden="true">•</span>
+          <span class="market-metric">Pizzas desde <strong id="stat-min-price">5,95 €</strong></span>
+          <span class="market-sep" aria-hidden="true">•</span>
+          <span class="market-metric">Menor por pizza: <strong id="stat-unit-price">5,95 € / pizza</strong></span>
+          <span class="market-sep" aria-hidden="true">•</span>
+          <span class="market-metric" id="stat-location">Lisboa</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secção de Destaques / Vantagens (Como Funciona) -->
+    <section id="how-it-works" class="features-section" aria-labelledby="features-title">
+      <div class="features-header">
+        <h2 id="features-title" class="features-heading">Porquê o Pizza Radar?</h2>
+        <p class="features-intro">Transparência matemática para aproveitares o melhor valor real em cada encomenda.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+            </svg>
+          </div>
+          <h3 class="feature-title">Radar de Fontes Oficiais</h3>
+          <p class="feature-text">Recolhemos dados diretamente das APIs e páginas públicas de Domino's, Papa John's, Pizza Hut e Telepizza em Lisboa. Preços diretos de catálogo.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">Preço Unitário por Pizza</h3>
+          <p class="feature-text">Decompomos menus 2x1, trios e packs familiares no valor real por pizza individual, para comparares com justiça matemática.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Sem Taxas nem Intermediários</h3>
+          <p class="feature-text">Não cobramos comissões nem taxas de entrega. Encaminhamos-te diretamente para o site oficial da pizzaria para fazeres o teu pedido.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secção do Radar de Ofertas (App & Filtros) -->
+    <section id="radar-section" class="radar-app-section" aria-labelledby="rankings-heading">
+      <div class="radar-section-header">
+        <h2 id="rankings-heading" class="radar-section-title">Radar de Promoções</h2>
+        <p class="radar-section-subtitle">Ordena por preço ou desconto e pesquisa pelos teus ingredientes favoritos.</p>
+      </div>
+
+      <!-- Segmented Control para Ordenação -->
       <div class="ranking-segmented-control" role="tablist" aria-label="Critérios determinísticos de ordenação">
         <button type="button" class="ranking-tab active" role="tab" id="tab-lowest-price" aria-selected="true" aria-controls="promos-grid" data-ranking="LOWEST_ABSOLUTE_PRICE">
           Mais Baratas
@@ -71,95 +152,95 @@
       <div class="ranking-explanation sr-only" id="ranking-explanation" role="region" aria-live="polite">
         <span id="explanation-text">Menor Preço Absoluto: Apresenta primeiro as opções com o menor preço em euros.</span>
       </div>
-    </section>
 
-    <!-- Barra Unificada de Descoberta & Filtros -->
-    <section class="discovery-section" aria-label="Barra de pesquisa e filtros">
-      <div class="discovery-card">
+      <!-- Barra Unificada de Descoberta & Filtros -->
+      <div class="discovery-section" aria-label="Barra de pesquisa e filtros">
+        <div class="discovery-card">
 
-        <!-- Linha 1: Pesquisa & Tipo de Oferta -->
-        <div class="discovery-row discovery-row-main">
-          <div class="search-input-wrap">
-            <svg class="search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="8.5" cy="8.5" r="5.5"></circle>
-              <line x1="12.5" y1="12.5" x2="17" y2="17"></line>
-            </svg>
-            <input type="search" id="search-input" class="search-input" placeholder="Pesquisar pizza, marca, tamanho..." autocomplete="off" aria-label="Pesquisar ofertas de pizza">
-            <button type="button" id="btn-clear-search" class="btn-clear-search" aria-label="Limpar pesquisa" style="display: none;">✕</button>
-          </div>
-
-          <div class="chips-row product-chips-row" role="group" aria-label="Tipo de Oferta" id="product-chips">
-            <button type="button" class="chip active" data-product="PIZZA_ONLY" aria-pressed="true">Pizzas e Menus</button>
-            <button type="button" class="chip" data-product="ALL" aria-pressed="false">Todas as Ofertas</button>
-            <button type="button" class="chip" data-product="NON_PIZZA" aria-pressed="false">Acompanhamentos</button>
-          </div>
-        </div>
-
-        <!-- Linha 2: Filtro de Marcas -->
-        <div class="discovery-row discovery-row-brands">
-          <div class="chips-row vendor-chips-row" role="group" aria-label="Filtrar por marca de pizzaria" id="vendor-chips">
-            <button type="button" class="chip chip-vendor active" data-vendor="ALL" aria-pressed="true">Todas as Marcas</button>
-            <button type="button" class="chip chip-vendor chip-dominos" data-vendor="DOMINOS" aria-pressed="false">Domino's</button>
-            <button type="button" class="chip chip-vendor chip-papajohns" data-vendor="PAPA_JOHNS" aria-pressed="false">Papa John's</button>
-            <button type="button" class="chip chip-vendor chip-pizzahut" data-vendor="PIZZA_HUT" aria-pressed="false">Pizza Hut</button>
-            <button type="button" class="chip chip-vendor chip-telepizza" data-vendor="TELEPIZZA" aria-pressed="false">Telepizza</button>
-          </div>
-        </div>
-
-        <!-- Linha 3: Canais, Dia da Semana e Comparabilidade -->
-        <div class="discovery-row discovery-row-options">
-          <div class="chips-row channel-chips-row" role="group" aria-label="Canal de Atendimento" id="channel-chips">
-            <button type="button" class="chip active" data-channel="ALL" aria-pressed="true">Todos os Canais</button>
-            <button type="button" class="chip" data-channel="TAKE_AWAY" aria-pressed="false">Take Away</button>
-            <button type="button" class="chip" data-channel="DELIVERY" aria-pressed="false">Entrega</button>
-            <button type="button" class="chip" data-channel="DINE_IN" aria-pressed="false">No Restaurante</button>
-          </div>
-
-          <div class="secondary-controls">
-            <div class="select-field">
-              <label for="select-day" class="sr-only">Dia da Semana</label>
-              <select id="select-day" class="custom-select" aria-label="Filtrar por dia da semana">
-                <option value="ALL">Qualquer dia</option>
-                <option value="MONDAY">Segunda-feira</option>
-                <option value="TUESDAY">Terça-feira</option>
-                <option value="WEDNESDAY">Quarta-feira</option>
-                <option value="THURSDAY">Quinta-feira</option>
-                <option value="FRIDAY">Sexta-feira</option>
-                <option value="SATURDAY">Sábado</option>
-                <option value="SUNDAY">Domingo</option>
-              </select>
+          <!-- Linha 1: Pesquisa & Tipo de Oferta -->
+          <div class="discovery-row discovery-row-main">
+            <div class="search-input-wrap">
+              <svg class="search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="8.5" cy="8.5" r="5.5"></circle>
+                <line x1="12.5" y1="12.5" x2="17" y2="17"></line>
+              </svg>
+              <input type="search" id="search-input" class="search-input" placeholder="Pesquisar pizza, marca, tamanho..." autocomplete="off" aria-label="Pesquisar ofertas de pizza">
+              <button type="button" id="btn-clear-search" class="btn-clear-search" aria-label="Limpar pesquisa" style="display: none;">✕</button>
             </div>
 
-            <div class="toggle-field">
-              <label class="toggle-container" for="toggle-comparable">
-                <input type="checkbox" id="toggle-comparable">
-                <span class="toggle-switch" aria-hidden="true"></span>
-                <span class="toggle-label">Apenas preço unitário</span>
-              </label>
+            <div class="chips-row product-chips-row" role="group" aria-label="Tipo de Oferta" id="product-chips">
+              <button type="button" class="chip active" data-product="PIZZA_ONLY" aria-pressed="true">Pizzas e Menus</button>
+              <button type="button" class="chip" data-product="ALL" aria-pressed="false">Todas as Ofertas</button>
+              <button type="button" class="chip" data-product="NON_PIZZA" aria-pressed="false">Acompanhamentos</button>
             </div>
           </div>
+
+          <!-- Linha 2: Filtro de Marcas -->
+          <div class="discovery-row discovery-row-brands">
+            <div class="chips-row vendor-chips-row" role="group" aria-label="Filtrar por marca de pizzaria" id="vendor-chips">
+              <button type="button" class="chip chip-vendor active" data-vendor="ALL" aria-pressed="true">Todas as Marcas</button>
+              <button type="button" class="chip chip-vendor chip-dominos" data-vendor="DOMINOS" aria-pressed="false">Domino's</button>
+              <button type="button" class="chip chip-vendor chip-papajohns" data-vendor="PAPA_JOHNS" aria-pressed="false">Papa John's</button>
+              <button type="button" class="chip chip-vendor chip-pizzahut" data-vendor="PIZZA_HUT" aria-pressed="false">Pizza Hut</button>
+              <button type="button" class="chip chip-vendor chip-telepizza" data-vendor="TELEPIZZA" aria-pressed="false">Telepizza</button>
+            </div>
+          </div>
+
+          <!-- Linha 3: Canais, Dia da Semana e Comparabilidade -->
+          <div class="discovery-row discovery-row-options">
+            <div class="chips-row channel-chips-row" role="group" aria-label="Canal de Atendimento" id="channel-chips">
+              <button type="button" class="chip active" data-channel="ALL" aria-pressed="true">Todos os Canais</button>
+              <button type="button" class="chip" data-channel="TAKE_AWAY" aria-pressed="false">Take Away</button>
+              <button type="button" class="chip" data-channel="DELIVERY" aria-pressed="false">Entrega</button>
+              <button type="button" class="chip" data-channel="DINE_IN" aria-pressed="false">No Restaurante</button>
+            </div>
+
+            <div class="secondary-controls">
+              <div class="select-field">
+                <label for="select-day" class="sr-only">Dia da Semana</label>
+                <select id="select-day" class="custom-select" aria-label="Filtrar por dia da semana">
+                  <option value="ALL">Qualquer dia</option>
+                  <option value="MONDAY">Segunda-feira</option>
+                  <option value="TUESDAY">Terça-feira</option>
+                  <option value="WEDNESDAY">Quarta-feira</option>
+                  <option value="THURSDAY">Quinta-feira</option>
+                  <option value="FRIDAY">Sexta-feira</option>
+                  <option value="SATURDAY">Sábado</option>
+                  <option value="SUNDAY">Domingo</option>
+                </select>
+              </div>
+
+              <div class="toggle-field">
+                <label class="toggle-container" for="toggle-comparable">
+                  <input type="checkbox" id="toggle-comparable">
+                  <span class="toggle-switch" aria-hidden="true"></span>
+                  <span class="toggle-label">Apenas preço unitário</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Linha 4: Barra de Resultados & Limpeza -->
+          <div class="results-statusbar" aria-live="polite">
+            <span class="results-count" id="results-count">A carregar promoções...</span>
+            <button type="button" class="btn-reset-filters" id="btn-reset-filters" style="display: none;">Limpar filtros</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Grelha de Cartões Promocionais -->
+      <div class="cards-section" aria-label="Lista de promoções">
+        <div class="promos-grid" id="promos-grid" role="region" aria-live="polite">
+          <!-- Cartões gerados dinamicamente via app.js -->
         </div>
 
-        <!-- Linha 4: Barra de Resultados & Limpeza -->
-        <div class="results-statusbar" aria-live="polite">
-          <span class="results-count" id="results-count">A carregar promoções...</span>
-          <button type="button" class="btn-reset-filters" id="btn-reset-filters" style="display: none;">Limpar filtros</button>
+        <!-- Estado Vazio / Sem Resultados -->
+        <div class="empty-state" id="empty-state" style="display: none;" role="status">
+          <h3 class="empty-title">Nenhuma promoção encontrada</h3>
+          <p class="empty-message">Não encontramos ofertas que correspondam aos filtros selecionados. Tenta ajustar o canal ou limpar a pesquisa.</p>
+          <button type="button" class="btn-clear-empty" id="btn-clear-empty">Ver todas as promoções</button>
         </div>
-
-      </div>
-    </section>
-
-    <!-- Grelha de Cartões Promocionais -->
-    <section class="cards-section" aria-label="Lista de promoções">
-      <div class="promos-grid" id="promos-grid" role="region" aria-live="polite">
-        <!-- Cartões gerados dinamicamente via app.js -->
-      </div>
-
-      <!-- Estado Vazio / Sem Resultados -->
-      <div class="empty-state" id="empty-state" style="display: none;" role="status">
-        <h3 class="empty-title">Nenhuma promoção encontrada</h3>
-        <p class="empty-message">Não encontramos ofertas que correspondam aos filtros selecionados. Tenta ajustar o canal ou limpar a pesquisa.</p>
-        <button type="button" class="btn-clear-empty" id="btn-clear-empty">Ver todas as promoções</button>
       </div>
     </section>
 
@@ -169,7 +250,10 @@
   <footer class="site-footer" role="contentinfo">
     <div class="footer-container">
       <div class="footer-col">
-        <h3 class="footer-heading">Transparência e Princípios</h3>
+        <div class="footer-brand-lockup">
+          <img src="assets/logo.jpg" alt="Pizza Radar Logo" class="footer-logo" width="34" height="34">
+          <span class="footer-brand-title">Pizza Radar</span>
+        </div>
         <p class="footer-text">
           O <strong>Pizza Radar PT</strong> é um comparador independente de dados abertos.
           Recolhemos dados exclusivamente através de canais públicos oficiais dos operadores.
