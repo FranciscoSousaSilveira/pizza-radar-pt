@@ -29,6 +29,18 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-28] — Pipeline de automação, persistência relacional e resiliência a falhas de fornecedores
+
+- **Contexto / Ticket:** Issue #12 — [CHORE] Pipeline de automação para recolha periódica e persistência estática
+- **Desafio / Descoberta:**
+  1. **Isolamento de Falhas por Vendedor:** Em scrapers agregadores é comum a falha de uma API externa (ex.: timeout, 502, alteração de layout) provocar a remoção ou expiração indevida de dados na base de dados. Era indispensável garantir que a falha de um adaptador deixa intactas as promoções ativas desse operador.
+  2. **Contador Condicional de Ausências (`consecutive_misses`):** O contador de ausências só pode ser incrementado se a execução desse vendedor tiver terminado comprovadamente com sucesso. Se o coletor falhou, `consecutive_misses` não é alterado.
+  3. **Persistência Relacional vs. Snapshot CDN:** A base de dados relacional (`PromotionRepository` com SQLite local e libSQL remoto) mantém a integridade e histórico de observações (`observation_history`), enquanto o snapshot determinístico (`promotions.json`) é exportado e publicado via CDN no Cloudflare Pages sem cometer ficheiros à `main`.
+  4. **Abortamento Seguro:** Se a base de dados falhar durante a recolha, o pipeline aborta a geração e publicação de snapshot, garantindo que a versão estável pré-existente na CDN continua a servir os utilizadores.
+- **Impacto:** Arquitetura robusta de recolha 2x/dia (10:30 e 17:30 UTC via GitHub Actions), com tolerância total a falhas isoladas de fornecedores e suíte unitária determinística cobrindo persistência, isolamento e exportação.
+- **Decisão / Solução:** Implementados os módulos `pizza_radar.persistence` (`schema.sql`, `PromotionRepository`, `SQLitePromotionRepository`, `TursoPromotionRepository`, `export_snapshot`) e `pizza_radar.pipeline` (`run_pipeline`, `cli`), e workflow agendado `.github/workflows/scheduled-pipeline.yml`.
+- **Ação Futura:** Conectar os segredos do repositório (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) quando o utilizador desejar ativar a infraestrutura na nuvem.
+
 ### [2026-09-28] — Interface web responsiva: identidade autêntica, rankings explicáveis e transparência de dados
 
 - **Contexto / Ticket:** Issue #11 — [FEAT] Interface web responsiva para visualização e filtragem de promoções em Lisboa
@@ -37,9 +49,9 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
   2. **Rankings Explicáveis com Banners de Contexto:** Cada um dos 4 rankings (`LOWEST_ABSOLUTE_PRICE`, `HIGHEST_DISCOUNT`, `BEST_UNIT_PRICE`, `RECENTLY_OBSERVED`) apresenta um banner explicativo contextual que descreve exatamente o critério matemático utilizado, sem ambiguidades.
   3. **Transparência na Incerteza Geográfica:** Quando o âmbito de lojas é desconhecido na fonte (`StoreScope.UNKNOWN`), o cartão exibe com clareza o aviso "Lojas participantes não discriminadas no catálogo online oficial", nunca inventando cobertura nem assumindo disponibilidade universal.
   4. **Sem Checkout nem Intermediação:** Cada cartão inclui botão direto "Ver oferta no site oficial" que direciona o utilizador para a página oficial da marca (`source_url`), sem formulários de pagamento nem recolha de dados pessoais.
-- **Impacto:** Aplicação web estática ultra-leve (< 20 KB de JS/CSS puros), zero dependências externas, compatível com Cloudflare Pages, com screenshots desktop e mobile validados e 112 testes unitários determinísticos.
+- **Impacto:** Aplicação web estática ultra-leve (< 20 KB de JS/CSS puros), zero dependências externas, compatível com Cloudflare Pages, com screenshots desktop e mobile validados e 117 testes unitários determinísticos.
 - **Decisão / Solução:** Implementados `web/index.html`, `web/styles.css`, `web/app.js` e fixture canónica `web/data/promotions.json`. Capturados screenshots determinísticos em `docs/screenshots/`.
-- **Ação Futura:** Conectar com o deploy automatizado do GitHub Actions implementado no Issue #12.
+- **Ação Futura:** Integrar com o deploy automatizado do GitHub Actions implementado no Issue #12.
 
 
 ### [2026-09-28] — Adaptadores Telepizza, Domino's e Pizza Hut: especificidades de parsing, âmbito geográfico e isolamento
