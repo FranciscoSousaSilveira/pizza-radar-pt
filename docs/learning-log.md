@@ -29,6 +29,20 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-29] — Decisão de produto: obrigatoriedade estrita de 4 de 4 marcas e bloqueios de infraestrutura de CI
+
+- **Contexto / Ticket:** Issues #24, #25, #28 e #29 (Bloqueios de Release do MVP Lisboa)
+- **Desafio / Descoberta:**
+  1. **Ensaio em Ambiente Real de CI:** A execução de teste em GitHub Actions com credenciais reais revelou bloqueios de tráfego de data center originados por proteções anti-bot em duas marcas:
+     - **Domino's:** Retorna HTTP 403 Forbidden no endpoint oficial de pedidos (`ajax/order.php`) devido a regras de ASN/datacenter do Cloudflare WAF durante o warmup de sessão.
+     - **Telepizza:** O servidor Salesforce Commerce Cloud encerra imediatamente a ligação TCP (`Remote end closed connection without response`) para blocos de IP de runners do GitHub Actions.
+  2. **Papa John's e Pizza Hut Funcionais:** Papa John's (27 ofertas ativas) e Pizza Hut (19 ofertas válidas, após ignorar de forma tolerante 7 itens sem canal comprovado) demonstraram recolha e persistência 100% determinísticas e bem-sucedidas.
+  3. **Decisão de Produto Inflexível:** Não existe MVP nem lançamento público com cobertura parcial (ex.: 2 de 4 marcas). O valor central da proposta ao consumidor exige a presença das 4 marcas de referência em Lisboa.
+  4. **Papel dos Estados FAILED/STALE:** Os estados `FAILED` e `STALE` foram concebidos e sanitizados no snapshot para fornecer tolerância operacional temporária a quebras transitórias em produção, nunca para justificar o lançamento de um produto incompleto.
+- **Impacto:** O lançamento do MVP fica formalmente condicionado à resolução legítima e sustentável da recolha das 4 marcas. Os Spikes #28 e #29 passam a bloqueadores formais da release.
+- **Decisão / Solução:** Merges das melhorias das PRs #27 e #26 mantidos na `main` apenas como evolução interna. Bloqueio estrito de deploy e pipelines agendadas até conclusão da investigação de superfícies públicas oficiais alternativas para Domino's e Telepizza.
+- **Ação Futura:** Conduzir investigações paralelas com `source-researcher` focadas em endpoints alternativos públicos oficiais, dados estruturados ou plataformas com rede permitida (ex.: Cloudflare Workers / Pages Functions), sem violar as regras de proibição de proxies pagos, CAPTCHA bypass ou IA em runtime.
+
 ### [2026-09-28] — Pipeline de automação, persistência relacional e resiliência a falhas de fornecedores
 
 - **Contexto / Ticket:** Issue #12 — [CHORE] Pipeline de automação para recolha periódica e persistência estática
