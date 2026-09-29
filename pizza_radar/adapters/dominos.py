@@ -16,7 +16,9 @@ Regras estritas:
 from __future__ import annotations
 
 import html
+import http.cookiejar
 import json
+import logging
 import re
 import urllib.error
 import urllib.parse
@@ -24,6 +26,8 @@ import urllib.request
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
 from pizza_radar.core.models import (
@@ -36,6 +40,7 @@ from pizza_radar.core.models import (
     Weekday,
 )
 
+_WARMUP_URL = "https://www.dominospizza.pt/menu/areeiro"
 _AJAX_URL = "https://www.dominospizza.pt/ajax/order.php"
 
 # Loja 140 (Areeiro / Lisboa Centro) é utilizada estritamente como amostra / loja-âncora
@@ -43,15 +48,35 @@ _AJAX_URL = "https://www.dominospizza.pt/ajax/order.php"
 # universal para todas as lojas ou zonas de entrega do concelho.
 _STORE_ID_LISBOA = "140"
 
+_WARMUP_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/133.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "pt-PT,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Upgrade-Insecure-Requests": "1",
+}
+
 _HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/128.0.0.0 Safari/537.36"
+        "Chrome/133.0.0.0 Safari/537.36"
     ),
-    "X-Requested-With": "XMLHttpRequest",
+    "Accept": "application/json, text/javascript, */*; q=0.01",
+    "Accept-Language": "pt-PT,pt;q=0.9,en-US;q=0.8,en;q=0.7",
     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-    "Accept": "*/*",
+    "X-Requested-With": "XMLHttpRequest",
+    "Origin": "https://www.dominospizza.pt",
+    "Referer": "https://www.dominospizza.pt/menu/areeiro",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-origin",
 }
 
 _PRICE_REGEX = re.compile(r"(\d+(?:[.,]\d{1,2})?)\s*€")
@@ -79,13 +104,31 @@ def _extract_discount_percentage(text: str) -> float | None:
 
 
 class DominosAdapter(PromoAdapterInterface):
-    """Adaptador para a Domino's Pizza Portugal."""
+    """Adaptador para a Domino's Pizza Portugal com gestão de sessão legítima."""
 
-    DEFAULT_TIMEOUT: float = 15.0
+    DEFAULT_TIMEOUT: float = 20.0
+
+    def __init__(self, opener: Any = None) -> None:
+        self._opener = opener
 
     @property
     def vendor(self) -> Brand:
         return Brand.DOMINOS
+
+    def _get_or_create_opener(self) -> Any:
+        """Cria ou reutiliza opener HTTP com suporte de cookies de sessão."""
+        if self._opener is not None:
+            return self._opener
+        cookie_jar = http.cookiejar.CookieJar()
+        self._opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
+        # Warmup inicial: efetua GET para carregar cookies de sessão (PHPSESSID)
+        try:
+            warmup_req = urllib.request.Request(_WARMUP_URL, headers=_WARMUP_HEADERS, method="GET")
+            with self._opener.open(warmup_req, timeout=self.DEFAULT_TIMEOUT) as resp:
+                resp.read(512)  # Apenas leitura de cabeçalhos/início
+        except Exception as exc:
+            logger.warning("Warmup GET à Domino's (%s) falhou ou foi parcial: %s", _WARMUP_URL, exc)
+        return self._opener
 
     def fetch_raw(
         self,
@@ -93,7 +136,8 @@ class DominosAdapter(PromoAdapterInterface):
         store_id: str = _STORE_ID_LISBOA,
         timeout: float = DEFAULT_TIMEOUT,
     ) -> dict[str, Any]:
-        """Efetua pedido POST ao endpoint ajax/order.php da Domino's."""
+        """Efetua pedido POST ao endpoint ajax/order.php da Domino's utilizando a sessão com cookies."""
+        opener = self._get_or_create_opener()
         data = urllib.parse.urlencode({
             "get_menu": store_id,
             "time": "NOW",
@@ -102,9 +146,14 @@ class DominosAdapter(PromoAdapterInterface):
 
         req = urllib.request.Request(_AJAX_URL, data=data, headers=_HEADERS, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
+            with opener.open(req, timeout=timeout) as resp:
                 body = resp.read()
         except urllib.error.HTTPError as exc:
+            if exc.code == 403:
+                raise NetworkError(
+                    f"HTTP 403 Forbidden ao aceder a {_AJAX_URL} (possível bloqueio Cloudflare/ASN no runner): {exc.reason}",
+                    vendor=self.vendor,
+                ) from exc
             raise NetworkError(f"HTTP {exc.code} ao aceder a {_AJAX_URL}: {exc.reason}", vendor=self.vendor) from exc
         except urllib.error.URLError as exc:
             raise NetworkError(f"Erro de rede ao aceder a {_AJAX_URL}: {exc.reason}", vendor=self.vendor) from exc
@@ -114,7 +163,6 @@ class DominosAdapter(PromoAdapterInterface):
             raise NetworkError(f"Erro de I/O ao aceder a {_AJAX_URL}: {exc}", vendor=self.vendor) from exc
 
         try:
-            # parsing nativo Decimal para números de vírgula flutuante
             parsed_json = json.loads(body.decode("utf-8"), parse_float=Decimal)
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             raise ParseError(f"Resposta de {_AJAX_URL} não é JSON válido: {exc}", vendor=self.vendor) from exc
@@ -129,7 +177,7 @@ class DominosAdapter(PromoAdapterInterface):
         raw: dict[str, Any],
         delivery_method: str = "D",
     ) -> list[dict[str, Any]]:
-        """Extrai a lista de combos de forma determinística."""
+        """Extrai a lista de combos de forma determinística com tolerância por item."""
         combos_data = raw.get("combos", {}).get("data", [])
         if not isinstance(combos_data, list):
             raise ParseError("Chave 'combos.data' não é uma lista", vendor=self.vendor)
@@ -137,14 +185,18 @@ class DominosAdapter(PromoAdapterInterface):
         parsed: list[dict[str, Any]] = []
         for idx, item in enumerate(combos_data):
             if not isinstance(item, dict):
-                raise ParseError(f"Item {idx} de combos.data da Domino's não é um objeto válido", vendor=self.vendor)
+                logger.warning("Item %d de combos.data da Domino's não é um objeto válido", idx)
+                continue
             combo_id = item.get("id")
             title = item.get("title")
             if combo_id is None or title is None or str(combo_id).strip() == "" or str(title).strip() == "":
-                raise ParseError(
-                    f"Item {idx} da Domino's tem campos obrigatórios em falta ou vazios (id={combo_id!r}, title={title!r})",
-                    vendor=self.vendor,
+                logger.warning(
+                    "Item %d da Domino's tem campos obrigatórios em falta (id=%r, title=%r)",
+                    idx,
+                    combo_id,
+                    title,
                 )
+                continue
 
             clean_title = html.unescape(str(title)).strip()
             clean_desc = html.unescape(str(item.get("description") or "")).strip()
@@ -162,6 +214,10 @@ class DominosAdapter(PromoAdapterInterface):
                 "terms": item.get("terms") or "",
                 "image_url": item.get("image_url"),
             })
+
+        if combos_data and not parsed:
+            raise ParseError("Nenhum combo válido pôde ser extraído do payload da Domino's", vendor=self.vendor)
+
         return parsed
 
     def adapt(
