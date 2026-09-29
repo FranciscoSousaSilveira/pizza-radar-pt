@@ -10,6 +10,7 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 from pizza_radar.adapters.telepizza import (
+    DEFAULT_PROMOTION_IDS,
     TelepizzaAdapter,
     _extract_cents_from_text,
     _extract_discount_percentage,
@@ -136,6 +137,60 @@ class TestTelepizzaAdapter(unittest.TestCase):
             self.adapter.coverage_note,
             "Campanhas principais sincronizadas via API oficial Salesforce (amostra de 20 campanhas ativas)",
         )
+
+    def test_discover_promotion_ids_with_dynamic_hits(self) -> None:
+        """Descoberta dinâmica extrai e deduplica IDs quando productPromotions está presente."""
+        page1 = {
+            "total": 3,
+            "hits": [
+                {"productId": "prod1", "productPromotions": [{"promotionId": "PROMO_A"}, {"promotionId": "PROMO_B"}]},
+                {"productId": "prod2", "promotions": [{"id": "PROMO_B"}, {"id": "PROMO_C"}]},
+            ]
+        }
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            mock_resp = MagicMock()
+            mock_resp.read.return_value = json.dumps(page1).encode("utf-8")
+            mock_urlopen.return_value.__enter__.return_value = mock_resp
+
+            ids = self.adapter.discover_promotion_ids(token="mock-token", max_pages=1)
+
+        self.assertEqual(ids, ["PROMO_A", "PROMO_B", "PROMO_C"])
+
+    def test_discover_promotion_ids_fallback_on_empty(self) -> None:
+        """Fallback para DEFAULT_PROMOTION_IDS quando o catálogo não tem productPromotions."""
+        page_empty = {
+            "total": 50,
+            "hits": [
+                {"productId": "pizza1", "productName": "Pizza Atlantica"},
+                {"productId": "pizza2", "productName": "Pizza Tuna"},
+            ]
+        }
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            mock_resp = MagicMock()
+            mock_resp.read.return_value = json.dumps(page_empty).encode("utf-8")
+            mock_urlopen.return_value.__enter__.return_value = mock_resp
+
+            ids = self.adapter.discover_promotion_ids(token="mock-token", max_pages=1)
+
+        self.assertEqual(ids, DEFAULT_PROMOTION_IDS)
+
+    def test_fetch_scapi_promotions_chunking(self) -> None:
+        """fetch_scapi_promotions divide mais de 50 IDs em lotes de 50 e unifica as respostas."""
+        fake_ids = [f"PROMO_{i}" for i in range(75)]
+        chunk1 = {"data": [{"id": f"PROMO_{i}", "name": f"P {i}"} for i in range(50)]}
+        chunk2 = {"data": [{"id": f"PROMO_{i}", "name": f"P {i}"} for i in range(50, 75)]}
+
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            resp1 = MagicMock()
+            resp1.read.return_value = json.dumps(chunk1).encode("utf-8")
+            resp2 = MagicMock()
+            resp2.read.return_value = json.dumps(chunk2).encode("utf-8")
+            mock_urlopen.return_value.__enter__.side_effect = [resp1, resp2]
+
+            result = self.adapter.fetch_scapi_promotions(token="mock-token", promo_ids=fake_ids)
+
+        self.assertEqual(result["total"], 75)
+        self.assertEqual(len(result["data"]), 75)
 
     def test_parse_html_fixture(self) -> None:
         """Extrai os 3 cartões promocionais do HTML legado."""

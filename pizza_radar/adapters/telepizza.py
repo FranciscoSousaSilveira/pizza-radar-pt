@@ -62,6 +62,7 @@ _BASE_SCAPI_URL = f"https://{_SHORT_CODE}.api.commercecloud.salesforce.com"
 _AUTH_URL = f"{_BASE_SCAPI_URL}/shopper/auth/v1/organizations/{_ORG_ID}/oauth2/authorize"
 _TOKEN_URL = f"{_BASE_SCAPI_URL}/shopper/auth/v1/organizations/{_ORG_ID}/oauth2/token"
 _PROMOTIONS_URL = f"{_BASE_SCAPI_URL}/pricing/shopper-promotions/v1/organizations/{_ORG_ID}/promotions"
+_SEARCH_URL = f"{_BASE_SCAPI_URL}/search/shopper-search/v1/organizations/{_ORG_ID}/product-search"
 
 # Lista canónica das 20 campanhas oficiais ativas da Telepizza Portugal comprovadas via SCAPI
 DEFAULT_PROMOTION_IDS: list[str] = [
@@ -268,45 +269,130 @@ class TelepizzaAdapter(PromoAdapterInterface):
         except json.JSONDecodeError as exc:
             raise ParseError(f"Resposta de token SLAS não é JSON válido: {exc}", vendor=self.vendor) from exc
 
+    def discover_promotion_ids(
+        self,
+        token: str,
+        timeout: float = DEFAULT_TIMEOUT,
+        page_limit: int = 50,
+        max_pages: int = 10,
+    ) -> list[str]:
+        """Tenta descobrir IDs de promoção dinamicamente através da Shopper Search API.
+
+        Percorre o catálogo com expand=promotions e paginação. Se o catálogo não devolver
+        productPromotions (uma vez que na Telepizza as ofertas operam como regras de cesto/campanha
+        e não descontos estáticos de produto), utiliza deterministicamente a lista canónica
+        DEFAULT_PROMOTION_IDS como bootstrap/fallback.
+        """
+        discovered_ids: set[str] = set()
+        offset = 0
+
+        for _ in range(max_pages):
+            query = urllib.parse.urlencode({
+                "siteId": _SITE_ID,
+                "refine": "cgid=promocoes-pt",
+                "expand": "promotions",
+                "allVariationProperties": "true",
+                "limit": page_limit,
+                "offset": offset,
+            })
+            url = f"{_SEARCH_URL}?{query}"
+            req = urllib.request.Request(
+                url,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/json",
+                },
+                method="GET",
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+            except Exception as exc:
+                logger.warning("Falha na pesquisa Shopper Search da Telepizza (offset %d): %s", offset, exc)
+                break
+
+            hits = data.get("hits", [])
+            for h in hits:
+                if not isinstance(h, dict):
+                    continue
+                for key in ("productPromotions", "promotions", "representedProductPromotions"):
+                    promos_field = h.get(key)
+                    if isinstance(promos_field, list):
+                        for p_obj in promos_field:
+                            if isinstance(p_obj, dict):
+                                p_id = p_obj.get("promotionId") or p_obj.get("id")
+                                if p_id and str(p_id).strip():
+                                    discovered_ids.add(str(p_id).strip())
+
+            total = data.get("total", 0)
+            offset += page_limit
+            if offset >= total or not hits:
+                break
+
+        if discovered_ids:
+            logger.info("Shopper Search descobriu %d promoção(ões) dinamicamente.", len(discovered_ids))
+            return sorted(discovered_ids)
+
+        logger.info(
+            "Shopper Search não retornou productPromotions (as promoções Telepizza operam a nível de cesto/campanha na SCAPI). "
+            "A utilizar lista canónica de campanhas oficiais (%d IDs).",
+            len(DEFAULT_PROMOTION_IDS),
+        )
+        return list(DEFAULT_PROMOTION_IDS)
+
     def fetch_scapi_promotions(
         self,
         token: str,
         promo_ids: list[str] | None = None,
         timeout: float = DEFAULT_TIMEOUT,
     ) -> dict[str, Any]:
-        """Consulta as promoções ativas na Salesforce Shopper Promotions API."""
-        ids = promo_ids or DEFAULT_PROMOTION_IDS
-        promo_ids_str = ",".join(ids)
-        query = urllib.parse.urlencode({"siteId": _SITE_ID, "ids": promo_ids_str})
-        url = f"{_PROMOTIONS_URL}?{query}"
+        """Consulta as promoções ativas na Salesforce Shopper Promotions API em lotes de até 50 IDs."""
+        ids = promo_ids if promo_ids is not None else self.discover_promotion_ids(token, timeout=timeout)
+        if not ids:
+            return {"limit": 0, "total": 0, "data": []}
 
-        req = urllib.request.Request(
-            url,
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Accept": "application/json",
-            },
-            method="GET",
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                body = resp.read().decode("utf-8")
-        except urllib.error.HTTPError as exc:
-            raise NetworkError(
-                f"HTTP {exc.code} ao consultar promoções SCAPI Telepizza: {exc.reason}",
-                vendor=self.vendor,
-            ) from exc
-        except urllib.error.URLError as exc:
-            raise NetworkError(f"Erro de rede ao consultar promoções SCAPI Telepizza: {exc.reason}", vendor=self.vendor) from exc
-        except TimeoutError as exc:
-            raise NetworkError(f"Timeout ({timeout}s) ao consultar promoções SCAPI Telepizza", vendor=self.vendor) from exc
-        except OSError as exc:
-            raise NetworkError(f"Erro de I/O ao consultar promoções SCAPI Telepizza: {exc}", vendor=self.vendor) from exc
+        all_data: list[dict[str, Any]] = []
+        chunk_size = 50
 
-        try:
-            return json.loads(body, parse_float=Decimal)
-        except json.JSONDecodeError as exc:
-            raise ParseError(f"Resposta de promoções SCAPI Telepizza não é JSON válido: {exc}", vendor=self.vendor) from exc
+        for i in range(0, len(ids), chunk_size):
+            chunk = ids[i : i + chunk_size]
+            promo_ids_str = ",".join(chunk)
+            query = urllib.parse.urlencode({"siteId": _SITE_ID, "ids": promo_ids_str})
+            url = f"{_PROMOTIONS_URL}?{query}"
+
+            req = urllib.request.Request(
+                url,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Accept": "application/json",
+                },
+                method="GET",
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    body = resp.read().decode("utf-8")
+            except urllib.error.HTTPError as exc:
+                raise NetworkError(
+                    f"HTTP {exc.code} ao consultar promoções SCAPI Telepizza: {exc.reason}",
+                    vendor=self.vendor,
+                ) from exc
+            except urllib.error.URLError as exc:
+                raise NetworkError(f"Erro de rede ao consultar promoções SCAPI Telepizza: {exc.reason}", vendor=self.vendor) from exc
+            except TimeoutError as exc:
+                raise NetworkError(f"Timeout ({timeout}s) ao consultar promoções SCAPI Telepizza", vendor=self.vendor) from exc
+            except OSError as exc:
+                raise NetworkError(f"Erro de I/O ao consultar promoções SCAPI Telepizza: {exc}", vendor=self.vendor) from exc
+
+            try:
+                parsed_chunk = json.loads(body, parse_float=Decimal)
+            except json.JSONDecodeError as exc:
+                raise ParseError(f"Resposta de promoções SCAPI Telepizza não é JSON válido: {exc}", vendor=self.vendor) from exc
+
+            chunk_items = parsed_chunk.get("data", [])
+            if isinstance(chunk_items, list):
+                all_data.extend(chunk_items)
+
+        return {"limit": len(all_data), "total": len(all_data), "data": all_data}
 
     def fetch_raw(
         self,
