@@ -10,6 +10,13 @@ import unittest
 
 from unittest.mock import MagicMock, patch
 
+try:
+    import libsql
+    HAS_LIBSQL = True
+except ImportError:
+    libsql = None
+    HAS_LIBSQL = False
+
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
@@ -26,6 +33,7 @@ from pizza_radar.persistence.repository import (
     ObservationEntry,
     SQLitePromotionRepository,
     TursoPromotionRepository,
+    parse_schema_statements,
 )
 
 
@@ -260,6 +268,40 @@ class TestPersistenceRepository(unittest.TestCase):
 class TestTursoPromotionRepository(unittest.TestCase):
     """Testa a implementação concreta de TursoPromotionRepository / LibSqlPromotionRepository."""
 
+    def setUp(self) -> None:
+        if not HAS_LIBSQL:
+            self.skipTest("libsql não está instalado")
+
+    def _sample_promo(
+        self,
+        promo_id: str = "pj_101_in_store",
+        vendor: Brand = Brand.PAPA_JOHNS,
+        price_cents: int = 1200,
+        original_price_cents: int | None = 1600,
+        valid_until: str | None = None,
+        observed_at: str = "2026-09-28T10:00:00+00:00",
+        pizza_count: int | None = 2,
+    ) -> UnifiedPromo:
+        return UnifiedPromo(
+            id=promo_id,
+            vendor=vendor,
+            title="Promo Teste",
+            description="Descrição da promoção",
+            observed_at=observed_at,
+            price_cents=price_cents,
+            original_price_cents=original_price_cents,
+            discount_percentage=25.0,
+            discount_type=DiscountType.FIXED_PRICE,
+            store_scope=StoreScope.SPECIFIC_STORES,
+            store_ids=["2", "13"],
+            store_names=["Amoreiras", "Areeiro"],
+            pizza_count=pizza_count,
+            pizza_size=PizzaSize.MEDIUM,
+            dispatch_methods=[DispatchMethod.TAKE_AWAY],
+            valid_until=valid_until,
+            source_url="https://papajohns.pt/promocoes",
+        )
+
     def test_libsql_alias(self) -> None:
         self.assertIs(LibSqlPromotionRepository, TursoPromotionRepository)
 
@@ -269,63 +311,157 @@ class TestTursoPromotionRepository(unittest.TestCase):
         with self.assertRaises(ValueError):
             TursoPromotionRepository(database_url="libsql://db.turso.io", auth_token="")
 
-    def test_url_normalization(self) -> None:
-        with patch.object(TursoPromotionRepository, "init_schema", return_value=None):
-            repo1 = TursoPromotionRepository(database_url="libsql://my-db.turso.io", auth_token="tok")
-            self.assertEqual(repo1.pipeline_url, "https://my-db.turso.io/v2/pipeline")
+    def test_turso_init_schema_creates_all_five_tables_and_four_indexes(self) -> None:
+        """CORREÇÃO 1: Comprova explicitamente que parse_schema_statements não perde
 
-            repo2 = TursoPromotionRepository(database_url="https://my-db.turso.io/", auth_token="tok")
-            self.assertEqual(repo2.pipeline_url, "https://my-db.turso.io/v2/pipeline")
+        a tabela stores e que o lote executado no Turso/libsql cria:
+        - stores
+        - promotions
+        - promotion_stores
+        - observation_history
+        - vendor_sync_runs
+        - os 4 índices
+        """
+        # 1. Inspeciona o lote de statements gerado pelo parser
+        schema_path = Path(__file__).parent.parent / "pizza_radar" / "persistence" / "schema.sql"
+        statements = parse_schema_statements(schema_path)
 
-            repo3 = TursoPromotionRepository(database_url="http://localhost:8080/v2/pipeline", auth_token="tok")
-            self.assertEqual(repo3.pipeline_url, "http://localhost:8080/v2/pipeline")
+        self.assertEqual(len(statements), 9, "schema.sql deve conter exatamente 9 instruções DDL.")
+        self.assertTrue(any("CREATE TABLE IF NOT EXISTS stores" in s for s in statements), "Instrução 'stores' ausente!")
+        self.assertTrue(any("CREATE TABLE IF NOT EXISTS promotions" in s for s in statements), "Instrução 'promotions' ausente!")
+        self.assertTrue(any("CREATE TABLE IF NOT EXISTS promotion_stores" in s for s in statements), "Instrução 'promotion_stores' ausente!")
+        self.assertTrue(any("CREATE TABLE IF NOT EXISTS observation_history" in s for s in statements), "Instrução 'observation_history' ausente!")
+        self.assertTrue(any("CREATE TABLE IF NOT EXISTS vendor_sync_runs" in s for s in statements), "Instrução 'vendor_sync_runs' ausente!")
+        self.assertTrue(any("CREATE INDEX IF NOT EXISTS idx_promotions_active" in s for s in statements), "Índice 'idx_promotions_active' ausente!")
+        self.assertTrue(any("CREATE INDEX IF NOT EXISTS idx_promotions_observed" in s for s in statements), "Índice 'idx_promotions_observed' ausente!")
+        self.assertTrue(any("CREATE INDEX IF NOT EXISTS idx_history_promo" in s for s in statements), "Índice 'idx_history_promo' ausente!")
+        self.assertTrue(any("CREATE INDEX IF NOT EXISTS idx_sync_vendor" in s for s in statements), "Índice 'idx_sync_vendor' ausente!")
 
-    @patch("urllib.request.urlopen")
-    def test_execute_pipeline_and_parse_response(self, mock_urlopen: MagicMock) -> None:
-        # Mock de resposta da pipeline libSQL Hrana 2
-        mock_response = MagicMock()
-        mock_response.read.return_value = json.dumps({
-            "results": [
-                {
-                    "type": "ok",
-                    "response": {
-                        "type": "execute",
-                        "result": {
-                            "cols": [{"name": "id"}, {"name": "price_cents"}],
-                            "rows": [
-                                [{"type": "text", "value": "pj_1"}, {"type": "integer", "value": "1200"}],
-                                [{"type": "text", "value": "pj_2"}, {"type": "integer", "value": "950"}],
-                            ],
-                            "affected_row_count": 0,
-                            "last_insert_rowid": None,
-                        },
-                    },
-                }
-            ]
-        }).encode("utf-8")
-        mock_urlopen.return_value.__enter__.return_value = mock_response
+        # 2. Executa contra um connection libsql real e inspeciona o catálogo sqlite_master
+        conn = libsql.connect(":memory:")
+        repo = TursoPromotionRepository(
+            database_url="libsql://mock.turso.io",
+            auth_token="mock_token",
+            _conn=conn,
+        )
 
-        with patch.object(TursoPromotionRepository, "init_schema", return_value=None):
-            repo = TursoPromotionRepository(database_url="libsql://my-db.turso.io", auth_token="secret-token")
-            results = repo._execute_pipeline([("SELECT id, price_cents FROM promotions;", None)])
+        cur = conn.cursor()
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;")
+        tables = [r[0] for r in cur.fetchall()]
+        self.assertIn("stores", tables)
+        self.assertIn("promotions", tables)
+        self.assertIn("promotion_stores", tables)
+        self.assertIn("observation_history", tables)
+        self.assertIn("vendor_sync_runs", tables)
 
-            self.assertEqual(len(results), 1)
-            rows = results[0]["rows"]
-            self.assertEqual(len(rows), 2)
-            self.assertEqual(rows[0]["id"], "pj_1")
-            self.assertEqual(rows[0]["price_cents"], 1200)
-            self.assertEqual(rows[1]["id"], "pj_2")
-            self.assertEqual(rows[1]["price_cents"], 950)
+        cur.execute("SELECT name FROM sqlite_master WHERE type='index' AND name LIKE 'idx_%' ORDER BY name;")
+        indexes = [r[0] for r in cur.fetchall()]
+        self.assertIn("idx_promotions_active", indexes)
+        self.assertIn("idx_promotions_observed", indexes)
+        self.assertIn("idx_history_promo", indexes)
+        self.assertIn("idx_sync_vendor", indexes)
+        self.assertEqual(len(indexes), 4)
 
-    @patch("urllib.request.urlopen")
-    def test_connection_error_on_network_failure(self, mock_urlopen: MagicMock) -> None:
-        mock_urlopen.side_effect = ConnectionResetError("Conexão recusada")
+    def test_turso_atomic_rollback_on_failure_during_sync(self) -> None:
+        """CORREÇÃO 2: Comprova que toda a sincronização de um vendedor é all-or-nothing.
 
-        with patch.object(TursoPromotionRepository, "init_schema", return_value=None):
-            repo = TursoPromotionRepository(database_url="libsql://my-db.turso.io", auth_token="secret-token")
+        Se ocorrer uma falha a meio da persistência:
+        - Nenhuma alteração parcial fica persistida;
+        - consecutive_misses não muda;
+        - A integridade da base de dados permanece inviolada.
+        """
+        conn = libsql.connect(":memory:")
+        repo = TursoPromotionRepository(
+            database_url="libsql://mock.turso.io",
+            auth_token="mock_token",
+            _conn=conn,
+        )
+
+        # 1. Sincronização inicial com sucesso (pj_1 ativo, consecutive_misses = 0)
+        t1 = datetime(2026, 9, 29, 10, 0, tzinfo=timezone.utc)
+        p1 = self._sample_promo("pj_1", Brand.PAPA_JOHNS, 1000)
+        stats1 = repo.upsert_promotions([p1], vendor=Brand.PAPA_JOHNS, sync_time=t1)
+        self.assertEqual(stats1.created, 1)
+
+        p1_db = repo.get_promotion_by_id("pj_1")
+        self.assertIsNotNone(p1_db)
+        self.assertEqual(p1_db.price_cents, 1000)
+
+        # 2. Segunda sincronização tenta inserir pj_2 e omitir pj_1 (pj_1 sofreria incremento de misses).
+        # Simulamos uma falha intermédia injetando um erro no cursor durante a inserção de stores
+        p2 = self._sample_promo("pj_2", Brand.PAPA_JOHNS, 1500)
+        t2 = datetime(2026, 9, 29, 17, 0, tzinfo=timezone.utc)
+
+        class FailingCursor:
+            def __init__(self, real_cur):
+                self._real_cur = real_cur
+
+            def execute(self, sql, params=()):
+                if "promotion_stores" in sql and "INSERT" in sql:
+                    raise RuntimeError("Simulação de falha intermédia de I/O na tabela promotion_stores")
+                return self._real_cur.execute(sql, params)
+
+            def executemany(self, sql, seq_of_params):
+                return self._real_cur.executemany(sql, seq_of_params)
+
+            def fetchall(self):
+                return self._real_cur.fetchall()
+
+            def fetchone(self):
+                return self._real_cur.fetchone()
+
+            @property
+            def description(self):
+                return self._real_cur.description
+
+        class FailingConnectionProxy:
+            def __init__(self, real_conn):
+                self._real_conn = real_conn
+
+            def cursor(self):
+                return FailingCursor(self._real_conn.cursor())
+
+            def commit(self):
+                return self._real_conn.commit()
+
+            def rollback(self):
+                return self._real_conn.rollback()
+
+            def close(self):
+                return self._real_conn.close()
+
+        repo._connection = FailingConnectionProxy(conn)
+
+        # Executar a sincronização que deve falhar atomicamente
+        with self.assertRaises(RuntimeError) as ctx:
+            repo.upsert_promotions([p2], vendor=Brand.PAPA_JOHNS, sync_time=t2)
+        self.assertIn("Simulação de falha intermédia", str(ctx.exception))
+
+        # Restaurar conexão real
+        repo._connection = conn
+
+        # 3. VERIFICAÇÕES DE ROLLBACK:
+        # a) pj_2 NÃO pode existir na base de dados
+        self.assertIsNone(repo.get_promotion_by_id("pj_2"), "pj_2 não pode ter sido persistido após rollback!")
+
+        # b) consecutive_misses de pj_1 NÃO mudou (continua 0)
+        p1_after = repo.get_promotion_by_id("pj_1")
+        self.assertIsNotNone(p1_after)
+        cur = conn.cursor()
+        cur.execute("SELECT consecutive_misses, is_active FROM promotions WHERE id = 'pj_1';")
+        row = cur.fetchone()
+        self.assertEqual(row[0], 0, "consecutive_misses foi indevidamente alterado!")
+        self.assertEqual(row[1], 1, "is_active foi indevidamente alterado!")
+
+        # c) Histórico de observações não contém registos parciais da execução falhada
+        cur.execute("SELECT COUNT(*) FROM observation_history WHERE promotion_id = 'pj_2';")
+        self.assertEqual(cur.fetchone()[0], 0, "Não podem existir entradas de histórico para pj_2!")
+
+    def test_turso_connection_failure_raises_connection_error(self) -> None:
+        with patch("libsql.connect", side_effect=Exception("Timeout DNS ao resolver Turso")):
             with self.assertRaises(ConnectionError) as ctx:
-                repo._execute_pipeline([("SELECT 1;", None)])
-            self.assertIn("Falha de rede ao contactar Turso", str(ctx.exception))
+                TursoPromotionRepository(database_url="libsql://unreachable.turso.io", auth_token="token")
+            self.assertIn("Falha ao ligar à base de dados Turso", str(ctx.exception))
 
 
 if __name__ == "__main__":

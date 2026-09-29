@@ -84,12 +84,37 @@ def run_pipeline(
 
     for adapter in adapters:
         vendor_name = adapter.vendor.value
+        # 1. Recolha através do adaptador (isolamento de falhas por operador)
         try:
             logger.info("A iniciar recolha para o vendedor %s...", vendor_name)
             promos = adapter.fetch_promotions()
             offers_count = len(promos)
+        except Exception as e:
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            logger.error("Falha na sincronização do vendedor %s: %s", vendor_name, error_msg)
 
-            # Persistir lote na base de dados
+            # Tentar registar a falha na auditoria da BD (se acessível)
+            try:
+                repo.record_vendor_sync_run(
+                    vendor=adapter.vendor,
+                    status="FAILED",
+                    error_message=error_msg,
+                    executed_at=now,
+                )
+            except Exception as db_err:
+                logger.warning("Não foi possível registar falha de sync na BD: %s", db_err)
+
+            # Importante: o estado existente deste operador NÃO é modificado
+            vendor_results[vendor_name] = VendorSyncStatus(
+                vendor=adapter.vendor,
+                status="FAILED",
+                offers_found=0,
+                error_message=error_msg,
+            )
+            continue
+
+        # 2. Persistência atómica na base de dados
+        try:
             stats = repo.upsert_promotions(
                 promos=promos,
                 vendor=adapter.vendor,
@@ -121,25 +146,22 @@ def run_pipeline(
             )
 
         except Exception as e:
-            error_msg = f"{type(e).__name__}: {str(e)}"
-            logger.error("Falha na sincronização do vendedor %s: %s", vendor_name, error_msg)
-
-            # Tentar registar a falha na auditoria da BD (se acessível)
-            try:
-                repo.record_vendor_sync_run(
-                    vendor=adapter.vendor,
-                    status="FAILED",
-                    error_message=error_msg,
-                    executed_at=now,
-                )
-            except Exception as db_err:
-                logger.warning("Não foi possível registar falha de sync na BD: %s", db_err)
-
-            # Importante: o estado existente deste operador NÃO é modificado
+            error_msg = f"Falha na base de dados durante persistência do vendedor {vendor_name}: {e}"
+            logger.critical(error_msg)
             vendor_results[vendor_name] = VendorSyncStatus(
                 vendor=adapter.vendor,
                 status="FAILED",
                 offers_found=0,
+                error_message=error_msg,
+            )
+            # Aborta imediatamente a pipeline: falha na base de dados impede snapshot e deploy
+            return PipelineResult(
+                success=False,
+                sync_time=now_iso,
+                vendor_results=vendor_results,
+                expired_by_date=0,
+                total_active_promotions=0,
+                snapshot_exported=False,
                 error_message=error_msg,
             )
 

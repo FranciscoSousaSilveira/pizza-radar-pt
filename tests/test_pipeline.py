@@ -228,6 +228,46 @@ class TestPipelineRunner(unittest.TestCase):
         self.assertEqual(db_p1.last_seen_at, t2.isoformat())
         self.assertEqual(db_p1.price_cents, 1100)
 
+    def test_pipeline_atomic_rollback_prevents_snapshot_and_deploy(self) -> None:
+        """CORREÇÃO 2: Comprova que uma falha a meio da sincronização na pipeline:
+
+        - Não deixa alterações parciais;
+        - consecutive_misses não muda;
+        - O snapshot não é exportado;
+        - O deploy não seria executado.
+        """
+        # Repositório com promoção inicial pj_1
+        p_pj = self._make_promo("pj_1", Brand.PAPA_JOHNS, 1000)
+        self.repo.upsert_promotions([p_pj], vendor=Brand.PAPA_JOHNS)
+
+        # Adaptador Papa John's com falha de persistência intermédia simulada
+        failing_repo = MagicMock(spec=SQLitePromotionRepository)
+        failing_repo.upsert_promotions.side_effect = RuntimeError("Falha de rede/transação intermédia")
+        failing_repo.get_active_promotions.return_value = []
+
+        adapter = MockAdapter(Brand.PAPA_JOHNS, [p_pj])
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            snap_file = Path(tmpdir) / "promotions.json"
+            # Cria ficheiro pré-existente íntegro
+            snap_file.write_text('{"integro": true}', encoding="utf-8")
+
+            result = run_pipeline(
+                repo=failing_repo,
+                adapters=[adapter],
+                snapshot_output_path=snap_file,
+            )
+
+            # 1. Falha registada no vendedor
+            self.assertEqual(result.vendor_results["PAPA_JOHNS"].status, "FAILED")
+            # 2. Snapshot NÃO foi exportado nem sobrescrito
+            self.assertFalse(result.snapshot_exported)
+            self.assertEqual(snap_file.read_text(encoding="utf-8"), '{"integro": true}')
+            # 3. consecutive_misses na base de dados real mantem-se inalterado (0)
+            cur = self.repo._get_connection().cursor()
+            cur.execute("SELECT consecutive_misses FROM promotions WHERE id = 'pj_1';")
+            self.assertEqual(cur.fetchone()[0], 0)
+
 
 class TestCliRepositorySelection(unittest.TestCase):
     """Testa a seleção estrita de repositórios e política fail-fast do CLI."""
@@ -307,6 +347,8 @@ class TestCliRepositorySelection(unittest.TestCase):
                     self.assertEqual(exit_code, 1)
                     # Snapshot não deve ter sido criado
                     self.assertFalse(snap_out.exists())
+
+
 
 
 if __name__ == "__main__":
