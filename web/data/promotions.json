@@ -1263,8 +1263,7 @@
       "message": "Modo demo — dados locais",
       "active_offers_count": 5,
       "last_success_at": "2026-09-28T17:30:00+00:00",
-      "last_attempt_at": "2026-09-28T17:30:00+00:00",
-      "error_message": null
+      "last_attempt_at": "2026-09-28T17:30:00+00:00"
     },
     "PAPA_JOHNS": {
       "vendor": "PAPA_JOHNS",
@@ -1272,8 +1271,7 @@
       "message": "Modo demo — dados locais",
       "active_offers_count": 5,
       "last_success_at": "2026-09-28T17:30:00+00:00",
-      "last_attempt_at": "2026-09-28T17:30:00+00:00",
-      "error_message": null
+      "last_attempt_at": "2026-09-28T17:30:00+00:00"
     },
     "PIZZA_HUT": {
       "vendor": "PIZZA_HUT",
@@ -1281,8 +1279,7 @@
       "message": "Modo demo — dados locais",
       "active_offers_count": 5,
       "last_success_at": "2026-09-28T17:30:00+00:00",
-      "last_attempt_at": "2026-09-28T17:30:00+00:00",
-      "error_message": null
+      "last_attempt_at": "2026-09-28T17:30:00+00:00"
     },
     "TELEPIZZA": {
       "vendor": "TELEPIZZA",
@@ -1290,8 +1287,7 @@
       "message": "Modo demo — dados locais",
       "active_offers_count": 5,
       "last_success_at": "2026-09-28T17:30:00+00:00",
-      "last_attempt_at": "2026-09-28T17:30:00+00:00",
-      "error_message": null
+      "last_attempt_at": "2026-09-28T17:30:00+00:00"
     }
   }
 }
