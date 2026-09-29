@@ -47,9 +47,9 @@
 
   // Nomes amigáveis dos canais
   const CHANNEL_LABELS = {
-    DELIVERY: '🛵 Entrega',
-    TAKE_AWAY: '🥡 Take Away',
-    DINE_IN: '🍽️ No Restaurante',
+    DELIVERY: 'Entrega',
+    TAKE_AWAY: 'Take Away',
+    DINE_IN: 'No Restaurante',
   };
 
   // Nomes amigáveis das marcas
@@ -117,7 +117,6 @@
       console.error('Erro ao carregar promotions.json:', err);
       elements.promosGrid.innerHTML = `
         <div class="empty-state" role="alert" style="grid-column: 1 / -1;">
-          <div class="empty-icon">⚠️</div>
           <h3 class="empty-title">Erro ao carregar promoções</h3>
           <p class="empty-message">Não foi possível carregar os dados das promoções. Verifica a ligação ou tenta novamente mais tarde.</p>
         </div>
@@ -167,19 +166,9 @@
       }
     }
 
-    const icons = {
-      SUCCESS: '✅',
-      STALE: '⚠️',
-      PRESERVED: '⚠️',
-      FAILED: '❌',
-      UNAVAILABLE: '❌',
-      PENDING: '⏳',
-    };
-
     elements.sourcesGrid.innerHTML = knownVendors.map((v) => {
       const info = statusMap[v] || { status: 'PENDING', message: 'A aguardar recolha' };
       const statusClass = `status-${(info.status || 'pending').toLowerCase()}`;
-      const icon = icons[info.status] || 'ℹ️';
       const label = VENDOR_LABELS[v] || v;
       let coverageBadge = '';
       if (info.coverage_level === 'FEATURED') {
@@ -190,7 +179,7 @@
       }
       return `
         <div class="source-item ${statusClass}" title="${escapeHTML(info.message || '')}">
-          <span class="source-status-icon" aria-hidden="true">${icon}</span>
+          <span class="source-status-dot" aria-hidden="true"></span>
           <span class="source-name">${escapeHTML(label)}${coverageBadge}</span>
           <span class="source-desc">${escapeHTML(info.message || '')}</span>
         </div>
@@ -225,9 +214,9 @@
 
     elements.productChips.forEach((chip) => {
       const type = chip.dataset.product;
-      if (type === 'PIZZA_ONLY') chip.textContent = `🍕 Apenas Pizzas e Menus (${pizzaOnlyCount})`;
+      if (type === 'PIZZA_ONLY') chip.textContent = `Pizzas e Menus (${pizzaOnlyCount})`;
       else if (type === 'ALL') chip.textContent = `Todas as Ofertas (${total})`;
-      else if (type === 'NON_PIZZA') chip.textContent = `🥤 Apenas Complementos (${nonPizzaCount})`;
+      else if (type === 'NON_PIZZA') chip.textContent = `Acompanhamentos (${nonPizzaCount})`;
     });
 
     // Contadores por Marca
@@ -580,17 +569,17 @@
     // Badges de Tipo e Preservação
     let offerTypeBadgeHTML = '';
     if (group.offer_type === 'PIZZA') {
-      offerTypeBadgeHTML = '<span class="badge-offer-type type-pizza">🍕 Pizza</span>';
+      offerTypeBadgeHTML = '<span class="badge-offer-type type-pizza">Pizza</span>';
     } else if (group.offer_type === 'BUNDLE_WITH_PIZZA') {
-      offerTypeBadgeHTML = '<span class="badge-offer-type type-bundle">🍕 Menu</span>';
+      offerTypeBadgeHTML = '<span class="badge-offer-type type-bundle">Menu</span>';
     } else if (group.offer_type === 'NON_PIZZA') {
-      offerTypeBadgeHTML = '<span class="badge-offer-type type-non-pizza">🥤 Complemento</span>';
+      offerTypeBadgeHTML = '<span class="badge-offer-type type-non-pizza">Acompanhamento</span>';
     }
 
     const vStatus = state.vendorStatus && state.vendorStatus[group.vendor];
     let preservedBadgeHTML = '';
     if (vStatus && (vStatus.status === 'STALE' || vStatus.status === 'PRESERVED')) {
-      preservedBadgeHTML = '<span class="badge-preserved" title="Oferta preservada de recolha anterior">Preservada</span>';
+      preservedBadgeHTML = '<span class="badge-preserved" title="Oferta preservada da recolha anterior">Preservada</span>';
     }
 
     // Preço e Desconto
@@ -605,6 +594,8 @@
         originalPriceHTML = `<span class="price-original">${formatEuros(bestDiscountVariant.original_price_euros)}</span>`;
         discountTagHTML = `<span class="discount-tag">-${Math.round(bestDiscountVariant.computed_discount_percentage)}%</span>`;
       }
+    } else if (group.max_discount_percentage) {
+      discountTagHTML = `<span class="discount-tag">-${Math.round(group.max_discount_percentage)}%</span>`;
     }
 
     // Preço por Pizza / Composição
@@ -613,8 +604,7 @@
       const pizzaCountLabel = group.pizza_count ? `${group.pizza_count} pizzas` : 'Por pizza';
       unitPriceBadgeHTML = `
         <div class="unit-price-badge">
-          <span>🍕</span>
-          <span>${formatEuros(group.min_price_per_pizza_euros)} / pizza (${pizzaCountLabel})</span>
+          <span>${formatEuros(group.min_price_per_pizza_euros)} / pizza <small>(${pizzaCountLabel})</small></span>
         </div>
       `;
     }
@@ -624,25 +614,21 @@
     if (group.store_scope === 'SPECIFIC_STORES' && group.all_store_names && group.all_store_names.length > 0) {
       storeScopeHTML = `
         <div class="meta-item">
-          <span class="meta-icon" aria-hidden="true">📍</span>
           <span>Lojas em Lisboa: <strong>${escapeHTML(group.all_store_names.join(', '))}</strong></span>
         </div>
       `;
     } else if (group.store_scope === 'NATIONAL') {
       storeScopeHTML = `
         <div class="meta-item">
-          <span class="meta-icon" aria-hidden="true">🇵🇹</span>
           <span>Válido em todas as lojas aderentes</span>
         </div>
       `;
     } else {
-      // Incerteza comunicada com honestidade e transparência
       const unknownText = group.vendor === 'TELEPIZZA'
-        ? 'Telepizza Portugal — confirmar disponibilidade na loja/morada'
-        : 'Lojas participantes não discriminadas no catálogo online oficial';
+        ? 'Telepizza Portugal — confirmar na loja/morada'
+        : 'Lojas aderentes sob consulta no catálogo oficial';
       storeScopeHTML = `
         <div class="meta-item meta-unknown">
-          <span class="meta-icon" aria-hidden="true">⚠️</span>
           <span>${escapeHTML(unknownText)}</span>
         </div>
       `;
@@ -657,7 +643,7 @@
     // Super Desconto (destaque para economias >= 40%)
     let superDiscountHTML = '';
     if (group.max_discount_percentage && group.max_discount_percentage >= 40) {
-      superDiscountHTML = `<span class="badge-super-discount" title="Desconto igual ou superior a 40%">🔥 Super Desconto</span>`;
+      superDiscountHTML = `<span class="badge-super-discount" title="Desconto igual ou superior a 40%">Destaque</span>`;
     }
 
     // Imagem Oficial ou Fallback com Identidade da Marca
@@ -667,8 +653,8 @@
         <div class="card-media card-image-wrap">
           <img src="${escapeHTML(group.image_url)}" alt="${escapeHTML(group.title)}" class="card-image" loading="lazy" decoding="async" onerror="this.onerror=null; this.parentElement.classList.add('has-fallback-active');">
           <div class="card-fallback-banner vendor-bg-${escapeHTML(group.vendor)}">
-            <span class="fallback-icon" aria-hidden="true">🍕</span>
             <span class="fallback-brand">${escapeHTML(vendorLabel)}</span>
+            <span class="fallback-sub">Oferta Oficial</span>
           </div>
           <div class="card-media-overlay"></div>
           <div class="floating-badge-top-left">
@@ -684,8 +670,8 @@
       mediaHTML = `
         <div class="card-media card-image-wrap has-fallback-active">
           <div class="card-fallback-banner vendor-bg-${escapeHTML(group.vendor)}">
-            <span class="fallback-icon" aria-hidden="true">🍕</span>
             <span class="fallback-brand">${escapeHTML(vendorLabel)}</span>
+            <span class="fallback-sub">Oferta Oficial</span>
           </div>
           <div class="card-media-overlay"></div>
           <div class="floating-badge-top-left">
@@ -724,7 +710,6 @@
           <div class="card-meta">
             ${storeScopeHTML}
             <div class="meta-item">
-              <span class="meta-icon" aria-hidden="true">🕒</span>
               <span>${freshnessText}</span>
             </div>
           </div>
@@ -737,7 +722,9 @@
               <span aria-hidden="true" class="btn-icon-external">↗</span>
             </a>
             <button type="button" class="btn-share-promo" title="Copiar hiperligação desta oferta" aria-label="Copiar hiperligação da oferta ${escapeHTML(group.title)}" data-url="${escapeHTML(sourceUrl)}">
-              <span aria-hidden="true">🔗</span>
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M8.5 11.5l3-3m-1-4l2.5-2.5a3.536 3.536 0 115 5L15.5 9.5m-5 1l-2.5 2.5a3.536 3.536 0 11-5-5L5.5 5.5"></path>
+              </svg>
             </button>
           </div>
         </footer>

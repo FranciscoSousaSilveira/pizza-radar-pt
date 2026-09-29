@@ -9,27 +9,27 @@
    ========================================================================== */
 
 :root {
-  /* Cores Base do Canvas e Superfícies */
-  --color-canvas: #F8FAFC;
+  /* Cores Base do Canvas e Superfícies (Warm Porcelain Editorial) */
+  --color-canvas: #FBFBFA;
   --color-surface: #FFFFFF;
-  --color-surface-subtle: #F1F5F9;
-  --color-border: #E2E8F0;
-  --color-border-subtle: #EDF2F7;
-  --color-border-focus: #2563EB;
+  --color-surface-subtle: #F5F5F3;
+  --color-border: #E7E5E0;
+  --color-border-subtle: #EEEEEC;
+  --color-border-focus: #1C1917;
 
   /* Tipografia & Hierarquia de Texto */
-  --color-text-primary: #0F172A;
-  --color-text-body: #334155;
-  --color-text-muted: #64748B;
-  --color-text-light: #94A3B8;
+  --color-text-primary: #1C1917;
+  --color-text-body: #44403C;
+  --color-text-muted: #78716C;
+  --color-text-light: #A8A29E;
   --color-text-inverted: #FFFFFF;
 
-  /* Acentos Culinários & Radar */
-  --color-accent-radar: #E11D48;
-  --color-accent-amber: #F59E0B;
-  --color-accent-green: #10B981;
-  --color-accent-green-bg: #DCFCE7;
-  --color-accent-green-text: #15803D;
+  /* Acentos Culinários (Terracota & Ervas Frescas) */
+  --color-accent-radar: #C2410C;
+  --color-accent-amber: #D97706;
+  --color-accent-green: #15803D;
+  --color-accent-green-bg: #F0FDF4;
+  --color-accent-green-text: #166534;
 
   /* Marcas Oficiais */
   --brand-dominos: #006491;
@@ -50,10 +50,10 @@
   --radius-pill: 9999px;
 
   /* better-ui: Sombras em camadas translúcidas */
-  --shadow-subtle: 0 1px 2px rgba(15, 23, 42, 0.04), 0 3px 8px rgba(15, 23, 42, 0.03);
-  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.05), 0 6px 16px -2px rgba(15, 23, 42, 0.04);
-  --shadow-hover: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 16px 28px -4px rgba(15, 23, 42, 0.12);
-  --shadow-badge: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --shadow-subtle: 0 1px 2px rgba(28, 25, 23, 0.04), 0 3px 8px rgba(28, 25, 23, 0.03);
+  --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.05), 0 6px 16px -2px rgba(28, 25, 23, 0.04);
+  --shadow-hover: 0 4px 6px -1px rgba(28, 25, 23, 0.08), 0 16px 28px -4px rgba(28, 25, 23, 0.1);
+  --shadow-badge: 0 1px 4px rgba(0, 0, 0, 0.18);
 
   /* better-ui: Curva tátil exata e duração estrita */
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -133,7 +133,7 @@ body {
    Banner de Modo de Demonstração
    ========================================================================== */
 .data-mode-banner {
-  background: linear-gradient(90deg, #FEF3C7 0%, #FDE68A 100%);
+  background: #FEF3C7;
   color: #92400E;
   border-bottom: 1px solid #FCD34D;
   padding: 8px 16px;
@@ -151,14 +151,12 @@ body {
 }
 
 /* ==========================================================================
-   Hero & Cabeçalho Imersivo (Lisbon Midnight)
+   Cabeçalho Editorial (Clean Food App Identity)
    ========================================================================== */
 .site-header {
-  background: radial-gradient(circle at 85% 15%, rgba(225, 29, 72, 0.16) 0%, transparent 45%),
-              linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-  color: var(--color-text-inverted);
-  padding: 24px 20px 28px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 24px 20px 20px;
 }
 
 .header-container {
@@ -166,13 +164,13 @@ body {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .header-top-row {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 @media (min-width: 768px) {
@@ -185,37 +183,8 @@ body {
 
 .brand-block {
   display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.brand-radar-icon {
-  position: relative;
-  width: 52px;
-  height: 52px;
-  background: rgba(225, 29, 72, 0.15);
-  border: 1px solid rgba(225, 29, 72, 0.35);
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.75rem;
-  flex-shrink: 0;
-}
-
-.radar-ping {
-  position: absolute;
-  inset: -3px;
-  border-radius: inherit;
-  border: 2px solid rgba(225, 29, 72, 0.5);
-  animation: radar-ping-anim 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-  pointer-events: none;
-}
-
-@keyframes radar-ping-anim {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  70% { transform: scale(1.25); opacity: 0; }
-  100% { transform: scale(1.25); opacity: 0; }
+  flex-direction: column;
+  gap: 4px;
 }
 
 .brand-title-wrap {
@@ -224,30 +193,25 @@ body {
   gap: 10px;
 }
 
-/* better-typography: text-wrap balance, tracking ligeiramente negativo no título */
+/* better-typography: text-wrap balance, tracking negativo no título */
 .site-title {
-  font-size: 1.65rem;
-  font-weight: 800;
-  color: #FFFFFF;
-  letter-spacing: -0.025em;
-  line-height: 1.2;
+  font-size: 1.85rem;
+  font-weight: 850;
+  color: var(--color-text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
   text-wrap: balance;
   overflow-wrap: break-word;
 }
 
-@media (min-width: 768px) {
-  .site-title {
-    font-size: 1.85rem;
-  }
-}
-
 /* better-typography: letter-spacing positivo em rótulos maiúsculos pequenos */
 .city-badge {
-  background: var(--color-accent-radar);
-  color: #FFFFFF;
+  background: #FFEDD5;
+  color: #9A3412;
+  border: 1px solid #FDBA74;
   font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   padding: 3px 8px;
   border-radius: var(--radius-pill);
   white-space: nowrap;
@@ -255,25 +219,23 @@ body {
 
 /* better-typography: text-wrap pretty, medida máxima de 65ch */
 .site-tagline {
-  font-size: 0.92rem;
-  color: var(--color-text-light);
-  margin-top: 4px;
+  font-size: 0.94rem;
+  color: var(--color-text-muted);
   text-wrap: pretty;
   max-width: 65ch;
 }
 
-.header-telemetry-badge {
+.header-status-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(8px);
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border);
   padding: 6px 14px;
   border-radius: var(--radius-pill);
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  color: #E2E8F0;
+  color: var(--color-text-body);
   width: fit-content;
   white-space: nowrap;
 }
@@ -283,52 +245,35 @@ body {
   height: 8px;
   border-radius: 50%;
   background: var(--color-accent-green);
-  box-shadow: 0 0 8px var(--color-accent-green);
+  box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.2);
 }
 
-/* Resumo Telemetria Glassmorphic */
-.hero-telemetry {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-@media (min-width: 768px) {
-  .hero-telemetry {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-  }
-}
-
-.telemetry-pill {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  backdrop-filter: blur(8px);
-  border-radius: var(--radius-md);
-  padding: 10px 14px;
+/* Faixa Rápida de Resumo de Mercado */
+.header-market-strip {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.88rem;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font-size: 0.86rem;
+  color: var(--color-text-muted);
 }
 
-.telemetry-icon {
-  font-size: 1.15rem;
-  flex-shrink: 0;
-}
-
-.telemetry-label {
-  color: var(--color-text-light);
-  font-size: 0.82rem;
-}
-
-/* better-typography: tabular-nums nos valores numéricos */
-.telemetry-value {
-  color: #FFFFFF;
-  font-weight: 700;
-  margin-left: auto;
-  font-variant-numeric: tabular-nums;
+.market-metric {
   white-space: nowrap;
+}
+
+.market-metric strong {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.market-sep {
+  color: var(--color-border);
 }
 
 /* ==========================================================================
@@ -348,46 +293,24 @@ body {
 /* ==========================================================================
    Segmented Control de Ordenação (De-chatified & Polido)
    ========================================================================== */
-.rankings-control-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.rankings-control-wrap {
+/* ==========================================================================
+   Segmented Control de Ordenação (Editorial Tabs)
+   ========================================================================== */
+.rankings-section {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.rankings-heading-row {
-  width: 100%;
-  max-width: 720px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-/* better-typography: letter-spacing positivo em rótulos pequenos */
-.rankings-heading {
-  font-size: 0.84rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
+  justify-content: center;
 }
 
 /* better-ui: Raio concêntrico e transições explícitas */
 .ranking-segmented-control {
-  background: #E2E8F0;
+  background: #EAE8E3;
   padding: 4px;
   border-radius: var(--radius-pill);
   display: flex;
   gap: 4px;
   width: 100%;
-  max-width: 720px;
+  max-width: 640px;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -426,11 +349,7 @@ body {
   background: #FFFFFF;
   color: var(--color-text-primary);
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
-}
-
-.ranking-tab .tab-icon {
-  font-size: 1.05rem;
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.08), 0 1px 2px rgba(28, 25, 23, 0.04);
 }
 
 /* ==========================================================================
@@ -484,7 +403,8 @@ body {
 .search-icon {
   position: absolute;
   left: 14px;
-  font-size: 1rem;
+  width: 18px;
+  height: 18px;
   color: var(--color-text-muted);
   pointer-events: none;
 }
@@ -508,7 +428,7 @@ body {
 .search-input:focus {
   background: #FFFFFF;
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 3px rgba(28, 25, 23, 0.08);
   outline: none;
 }
 
@@ -518,8 +438,8 @@ body {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #CBD5E1;
-  color: #1E293B;
+  background: #E7E5E0;
+  color: var(--color-text-primary);
   border: none;
   font-size: 0.72rem;
   font-weight: 700;
@@ -532,8 +452,7 @@ body {
   transition-timing-function: var(--ease-tactile);
 }
 .btn-clear-search:hover {
-  background: #94A3B8;
-  color: #FFFFFF;
+  background: #D6D3D1;
 }
 
 /* Chips Genéricos */
@@ -570,15 +489,15 @@ body {
 }
 
 .chip:hover {
-  background: #E2E8F0;
-  border-color: #CBD5E1;
+  background: #EAE8E3;
+  border-color: #D6D3D1;
 }
 
 .chip.active {
-  background: #0F172A;
+  background: var(--color-text-primary);
   color: #FFFFFF;
-  border-color: #0F172A;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+  border-color: var(--color-text-primary);
+  box-shadow: 0 1px 4px rgba(28, 25, 23, 0.15);
 }
 
 /* Linha 2: Pizzarias com Cores Oficiais */
@@ -818,6 +737,7 @@ body {
 }
 
 /* Fallback Estilizado de Marca */
+/* Fallback Estilizado de Marca (Typographic Wordmark, sem emojis de IA) */
 .card-fallback-banner {
   display: none;
   width: 100%;
@@ -825,8 +745,9 @@ body {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 6px;
-  background-size: cover;
+  gap: 4px;
+  padding: 16px;
+  text-align: center;
 }
 
 .has-fallback-active .card-fallback-banner {
@@ -843,22 +764,27 @@ body {
   background: linear-gradient(135deg, #005E2F 0%, #007A3D 100%);
 }
 .vendor-bg-PIZZA_HUT {
-  background: linear-gradient(135deg, #990C22 0%, #C8102E 100%);
+  background: linear-gradient(135deg, #8B0E23 0%, #B8112C 100%);
 }
 .vendor-bg-TELEPIZZA {
-  background: linear-gradient(135deg, #A71D1D 0%, #D62828 100%);
+  background: linear-gradient(135deg, #9C1C1C 0%, #C42222 100%);
 }
 
-.fallback-icon {
-  font-size: 2.2rem;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
 .fallback-brand {
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-size: 1.15rem;
+  font-weight: 900;
   color: #FFFFFF;
-  letter-spacing: 0.04em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.fallback-sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 /* Badges Flutuantes sobre a Imagem */
@@ -884,12 +810,12 @@ body {
 }
 
 .vendor-badge {
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-size: 0.76rem;
+  font-weight: 700;
   color: #FFFFFF;
-  padding: 5px 10px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-badge);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
@@ -899,25 +825,27 @@ body {
 .vendor-TELEPIZZA { background: var(--brand-telepizza); }
 
 .discount-tag {
-  background: linear-gradient(135deg, #EF4444 0%, #F59E0B 100%);
+  background: #C2410C;
   color: #FFFFFF;
-  font-size: 0.84rem;
+  font-size: 0.8rem;
   font-weight: 800;
-  padding: 5px 10px;
+  padding: 4px 9px;
   border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-badge);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .dispatch-badge {
-  background: rgba(15, 23, 42, 0.78);
+  background: rgba(28, 25, 23, 0.75);
   backdrop-filter: blur(8px);
-  color: #F8FAFC;
-  font-size: 0.74rem;
+  color: #FBFBFA;
+  font-size: 0.72rem;
   font-weight: 600;
-  padding: 4px 10px;
+  padding: 4px 9px;
   border-radius: var(--radius-pill);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   white-space: nowrap;
 }
 
@@ -1095,7 +1023,7 @@ body {
 .btn-official {
   flex: 1;
   height: 42px;
-  background: #0F172A;
+  background: var(--color-text-primary);
   color: #FFFFFF;
   text-decoration: none;
   font-size: 0.88rem;
@@ -1111,13 +1039,13 @@ body {
 }
 
 .btn-official:hover {
-  background: #1E293B;
+  background: #292524;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 4px 12px rgba(28, 25, 23, 0.15);
 }
 
 .btn-icon-external {
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition-property: transform;
   transition-duration: 0.15s;
   transition-timing-function: var(--ease-tactile);
@@ -1145,8 +1073,8 @@ body {
 }
 
 .btn-share-promo:hover {
-  background: #E2E8F0;
-  border-color: #CBD5E1;
+  background: #EAE8E3;
+  border-color: #D6D3D1;
 }
 
 /* ==========================================================================
@@ -1162,11 +1090,7 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 12px;
-}
-
-.empty-icon {
-  font-size: 2.8rem;
+  gap: 10px;
 }
 
 .empty-title {
@@ -1200,17 +1124,17 @@ body {
   transition-timing-function: var(--ease-tactile);
 }
 .btn-clear-empty:hover {
-  background: #BE123C;
+  background: #9A3412;
 }
 
 /* ==========================================================================
    Rodapé Institucional (Limpo de Jargão Técnico)
    ========================================================================== */
 .site-footer {
-  background: #0F172A;
-  color: #94A3B8;
+  background: #1C1917;
+  color: #A8A29E;
   padding: 44px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid #292524;
   margin-top: auto;
 }
 
@@ -1274,6 +1198,30 @@ body {
   color: #E2E8F0;
 }
 
+.source-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #A8A29E;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.source-item.status-success .source-status-dot,
+.source-item.status-live .source-status-dot {
+  background: var(--color-accent-green);
+}
+
+.source-item.status-stale .source-status-dot,
+.source-item.status-preserved .source-status-dot {
+  background: var(--color-accent-amber);
+}
+
+.source-item.status-failed .source-status-dot,
+.source-item.status-unavailable .source-status-dot {
+  background: #EF4444;
+}
+
 .source-item.status-live {
   border-color: rgba(16, 185, 129, 0.4);
 }
@@ -1298,14 +1246,14 @@ body {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: #0F172A;
+  background: var(--color-text-primary);
   color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-  font-size: 1.25rem;
+  border: 1px solid #292524;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  font-size: 1.15rem;
   font-weight: 700;
   cursor: pointer;
   z-index: 100;
@@ -1317,8 +1265,8 @@ body {
 }
 
 .btn-back-to-top:hover {
-  background: #1E293B;
-  transform: translateY(-3px);
+  background: #292524;
+  transform: translateY(-2px);
 }
 
 /* ==========================================================================
@@ -1326,54 +1274,34 @@ body {
    ========================================================================== */
 @media (max-width: 640px) {
   .site-header {
-    padding: 16px 14px 18px;
+    padding: 16px 14px 16px;
   }
   .header-container {
     gap: 12px;
   }
-  .brand-radar-icon {
-    width: 44px;
-    height: 44px;
+  .site-title {
     font-size: 1.45rem;
   }
-  .site-title {
-    font-size: 1.4rem;
-  }
   .site-tagline {
-    font-size: 0.8rem;
+    font-size: 0.84rem;
   }
-  .header-telemetry-badge {
+  .header-status-badge {
     padding: 4px 10px;
     font-size: 0.76rem;
   }
-  .hero-telemetry {
-    gap: 8px;
-  }
-  .telemetry-pill {
+  .header-market-strip {
+    font-size: 0.8rem;
     padding: 6px 10px;
-    font-size: 0.78rem;
-  }
-  .telemetry-icon {
-    font-size: 0.95rem;
-  }
-  .telemetry-label {
-    font-size: 0.72rem;
-  }
-  .telemetry-value {
-    font-size: 0.82rem;
+    gap: 6px;
   }
   .main-layout {
     padding: 14px 12px 40px;
     gap: 14px;
   }
-  .rankings-heading-row {
-    justify-content: center;
-  }
-  .rankings-heading {
-    font-size: 0.8rem;
+  .ranking-segmented-control {
+    max-width: 100%;
   }
   .ranking-tab {
-    min-width: 105px;
     padding: 8px 12px;
     font-size: 0.82rem;
   }
