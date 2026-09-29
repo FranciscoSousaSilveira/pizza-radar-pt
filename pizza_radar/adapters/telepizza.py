@@ -29,6 +29,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
+from pizza_radar.core.classifier import classify_offer_type
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
@@ -251,6 +252,13 @@ class TelepizzaAdapter(PromoAdapterInterface):
         store_ids = item.get("store_ids", [])
         store_names = item.get("store_names", [])
 
+        offer_type = classify_offer_type(
+            title=item["title"],
+            description=item["description"],
+            included_items=[],
+            pizza_count=None,
+        )
+
         return UnifiedPromo(
             id=canonical_id,
             vendor=Brand.TELEPIZZA,
@@ -271,6 +279,7 @@ class TelepizzaAdapter(PromoAdapterInterface):
             image_url=image_url,
             source_url=_URL,
             location_scope="Lisboa",
+            offer_type=offer_type,
         )
 
     def fetch_promotions(self, timeout: float = DEFAULT_TIMEOUT) -> list[UnifiedPromo]:

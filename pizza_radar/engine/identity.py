@@ -27,6 +27,7 @@ from pizza_radar.core.models import (
     Brand,
     DiscountType,
     DispatchMethod,
+    OfferType,
     PizzaSize,
     StoreScope,
     UnifiedPromo,
@@ -88,6 +89,7 @@ class StoreVariant:
     original_price_cents: int | None = None
     pizza_count: int | None = None
     pizza_size: PizzaSize = PizzaSize.UNKNOWN
+    offer_type: OfferType = OfferType.UNKNOWN
     is_comparable_for_unit_price: bool = False
     observed_at: str | None = None
     conditions: str = ""
@@ -141,6 +143,7 @@ class VisualPromoGroup:
     variants: list[StoreVariant] = field(default_factory=list)
     pizza_count: int | None = None
     pizza_size: PizzaSize = PizzaSize.UNKNOWN
+    offer_type: OfferType = OfferType.UNKNOWN
     image_url: str | None = None
     source_url: str = ""
     days_of_week: list[Weekday] = field(default_factory=list)
@@ -285,6 +288,7 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
                     original_price_cents=promo.original_price_cents,
                     pizza_count=promo.pizza_count,
                     pizza_size=promo.pizza_size,
+                    offer_type=promo.offer_type,
                     is_comparable_for_unit_price=promo.is_comparable_for_unit_price,
                     observed_at=promo.observed_at,
                     conditions=promo.conditions,
@@ -314,6 +318,16 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
         pizza_count = comp_variant.pizza_count if comp_variant else best_item.pizza_count
         pizza_size = comp_variant.pizza_size if comp_variant else best_item.pizza_size
 
+        variant_offer_types = {v.offer_type for v in variants}
+        if OfferType.PIZZA in variant_offer_types:
+            group_offer_type = OfferType.PIZZA
+        elif OfferType.BUNDLE_WITH_PIZZA in variant_offer_types:
+            group_offer_type = OfferType.BUNDLE_WITH_PIZZA
+        elif OfferType.NON_PIZZA in variant_offer_types and len(variant_offer_types) == 1:
+            group_offer_type = OfferType.NON_PIZZA
+        else:
+            group_offer_type = best_item.offer_type
+
         vg = VisualPromoGroup(
             persistent_id=pid,
             vendor=best_item.vendor,
@@ -326,6 +340,7 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
             variants=variants,
             pizza_count=pizza_count,
             pizza_size=pizza_size,
+            offer_type=group_offer_type,
             image_url=image_url,
             source_url=best_item.source_url,
             days_of_week=combined_days,

@@ -11,6 +11,7 @@ from pizza_radar.core.models import (
     ComponentCategory,
     DispatchMethod,
     OfferComponent,
+    OfferType,
     PizzaSize,
     StoreScope,
     UnifiedPromo,
@@ -75,6 +76,12 @@ def validate_promo(item: UnifiedPromo | dict[str, Any]) -> UnifiedPromo:
     # 2. Marca / Vendedor
     if not isinstance(promo.vendor, Brand):
         errors.append(f"O campo 'vendor' deve ser um dos valores válidos de Brand: {[b.value for b in Brand]}.")
+
+    # 2.1 Tipo de Oferta (OfferType)
+    if not isinstance(promo.offer_type, OfferType):
+        errors.append(
+            f"O campo 'offer_type' deve ser um dos valores válidos de OfferType: {[t.value for t in OfferType]}."
+        )
 
     # 3. Título
     if not promo.title or not isinstance(promo.title, str) or not promo.title.strip():

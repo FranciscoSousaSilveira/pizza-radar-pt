@@ -29,6 +29,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
+from pizza_radar.core.classifier import classify_offer_type
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
@@ -265,6 +266,13 @@ class PizzaHutAdapter(PromoAdapterInterface):
         store_names = item.get("store_names", [])
         dispatch_methods = item.get("dispatch_methods", [DispatchMethod.TAKE_AWAY])
 
+        offer_type = classify_offer_type(
+            title=item["title"],
+            description=item["description"],
+            included_items=[],
+            pizza_count=None,
+        )
+
         return UnifiedPromo(
             id=canonical_id,
             vendor=Brand.PIZZA_HUT,
@@ -284,6 +292,7 @@ class PizzaHutAdapter(PromoAdapterInterface):
             included_items=[],
             source_url=item["link"],
             location_scope="Lisboa",
+            offer_type=offer_type,
         )
 
     def fetch_promotions(self, timeout: float = DEFAULT_TIMEOUT) -> list[UnifiedPromo]:

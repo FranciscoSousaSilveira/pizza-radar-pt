@@ -90,6 +90,15 @@ class ComponentCategory(str, Enum):
     OTHER = "OTHER"
 
 
+class OfferType(str, Enum):
+    """Classificação determinística da natureza do produto na oferta."""
+
+    PIZZA = "PIZZA"
+    BUNDLE_WITH_PIZZA = "BUNDLE_WITH_PIZZA"
+    NON_PIZZA = "NON_PIZZA"
+    UNKNOWN = "UNKNOWN"
+
+
 @dataclass(slots=True)
 class OfferComponent:
     """Componente individual incluído numa oferta ou menu."""
@@ -162,11 +171,22 @@ class UnifiedPromo:
     image_url: str | None = None
     source_url: str = ""
     location_scope: str = "Lisboa"
+    offer_type: OfferType = OfferType.UNKNOWN
 
     def __post_init__(self) -> None:
         """Assegura conversão de strings para enums tipados e normalização."""
         if isinstance(self.vendor, str) and not isinstance(self.vendor, Brand):
             self.vendor = Brand(self.vendor)
+        if isinstance(self.offer_type, str) and not isinstance(self.offer_type, OfferType):
+            self.offer_type = OfferType(self.offer_type)
+        if self.offer_type == OfferType.UNKNOWN:
+            from pizza_radar.core.classifier import classify_offer_type
+            self.offer_type = classify_offer_type(
+                title=self.title,
+                description=self.description,
+                included_items=self.included_items,
+                pizza_count=self.pizza_count,
+            )
         if isinstance(self.discount_type, str) and not isinstance(self.discount_type, DiscountType):
             self.discount_type = DiscountType(self.discount_type)
         if isinstance(self.target_audience, str) and not isinstance(self.target_audience, TargetAudience):
@@ -283,6 +303,7 @@ class UnifiedPromo:
         data["target_audience"] = self.target_audience.value
         data["store_scope"] = self.store_scope.value
         data["pizza_size"] = self.pizza_size.value
+        data["offer_type"] = self.offer_type.value
         data["days_of_week"] = [d.value for d in self.days_of_week]
         data["dispatch_methods"] = [m.value for m in self.dispatch_methods]
         data["included_items"] = [item.to_dict() for item in self.included_items]
@@ -294,6 +315,8 @@ class UnifiedPromo:
         data_copy = dict(data)
         if "vendor" in data_copy and isinstance(data_copy["vendor"], str):
             data_copy["vendor"] = Brand(data_copy["vendor"])
+        if "offer_type" in data_copy and isinstance(data_copy["offer_type"], str):
+            data_copy["offer_type"] = OfferType(data_copy["offer_type"])
         if "discount_type" in data_copy and isinstance(data_copy["discount_type"], str):
             data_copy["discount_type"] = DiscountType(data_copy["discount_type"])
         if "target_audience" in data_copy and isinstance(data_copy["target_audience"], str):
