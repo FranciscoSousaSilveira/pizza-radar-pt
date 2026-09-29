@@ -2,7 +2,6 @@ name: Scheduled Pipeline & Deployment
 
 on:
   schedule:
-    # Executa duas vezes ao dia: 10:30 UTC e 17:30 UTC (antes do almoço e jantar)
     - cron: '30 10,17 * * *'
   workflow_dispatch:
     inputs:
@@ -14,13 +13,12 @@ on:
 
 jobs:
   pipeline:
-    name: Sync Promos & Publish Snapshot
-    # Proteção da execução agendada:
-    # - Execuções agendadas (schedule) só correm quando vars.PIPELINE_ENABLED == 'true'
-    # - Execuções manuais (workflow_dispatch) continuam sempre disponíveis para testes
-    if: ${{ github.event_name != 'schedule' || vars.PIPELINE_ENABLED == 'true' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+    name: Probe (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
 
     steps:
       - name: Checkout repository
@@ -30,65 +28,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: 'pip'
 
-      - name: Install dependencies
+      - name: Run Egress Matrix Probe
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run automated test suite
-        run: |
-          python -m unittest discover tests -v
-
-      - name: Probe Telepizza and Domino's surfaces in runner
-        run: |
-          python scripts/probe_telepizza.py
-
-      - name: Run deterministic sync pipeline against Turso
-        env:
-          # Segredos a configurar nas GitHub Actions Secrets do repositório:
-          # - TURSO_DATABASE_URL: URL do endpoint libSQL (ex.: libsql://pizza-radar-org.turso.io)
-          # - TURSO_AUTH_TOKEN: Token de autenticação gerado via Turso CLI
-          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
-          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
-        run: |
-          # Cria pasta de dados para o snapshot estático da web
-          mkdir -p web/data
-          # Executa a pipeline determinística em modo agendado contra o Turso remoto
-          # Se as credenciais estiverem ausentes ou a ligação falhar, falha com código 1
-          # sem gerar snapshot, sem deploy e sem fallback para SQLite.
-          python -m pizza_radar.pipeline.cli --mode scheduled --snapshot-output ./web/data/promotions.json
-
-      - name: Verify generated snapshot integrity
-        run: |
-          python -c "
-          import json
-          with open('web/data/promotions.json', encoding='utf-8') as f:
-              data = json.load(f)
-          assert 'groups' in data, 'Snapshot inválido: campo groups ausente'
-          assert 'stats' in data, 'Snapshot inválido: campo stats ausente'
-          assert data.get('data_mode') == 'live', f'Snapshot inválido: data_mode esperado live, obtido {data.get(\"data_mode\")}'
-          print(f'Snapshot válido (data_mode={data[\"data_mode\"]}): {len(data[\"groups\"])} grupos promocionais exportados.')
-          "
-
-      - name: Upload diagnostic snapshot artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: promotions-snapshot
-          path: web/data/promotions.json
-          retention-days: 7
-
-      - name: Deploy to Cloudflare Pages
-        # Proteção estrita contra deploy automático:
-        # Exige simultaneamente:
-        # - Todos os passos anteriores concluídos com sucesso (success())
-        # - Branch main (github.ref == 'refs/heads/main')
-        # - Variável de repositório DEPLOY_ENABLED == 'true' (vars.DEPLOY_ENABLED == 'true')
-        # - dry_run diferente de true (inputs.dry_run != true)
-        if: ${{ success() && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true' && inputs.dry_run != true }}
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy web --project-name=pizza-radar-pt --branch=main
+          python scripts/matrix_probe.py
