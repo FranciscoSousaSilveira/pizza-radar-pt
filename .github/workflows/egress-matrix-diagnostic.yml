@@ -1,0 +1,26 @@
+name: Egress Matrix Diagnostic
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe-matrix:
+    name: Probe (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run Egress Matrix Probe
+        run: |
+          python scripts/matrix_probe.py
