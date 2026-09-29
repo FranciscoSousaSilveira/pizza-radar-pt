@@ -1,0 +1,101 @@
+[
+  {
+    "id": 101,
+    "dispatch_method": "in_store",
+    "name": "Papa às 3ª’s",
+    "description": "Campanha especial às terças-feiras em loja",
+    "price": 9.99,
+    "original_price": 14.95,
+    "hidden": false
+  },
+  {
+    "id": 102,
+    "dispatch_method": "in_store",
+    "name": "Super John.",
+    "description": "Menu combinado exclusivo Papa John's",
+    "price": 16.99,
+    "original_price": 21.50,
+    "hidden": false
+  },
+  {
+    "id": 103,
+    "dispatch_method": "in_store",
+    "name": "2 refrigerantes",
+    "description": "2 refrigerantes 1.5L à escolha",
+    "price": 3.50,
+    "original_price": null,
+    "hidden": false
+  },
+  {
+    "id": 104,
+    "dispatch_method": "in_store",
+    "name": "Copo Gelado",
+    "description": "Copo gelado Ben & Jerry's 465ml",
+    "price": 6.90,
+    "original_price": null,
+    "hidden": false
+  },
+  {
+    "id": 105,
+    "dispatch_method": "in_store",
+    "name": "Trio Bestial.",
+    "description": "3 Médias por 23,97€",
+    "price": 23.97,
+    "original_price": 32.85,
+    "hidden": false
+  },
+  {
+    "id": 106,
+    "dispatch_method": "in_store",
+    "name": "Trio Bestial +",
+    "description": "3 Médias + Entrada à escolha",
+    "price": 27.97,
+    "original_price": 37.85,
+    "hidden": false
+  },
+  {
+    "id": 107,
+    "dispatch_method": "in_store",
+    "name": "Combo Médio",
+    "description": "Média + Entrada + Bebidas",
+    "price": 14.99,
+    "original_price": 19.90,
+    "hidden": false
+  },
+  {
+    "id": 108,
+    "dispatch_method": "in_store",
+    "name": "O Papito",
+    "description": "Menu snack O Papito",
+    "price": 7.99,
+    "original_price": 10.50,
+    "hidden": false
+  },
+  {
+    "id": 109,
+    "dispatch_method": "in_store",
+    "name": "Duo Bestial",
+    "description": "2 Médias desde 8,99€ cada",
+    "price": 17.98,
+    "original_price": 23.90,
+    "hidden": false
+  },
+  {
+    "id": 110,
+    "dispatch_method": "in_store",
+    "name": "Combo Grande",
+    "description": "Grande + Entrada + Bebidas",
+    "price": 18.99,
+    "original_price": 24.90,
+    "hidden": false
+  },
+  {
+    "id": 111,
+    "dispatch_method": "in_store",
+    "name": "Party Combo",
+    "description": "4 Médias para partilhar",
+    "price": 34.00,
+    "original_price": 47.80,
+    "hidden": false
+  }
+]

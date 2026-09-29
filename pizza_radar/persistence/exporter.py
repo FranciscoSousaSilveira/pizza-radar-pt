@@ -121,7 +121,6 @@ def generate_snapshot_dict(
             latest_run = runs[0]
             run_status = latest_run.get("status")
             last_attempt = latest_run.get("executed_at")
-            last_error = latest_run.get("error_message")
 
             if run_status == "SUCCESS":
                 status = "SUCCESS"
@@ -129,10 +128,10 @@ def generate_snapshot_dict(
                 last_success = last_attempt
             else:
                 if count > 0:
-                    status = "PRESERVED"
+                    status = "STALE"
                     message = f"Recolha recente falhou; a exibir {count} ofertas anteriores preservadas"
                 else:
-                    status = "UNAVAILABLE"
+                    status = "FAILED"
                     message = "Temporariamente indisponível — sem ofertas registadas"
                 # Procurar última execução bem sucedida
                 recent_runs = repo.get_vendor_sync_runs(vendor=brand, limit=10)
@@ -140,14 +139,13 @@ def generate_snapshot_dict(
                 last_success = success_runs[0].get("executed_at") if success_runs else None
         else:
             if count > 0:
-                status = "PRESERVED"
+                status = "STALE"
                 message = f"{count} ofertas registadas"
             else:
                 status = "PENDING"
                 message = "A aguardar primeira recolha"
             last_success = None
             last_attempt = None
-            last_error = None
 
         vendor_status[brand.value] = {
             "vendor": brand.value,
@@ -156,7 +154,6 @@ def generate_snapshot_dict(
             "active_offers_count": count,
             "last_success_at": last_success,
             "last_attempt_at": last_attempt,
-            "error_message": last_error,
         }
 
     successful_vendors_count = sum(1 for v in vendor_status.values() if v["status"] == "SUCCESS")

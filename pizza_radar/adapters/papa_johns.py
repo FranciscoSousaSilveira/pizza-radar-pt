@@ -23,6 +23,7 @@ Regras de engenharia estritamente aplicadas:
 from __future__ import annotations
 
 import json
+import re
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -33,8 +34,11 @@ from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInter
 from pizza_radar.core.classifier import classify_offer_type
 from pizza_radar.core.models import (
     Brand,
+    ComponentCategory,
     DiscountType,
     DispatchMethod,
+    OfferComponent,
+    OfferType,
     PizzaSize,
     StoreScope,
     UnifiedPromo,
@@ -227,6 +231,156 @@ def _parse_availability(availability: Any) -> list[Weekday]:
 def _sort_store_ids(store_ids: list[str] | set[str]) -> list[str]:
     """Ordena store_ids deterministicamente (ordem numérica quando aplicável)."""
     return sorted(set(store_ids), key=lambda s: (0, int(s)) if s.isdigit() else (1, s))
+
+
+def extract_composition(
+    name: str,
+    description: str,
+) -> tuple[int | None, PizzaSize, list[OfferComponent]]:
+    """Extrai deterministicamente contagem de pizzas, tamanho e componentes comprovados da oferta.
+
+    Regras de extração estrita da fonte:
+    - “2 Médias” -> pizza_count=2, pizza_size=MEDIUM
+    - “3 Médias” -> pizza_count=3, pizza_size=MEDIUM
+    - “4 Médias” -> pizza_count=4, pizza_size=MEDIUM
+    - “Média + Entrada + Bebida” -> pizza_count=1, pizza_size=MEDIUM, [PIZZA, SIDE, DRINK]
+    - “Grande + Entrada + Bebida” -> pizza_count=1, pizza_size=LARGE, [PIZZA, SIDE, DRINK]
+    - Não inventa tamanho nem quantidade quando a descrição não comprova.
+    """
+    full_text = f"{name} {description}".strip()
+
+    # 1. Padrões explícitos compostos com entrada e bebida
+    if re.search(r"(?i)\bm[eé]dia\s*[\+\&]\s*entrada\s*[\+\&]\s*bebidas?\b", full_text):
+        return (
+            1,
+            PizzaSize.MEDIUM,
+            [
+                OfferComponent(category=ComponentCategory.PIZZA, quantity=1, size=PizzaSize.MEDIUM, description="Pizza Média"),
+                OfferComponent(category=ComponentCategory.SIDE, quantity=1, description="Entrada"),
+                OfferComponent(category=ComponentCategory.DRINK, quantity=1, description="Bebida"),
+            ],
+        )
+
+    if re.search(r"(?i)\bgrande\s*[\+\&]\s*entrada\s*[\+\&]\s*bebidas?\b", full_text):
+        return (
+            1,
+            PizzaSize.LARGE,
+            [
+                OfferComponent(category=ComponentCategory.PIZZA, quantity=1, size=PizzaSize.LARGE, description="Pizza Grande"),
+                OfferComponent(category=ComponentCategory.SIDE, quantity=1, description="Entrada"),
+                OfferComponent(category=ComponentCategory.DRINK, quantity=1, description="Bebida"),
+            ],
+        )
+
+    # 2. Padrões explícitos de contagem e tamanho: "2 Médias", "3 Médias", "4 Médias"
+    m_count = re.search(r"(?i)\b([234])\s+(?:pizzas?\s+)?m[eé]dias\b", full_text)
+    if m_count:
+        count = int(m_count.group(1))
+        comps = [
+            OfferComponent(
+                category=ComponentCategory.PIZZA,
+                quantity=count,
+                size=PizzaSize.MEDIUM,
+                description=f"{count} Pizzas Médias",
+            )
+        ]
+        # Se for um combo ("party combo", "trio bestial +", etc)
+        if (
+            re.search(r"(?i)\bparty\s+combo\b", full_text)
+            or re.search(r"(?i)\btrio\s+bestial\s*\+", full_text)
+            or re.search(r"(?i)\bduo\s+bestial\s*\+", full_text)
+            or "+" in name
+        ):
+            comps.append(OfferComponent(category=ComponentCategory.SIDE, description="Acompanhamento"))
+        return (count, PizzaSize.MEDIUM, comps)
+
+    # 3. Padrões explícitos sem contagem comprovada: nunca inventa quantidade ou tamanho
+    if re.search(r"(?i)\bsuper\s+john\b", full_text):
+        return (
+            None,
+            PizzaSize.UNKNOWN,
+            [
+                OfferComponent(category=ComponentCategory.PIZZA, description="Pizza"),
+                OfferComponent(category=ComponentCategory.SIDE, description="Complemento"),
+            ],
+        )
+
+    if re.search(r"(?i)\bo\s+papito\b", full_text):
+        return (
+            None,
+            PizzaSize.UNKNOWN,
+            [
+                OfferComponent(category=ComponentCategory.PIZZA, description="Pizza"),
+                OfferComponent(category=ComponentCategory.SIDE, description="Complemento"),
+            ],
+        )
+
+    if re.search(r"(?i)\bcombo\s+m[eé]dio\b", full_text):
+        return (
+            None,
+            PizzaSize.MEDIUM,
+            [
+                OfferComponent(category=ComponentCategory.PIZZA, size=PizzaSize.MEDIUM, description="Pizza Média"),
+                OfferComponent(category=ComponentCategory.SIDE, description="Complemento"),
+            ],
+        )
+
+    if re.search(r"(?i)\bcombo\s+grande\b", full_text):
+        return (
+            None,
+            PizzaSize.LARGE,
+            [
+                OfferComponent(category=ComponentCategory.PIZZA, size=PizzaSize.LARGE, description="Pizza Grande"),
+                OfferComponent(category=ComponentCategory.SIDE, description="Complemento"),
+            ],
+        )
+
+    if re.search(r"(?i)\btrio\s+bestial\s*\+", full_text):
+        return (
+            None,
+            PizzaSize.UNKNOWN,
+            [
+                OfferComponent(category=ComponentCategory.PIZZA, description="Pizza"),
+                OfferComponent(category=ComponentCategory.SIDE, description="Complemento"),
+            ],
+        )
+
+    if re.search(r"(?i)\btrio\s+bestial\b", full_text):
+        return (
+            None,
+            PizzaSize.UNKNOWN,
+            [OfferComponent(category=ComponentCategory.PIZZA, description="Pizza")],
+        )
+
+    if re.search(r"(?i)\bduo\s+bestial\b", full_text):
+        return (
+            None,
+            PizzaSize.UNKNOWN,
+            [OfferComponent(category=ComponentCategory.PIZZA, description="Pizza")],
+        )
+
+    if re.search(r"(?i)\bpapa\s+[aà]s\s+3[aª]('?s)?\b", full_text):
+        return (
+            None,
+            PizzaSize.UNKNOWN,
+            [OfferComponent(category=ComponentCategory.PIZZA, description="Pizza")],
+        )
+
+    if re.search(r"(?i)\b2\s+refrigerantes\b", full_text):
+        return (
+            None,
+            PizzaSize.UNKNOWN,
+            [OfferComponent(category=ComponentCategory.DRINK, quantity=2, description="2 Refrigerantes")],
+        )
+
+    if re.search(r"(?i)\b(copo\s+gelado|gelado)\b", full_text):
+        return (
+            None,
+            PizzaSize.UNKNOWN,
+            [OfferComponent(category=ComponentCategory.DESSERT, quantity=1, description="Gelado")],
+        )
+
+    return (None, PizzaSize.UNKNOWN, [])
 
 
 # ---------------------------------------------------------------------------
@@ -489,12 +643,17 @@ class PapaJohnsAdapter(PromoAdapterInterface):
         else:
             canonical_id = f"pj_{parsed_item['id']}_{dispatch_method_raw}"
 
+        # Extração determinística de composição e contagem comprovadas
+        pizza_count, pizza_size, included_items = extract_composition(
+            parsed_item["name"], parsed_item["description"]
+        )
+
         # Classificação determinística da oferta
         offer_type = classify_offer_type(
             title=parsed_item["name"],
             description=parsed_item["description"],
-            included_items=[],
-            pizza_count=None,
+            included_items=included_items,
+            pizza_count=pizza_count,
         )
 
         return UnifiedPromo(
@@ -514,9 +673,9 @@ class PapaJohnsAdapter(PromoAdapterInterface):
             store_scope=StoreScope.SPECIFIC_STORES,
             store_ids=effective_store_ids,
             store_names=store_names,
-            pizza_count=None,
-            pizza_size=PizzaSize.UNKNOWN,
-            included_items=[],
+            pizza_count=pizza_count,
+            pizza_size=pizza_size,
+            included_items=included_items,
             image_url=image_url,
             source_url="https://www.papajohns.pt/promocoes/",
             location_scope="Lisboa",

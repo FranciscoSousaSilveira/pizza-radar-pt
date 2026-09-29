@@ -166,7 +166,9 @@
 
     const icons = {
       SUCCESS: '✅',
+      STALE: '⚠️',
       PRESERVED: '⚠️',
+      FAILED: '❌',
       UNAVAILABLE: '❌',
       PENDING: '⏳',
     };
@@ -475,7 +477,7 @@
 
     const vStatus = state.vendorStatus && state.vendorStatus[group.vendor];
     let preservedBadgeHTML = '';
-    if (vStatus && vStatus.status === 'PRESERVED') {
+    if (vStatus && (vStatus.status === 'STALE' || vStatus.status === 'PRESERVED')) {
       preservedBadgeHTML = '<span class="badge-preserved" title="Oferta preservada de recolha anterior">Preservada</span>';
     }
 

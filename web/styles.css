@@ -846,11 +846,13 @@ body {
   background-color: #F0FDF4;
 }
 
+.source-item.status-stale,
 .source-item.status-preserved {
   border-color: #FDE68A;
   background-color: #FFFBEB;
 }
 
+.source-item.status-failed,
 .source-item.status-unavailable {
   border-color: #FECACA;
   background-color: #FEF2F2;

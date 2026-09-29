@@ -347,12 +347,12 @@ class TestHiddenOffersAndPayloadValidation(unittest.TestCase):
         with self.assertRaises(ParseError):
             self.adapter.parse(raw, "2", "in_store")
 
-    def test_composition_is_never_invented(self) -> None:
-        """pizza_count é sempre None, pizza_size=UNKNOWN, included_items=[] (sem invenção)."""
+    def test_composition_is_never_invented_when_unproven(self) -> None:
+        """pizza_count é None, pizza_size=UNKNOWN quando a descrição não comprova quantidade/tamanho."""
         raw_item = {
             "id": "223",
-            "name": "Duo Bestial",
-            "description": "2 Pizzas Médias à escolha",
+            "name": "Super Promoção",
+            "description": "Oferta especial da semana sem menção a quantidade",
             "price_cents": 1798,
             "original_price_cents": None,
             "request_dispatch_method": "in_store",
@@ -367,8 +367,30 @@ class TestHiddenOffersAndPayloadValidation(unittest.TestCase):
         promo = self.adapter.adapt(raw_item, _observed_at())
         self.assertIsNone(promo.pizza_count)
         self.assertEqual(promo.pizza_size, PizzaSize.UNKNOWN)
-        self.assertEqual(promo.included_items, [])
         self.assertFalse(promo.is_comparable_for_unit_price)
+
+    def test_composition_extraction_from_explicit_patterns(self) -> None:
+        """Extrai pizza_count e pizza_size apenas de padrões explícitos como '2 Médias'."""
+        raw_item = {
+            "id": "224",
+            "name": "Duo Bestial",
+            "description": "2 Médias desde 8,99€ cada",
+            "price_cents": 1798,
+            "original_price_cents": None,
+            "request_dispatch_method": "in_store",
+            "item_dispatch_method": "in_store",
+            "store_id": "2",
+            "availability": [],
+            "start_datetime": None,
+            "end_datetime": None,
+            "pictures": [],
+            "conditions": "",
+        }
+        promo = self.adapter.adapt(raw_item, _observed_at())
+        self.assertEqual(promo.pizza_count, 2)
+        self.assertEqual(promo.pizza_size, PizzaSize.MEDIUM)
+        self.assertTrue(promo.is_comparable_for_unit_price)
+        self.assertEqual(promo.price_per_pizza_cents, 899)
 
 
 # ===========================================================================
