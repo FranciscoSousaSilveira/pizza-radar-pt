@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pizza Radar PT — Comparador de Promoções de Pizza em Lisboa</title>
-  <meta name="description" content="Comparador público, determinístico e independente de promoções de pizza no concelho de Lisboa. Sem intermediários, sem comissões, sem dados inventados.">
+  <title>Pizza Radar PT — Promoções de Pizza em Lisboa</title>
+  <meta name="description" content="Radar independente de promoções oficiais de pizza no concelho de Lisboa. Preços reais de Domino's, Papa John's, Pizza Hut e Telepizza sem comissões.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,179 +16,180 @@
     <span id="data-mode-text">Dados de demonstração — atualização automática ainda não ativa</span>
   </div>
 
-  <!-- Cabeçalho Principal -->
+  <!-- Cabeçalho Principal e Hero Imersivo -->
   <header class="site-header" role="banner">
     <div class="header-container">
-      <div class="brand-block">
-        <div class="brand-logo-badge" aria-hidden="true">🍕 RADAR</div>
-        <div class="brand-text">
-          <h1 class="site-title">Pizza Radar Lisboa</h1>
-          <p class="site-tagline">Comparador determinístico e público de promoções no concelho de Lisboa</p>
+      <div class="header-top-row">
+        <div class="brand-block">
+          <div class="brand-radar-icon" aria-hidden="true">
+            <span class="radar-ping"></span>
+            <span class="radar-emoji">🍕</span>
+          </div>
+          <div class="brand-text">
+            <div class="brand-title-wrap">
+              <h1 class="site-title">Pizza Radar Lisboa</h1>
+              <span class="city-badge">LISBOA</span>
+            </div>
+            <p class="site-tagline">O radar independente de promoções oficiais em Lisboa</p>
+          </div>
+        </div>
+
+        <div class="header-telemetry-badge" aria-label="Estado da monitorização">
+          <span class="status-indicator" aria-hidden="true"></span>
+          <span class="status-text" id="status-text">4 marcas monitorizadas</span>
         </div>
       </div>
-      <div class="header-status" aria-label="Estado da monitorização">
-        <span class="status-indicator" aria-hidden="true"></span>
-        <span class="status-text" id="status-text">4 marcas monitorizadas</span>
+
+      <!-- Métricas Rápidas / Resumo em Formato Glassmorphic -->
+      <div class="hero-telemetry" aria-label="Resumo do mercado promocional">
+        <div class="telemetry-pill">
+          <span class="telemetry-icon" aria-hidden="true">🔥</span>
+          <span class="telemetry-label">Ofertas ativas:</span>
+          <strong class="telemetry-value" id="stat-total-promos">—</strong>
+        </div>
+        <div class="telemetry-pill">
+          <span class="telemetry-icon" aria-hidden="true">💰</span>
+          <span class="telemetry-label">Mais barata:</span>
+          <strong class="telemetry-value" id="stat-min-price">—</strong>
+        </div>
+        <div class="telemetry-pill">
+          <span class="telemetry-icon" aria-hidden="true">🍕</span>
+          <span class="telemetry-label">Menor por pizza:</span>
+          <strong class="telemetry-value" id="stat-unit-price">—</strong>
+        </div>
+        <div class="telemetry-pill telemetry-location">
+          <span class="telemetry-icon" aria-hidden="true">📍</span>
+          <span class="telemetry-label">Concelho:</span>
+          <strong class="telemetry-value" id="stat-location">Lisboa</strong>
+        </div>
+      </div>
+
+      <!-- Barra de Transparência de Fontes por Marca -->
+      <div class="sources-strip" aria-label="Transparência de fontes por marca">
+        <div class="sources-strip-header">
+          <span class="sources-strip-title">📡 Fontes Oficiais:</span>
+          <span class="sources-strip-summary" id="sources-summary-text">A verificar cobertura...</span>
+        </div>
+        <div class="sources-chips-grid" id="sources-grid">
+          <!-- Renderizado dinamicamente via app.js -->
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Métricas Rápidas / Resumo -->
-  <section class="metrics-banner" aria-label="Resumo do mercado promocional">
-    <div class="metrics-container">
-      <div class="metric-item">
-        <span class="metric-label">Ofertas ativas hoje</span>
-        <span class="metric-value" id="stat-total-promos">—</span>
-      </div>
-      <div class="metric-divider" aria-hidden="true"></div>
-      <div class="metric-item">
-        <span class="metric-label">Pizza mais barata</span>
-        <span class="metric-value" id="stat-min-price">—</span>
-      </div>
-      <div class="metric-divider" aria-hidden="true"></div>
-      <div class="metric-item">
-        <span class="metric-label">Menor preço por pizza</span>
-        <span class="metric-value" id="stat-unit-price">—</span>
-      </div>
-      <div class="metric-divider" aria-hidden="true"></div>
-      <div class="metric-item">
-        <span class="metric-label">Âmbito geográfico</span>
-        <span class="metric-value" id="stat-location">Lisboa</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- Painel de Transparência de Fontes por Marca -->
-  <section class="sources-status-section" aria-label="Transparência de fontes por marca">
-    <div class="sources-status-container">
-      <div class="sources-status-header">
-        <h2 class="sources-status-title">📡 Estado das Fontes em Lisboa</h2>
-        <span class="sources-status-summary" id="sources-summary-text">A verificar cobertura...</span>
-      </div>
-      <div class="sources-chips-grid" id="sources-grid">
-        <!-- Renderizado dinamicamente via app.js -->
-      </div>
-    </div>
-  </section>
-
   <!-- Conteúdo Principal -->
   <main id="main-content" class="main-layout" role="main">
 
-    <!-- Secção de Rankings Explicáveis -->
-    <section class="rankings-section" aria-labelledby="rankings-title">
-      <h2 id="rankings-title" class="section-title">Critério de Ordenação</h2>
+    <!-- Segmented Control para Ordenação -->
+    <section class="rankings-control-section" aria-labelledby="rankings-title">
+      <div class="rankings-control-wrap">
+        <div class="rankings-heading-row">
+          <h2 id="rankings-title" class="rankings-heading">Ordenar por:</h2>
+        </div>
 
-      <div class="ranking-tabs" role="tablist" aria-label="Critérios determinísticos de ranking">
-        <button type="button" class="ranking-tab active" role="tab" id="tab-lowest-price" aria-selected="true" aria-controls="promos-grid" data-ranking="LOWEST_ABSOLUTE_PRICE">
-          <span class="tab-icon" aria-hidden="true">💰</span>
-          <span class="tab-title">Menor Preço</span>
-          <span class="tab-desc">Valor absoluto</span>
-        </button>
+        <div class="ranking-segmented-control" role="tablist" aria-label="Critérios determinísticos de ranking">
+          <button type="button" class="ranking-tab active" role="tab" id="tab-lowest-price" aria-selected="true" aria-controls="promos-grid" data-ranking="LOWEST_ABSOLUTE_PRICE">
+            <span class="tab-icon" aria-hidden="true">💰</span>
+            <span class="tab-title">Mais Baratas</span>
+          </button>
 
-        <button type="button" class="ranking-tab" role="tab" id="tab-highest-discount" aria-selected="false" aria-controls="promos-grid" data-ranking="HIGHEST_DISCOUNT">
-          <span class="tab-icon" aria-hidden="true">🏷️</span>
-          <span class="tab-title">Maior Desconto</span>
-          <span class="tab-desc">% comprovada</span>
-        </button>
+          <button type="button" class="ranking-tab" role="tab" id="tab-highest-discount" aria-selected="false" aria-controls="promos-grid" data-ranking="HIGHEST_DISCOUNT">
+            <span class="tab-icon" aria-hidden="true">🏷️</span>
+            <span class="tab-title">Maior Desconto</span>
+          </button>
 
-        <button type="button" class="ranking-tab" role="tab" id="tab-unit-price" aria-selected="false" aria-controls="promos-grid" data-ranking="BEST_UNIT_PRICE">
-          <span class="tab-icon" aria-hidden="true">🍕</span>
-          <span class="tab-title">Melhor Preço / Pizza</span>
-          <span class="tab-desc">Custo unitário</span>
-        </button>
+          <button type="button" class="ranking-tab" role="tab" id="tab-unit-price" aria-selected="false" aria-controls="promos-grid" data-ranking="BEST_UNIT_PRICE">
+            <span class="tab-icon" aria-hidden="true">🍕</span>
+            <span class="tab-title">Melhor Preço / Pizza</span>
+          </button>
 
-        <button type="button" class="ranking-tab" role="tab" id="tab-recently-observed" aria-selected="false" aria-controls="promos-grid" data-ranking="RECENTLY_OBSERVED">
-          <span class="tab-icon" aria-hidden="true">🕒</span>
-          <span class="tab-title">Recém Observadas</span>
-          <span class="tab-desc">Última recolha</span>
-        </button>
-      </div>
+          <button type="button" class="ranking-tab" role="tab" id="tab-recently-observed" aria-selected="false" aria-controls="promos-grid" data-ranking="RECENTLY_OBSERVED">
+            <span class="tab-icon" aria-hidden="true">🕒</span>
+            <span class="tab-title">Recém Observadas</span>
+          </button>
+        </div>
 
-      <!-- Banner de Explicação do Ranking Ativo -->
-      <div class="ranking-explanation" id="ranking-explanation" role="region" aria-live="polite">
-        <span class="explanation-icon" aria-hidden="true">ℹ️</span>
-        <div class="explanation-text" id="explanation-text">
-          <strong>Menor Preço Absoluto:</strong> Apresenta primeiro as opções com o desembolso mais baixo em euros (€), permitindo poupar no valor total a pagar.
+        <!-- Micro-legenda do Ranking Ativo (Subtil e Não-Intrusiva) -->
+        <div class="ranking-explanation" id="ranking-explanation" role="region" aria-live="polite">
+          <span class="explanation-icon" aria-hidden="true">ℹ️</span>
+          <span class="explanation-text" id="explanation-text">
+            <strong>Menor Preço Absoluto:</strong> Apresenta primeiro as opções com o desembolso mais baixo em euros (€).
+          </span>
         </div>
       </div>
     </section>
 
-    <!-- Barra de Filtros e Pesquisa -->
-    <section class="filters-section" aria-label="Filtros de pesquisa">
-      <div class="filters-bar">
+    <!-- Barra Unificada de Descoberta & Filtros -->
+    <section class="discovery-section" aria-label="Barra de pesquisa e filtros">
+      <div class="discovery-card">
 
-        <!-- Filtro de Tipo de Oferta (Foco em Pizzas por omissão) -->
-        <div class="filter-group">
-          <label class="filter-group-label" id="label-product-filter">Tipo de Oferta</label>
-          <div class="chips-row" role="group" aria-labelledby="label-product-filter" id="product-chips">
-            <button type="button" class="chip active" data-product="PIZZA_ONLY" aria-pressed="true">🍕 Apenas Pizzas e Menus</button>
+        <!-- Linha 1: Pesquisa & Tipo de Oferta -->
+        <div class="discovery-row discovery-row-main">
+          <div class="search-input-wrap">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="search" id="search-input" class="search-input" placeholder="Pesquisar pizza, marca, tamanho (ex: familiar, duo, 2x1)..." autocomplete="off" aria-label="Pesquisar ofertas de pizza">
+            <button type="button" id="btn-clear-search" class="btn-clear-search" aria-label="Limpar pesquisa" style="display: none;">✕</button>
+          </div>
+
+          <div class="chips-row product-chips-row" role="group" aria-label="Tipo de Oferta" id="product-chips">
+            <button type="button" class="chip active" data-product="PIZZA_ONLY" aria-pressed="true">🍕 Pizzas e Menus</button>
             <button type="button" class="chip" data-product="ALL" aria-pressed="false">Todas as Ofertas</button>
-            <button type="button" class="chip" data-product="NON_PIZZA" aria-pressed="false">🥤 Apenas Complementos</button>
+            <button type="button" class="chip" data-product="NON_PIZZA" aria-pressed="false">🥤 Complementos</button>
           </div>
         </div>
 
-        <!-- Filtro de Marcas -->
-        <div class="filter-group">
-          <label class="filter-group-label" id="label-vendor-filter">Pizzaria</label>
-          <div class="chips-row" role="group" aria-labelledby="label-vendor-filter" id="vendor-chips">
-            <button type="button" class="chip active" data-vendor="ALL" aria-pressed="true">Todas</button>
-            <button type="button" class="chip" data-vendor="DOMINOS" aria-pressed="false">Domino's</button>
-            <button type="button" class="chip" data-vendor="PAPA_JOHNS" aria-pressed="false">Papa John's</button>
-            <button type="button" class="chip" data-vendor="PIZZA_HUT" aria-pressed="false">Pizza Hut</button>
-            <button type="button" class="chip" data-vendor="TELEPIZZA" aria-pressed="false">Telepizza</button>
+        <!-- Linha 2: Filtro de Marcas -->
+        <div class="discovery-row discovery-row-brands">
+          <span class="discovery-label" id="label-vendor-filter">Pizzaria:</span>
+          <div class="chips-row vendor-chips-row" role="group" aria-labelledby="label-vendor-filter" id="vendor-chips">
+            <button type="button" class="chip chip-vendor active" data-vendor="ALL" aria-pressed="true">Todas</button>
+            <button type="button" class="chip chip-vendor chip-dominos" data-vendor="DOMINOS" aria-pressed="false">Domino's</button>
+            <button type="button" class="chip chip-vendor chip-papajohns" data-vendor="PAPA_JOHNS" aria-pressed="false">Papa John's</button>
+            <button type="button" class="chip chip-vendor chip-pizzahut" data-vendor="PIZZA_HUT" aria-pressed="false">Pizza Hut</button>
+            <button type="button" class="chip chip-vendor chip-telepizza" data-vendor="TELEPIZZA" aria-pressed="false">Telepizza</button>
           </div>
         </div>
 
-        <!-- Filtro de Canal / Atendimento -->
-        <div class="filter-group">
-          <label class="filter-group-label" id="label-channel-filter">Canal de Atendimento</label>
-          <div class="chips-row" role="group" aria-labelledby="label-channel-filter" id="channel-chips">
-            <button type="button" class="chip active" data-channel="ALL" aria-pressed="true">Todos</button>
+        <!-- Linha 3: Canais, Dia da Semana e Comparabilidade -->
+        <div class="discovery-row discovery-row-options">
+          <div class="chips-row channel-chips-row" role="group" aria-label="Canal de Atendimento" id="channel-chips">
+            <button type="button" class="chip active" data-channel="ALL" aria-pressed="true">Todos os canais</button>
             <button type="button" class="chip" data-channel="TAKE_AWAY" aria-pressed="false">🥡 Take Away</button>
             <button type="button" class="chip" data-channel="DELIVERY" aria-pressed="false">🛵 Entrega</button>
             <button type="button" class="chip" data-channel="DINE_IN" aria-pressed="false">🍽️ No Restaurante</button>
           </div>
-        </div>
 
-        <!-- Filtro de Dia da Semana e Pesquisa de Texto -->
-        <div class="filter-row-secondary">
-          <div class="select-field">
-            <label for="select-day" class="field-label">Dia da Semana</label>
-            <select id="select-day" class="custom-select">
-              <option value="ALL">Qualquer dia</option>
-              <option value="MONDAY">Segunda-feira</option>
-              <option value="TUESDAY">Terça-feira</option>
-              <option value="WEDNESDAY">Quarta-feira</option>
-              <option value="THURSDAY">Quinta-feira</option>
-              <option value="FRIDAY">Sexta-feira</option>
-              <option value="SATURDAY">Sábado</option>
-              <option value="SUNDAY">Domingo</option>
-            </select>
-          </div>
+          <div class="secondary-controls">
+            <div class="select-field">
+              <label for="select-day" class="sr-only">Dia da Semana</label>
+              <select id="select-day" class="custom-select" aria-label="Filtrar por dia da semana">
+                <option value="ALL">📅 Qualquer dia</option>
+                <option value="MONDAY">Segunda-feira</option>
+                <option value="TUESDAY">Terça-feira</option>
+                <option value="WEDNESDAY">Quarta-feira</option>
+                <option value="THURSDAY">Quinta-feira</option>
+                <option value="FRIDAY">Sexta-feira</option>
+                <option value="SATURDAY">Sábado</option>
+                <option value="SUNDAY">Domingo</option>
+              </select>
+            </div>
 
-          <div class="search-field">
-            <label for="search-input" class="field-label">Pesquisar oferta</label>
-            <div class="search-input-wrap">
-              <span class="search-icon-hint" aria-hidden="true">🔍</span>
-              <input type="search" id="search-input" class="custom-input with-icon" placeholder="Ex: duo, familiar, média, 2x1..." autocomplete="off">
-              <button type="button" id="btn-clear-search" class="btn-clear-search" aria-label="Limpar termo de pesquisa" style="display: none;">✕</button>
+            <div class="toggle-field">
+              <label class="toggle-container" for="toggle-comparable">
+                <input type="checkbox" id="toggle-comparable">
+                <span class="toggle-switch" aria-hidden="true"></span>
+                <span class="toggle-label">Apenas comparáveis por pizza</span>
+              </label>
             </div>
           </div>
-
-          <div class="toggle-field">
-            <label class="toggle-container" for="toggle-comparable">
-              <input type="checkbox" id="toggle-comparable">
-              <span class="toggle-box" aria-hidden="true"></span>
-              <span class="toggle-text">Apenas comparáveis por pizza</span>
-            </label>
-          </div>
         </div>
-      </div>
 
-      <!-- Barra de Estado dos Resultados -->
-      <div class="results-statusbar" aria-live="polite">
-        <span class="results-count" id="results-count">A carregar promoções...</span>
-        <button type="button" class="btn-reset-filters" id="btn-reset-filters" style="display: none;">Limpar filtros</button>
+        <!-- Linha 4: Barra de Resultados & Limpeza -->
+        <div class="results-statusbar" aria-live="polite">
+          <span class="results-count" id="results-count">A carregar promoções...</span>
+          <button type="button" class="btn-reset-filters" id="btn-reset-filters" style="display: none;">Limpar filtros</button>
+        </div>
+
       </div>
     </section>
 
@@ -202,7 +203,7 @@
       <div class="empty-state" id="empty-state" style="display: none;" role="status">
         <div class="empty-icon" aria-hidden="true">🔍</div>
         <h3 class="empty-title">Nenhuma promoção encontrada</h3>
-        <p class="empty-message">Não encontramos ofertas que correspondam aos filtros selecionados. Tenta ajustar o canal ou limpar os termos de pesquisa.</p>
+        <p class="empty-message">Não foram encontradas ofertas com os filtros selecionados. Tenta ajustar o canal ou limpar os termos de pesquisa.</p>
         <button type="button" class="btn-clear-empty" id="btn-clear-empty">Ver todas as promoções</button>
       </div>
     </section>
@@ -215,7 +216,7 @@
       <div class="footer-col">
         <h3 class="footer-heading">Transparência e Princípios</h3>
         <p class="footer-text">
-          O <strong>Pizza Radar PT</strong> é um projeto independente sem fins lucrativos.
+          O <strong>Pizza Radar PT</strong> é um comparador independente de dados abertos.
           Recolhemos dados exclusivamente através de páginas e APIs públicas oficiais dos operadores.
           Não efetuamos intermediação, reservas nem pagamentos. Os preços e condições são da inteira responsabilidade das marcas.
         </p>
@@ -237,6 +238,8 @@
         </p>
       </div>
     </div>
+  </footer>
+
   <!-- Botão Flutuante Voltar ao Topo -->
   <button type="button" id="btn-back-to-top" class="btn-back-to-top" aria-label="Voltar ao topo da página" style="display: none;">
     <span aria-hidden="true">↑</span>

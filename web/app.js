@@ -654,36 +654,62 @@
     // CTA Oficial
     const sourceUrl = group.source_url || '#';
 
-    // Imagem Oficial (se disponível)
-    let imageHTML = '';
-    if (group.image_url) {
-      imageHTML = `
-        <div class="card-image-wrap">
-          <img src="${escapeHTML(group.image_url)}" alt="${escapeHTML(group.title)}" class="card-image" loading="lazy" decoding="async" onerror="this.closest('.card-image-wrap').remove()">
-        </div>
-      `;
-    }
-
     // Super Desconto (destaque para economias >= 40%)
     let superDiscountHTML = '';
     if (group.max_discount_percentage && group.max_discount_percentage >= 40) {
       superDiscountHTML = `<span class="badge-super-discount" title="Desconto igual ou superior a 40%">🔥 Super Desconto</span>`;
     }
 
+    // Imagem Oficial ou Fallback com Identidade da Marca
+    let mediaHTML = '';
+    if (group.image_url) {
+      mediaHTML = `
+        <div class="card-media card-image-wrap">
+          <img src="${escapeHTML(group.image_url)}" alt="${escapeHTML(group.title)}" class="card-image" loading="lazy" decoding="async" onerror="this.onerror=null; this.parentElement.classList.add('has-fallback-active');">
+          <div class="card-fallback-banner vendor-bg-${escapeHTML(group.vendor)}">
+            <span class="fallback-icon" aria-hidden="true">🍕</span>
+            <span class="fallback-brand">${escapeHTML(vendorLabel)}</span>
+          </div>
+          <div class="card-media-overlay"></div>
+          <div class="floating-badge-top-left">
+            <span class="vendor-badge vendor-${escapeHTML(group.vendor)}">${escapeHTML(vendorLabel)}</span>
+          </div>
+          ${discountTagHTML ? `<div class="floating-badge-top-right">${discountTagHTML}</div>` : ''}
+          <div class="floating-badge-bottom-right">
+            <span class="dispatch-badge">${escapeHTML(channels)}</span>
+          </div>
+        </div>
+      `;
+    } else {
+      mediaHTML = `
+        <div class="card-media card-image-wrap has-fallback-active">
+          <div class="card-fallback-banner vendor-bg-${escapeHTML(group.vendor)}">
+            <span class="fallback-icon" aria-hidden="true">🍕</span>
+            <span class="fallback-brand">${escapeHTML(vendorLabel)}</span>
+          </div>
+          <div class="card-media-overlay"></div>
+          <div class="floating-badge-top-left">
+            <span class="vendor-badge vendor-${escapeHTML(group.vendor)}">${escapeHTML(vendorLabel)}</span>
+          </div>
+          ${discountTagHTML ? `<div class="floating-badge-top-right">${discountTagHTML}</div>` : ''}
+          <div class="floating-badge-bottom-right">
+            <span class="dispatch-badge">${escapeHTML(channels)}</span>
+          </div>
+        </div>
+      `;
+    }
+
     return `
       <article class="promo-card" id="card-${escapeHTML(group.persistent_id)}">
-        ${imageHTML}
-        <header class="card-header">
-          <div class="card-header-left" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-            <span class="vendor-badge vendor-${escapeHTML(group.vendor)}">${escapeHTML(vendorLabel)}</span>
+        ${mediaHTML}
+
+        <div class="card-body">
+          <div class="card-tags-row">
             ${offerTypeBadgeHTML}
             ${superDiscountHTML}
             ${preservedBadgeHTML}
           </div>
-          <span class="dispatch-badge">${escapeHTML(channels)}</span>
-        </header>
 
-        <div class="card-body">
           <h3 class="card-title">${escapeHTML(group.title)}</h3>
           ${group.description ? `<p class="card-description">${escapeHTML(group.description)}</p>` : ''}
 
@@ -691,7 +717,6 @@
             <div class="price-main-row">
               <span class="price-value">${escapeHTML(displayPrice)}</span>
               ${originalPriceHTML}
-              ${discountTagHTML}
             </div>
             ${unitPriceBadgeHTML}
           </div>
@@ -708,8 +733,8 @@
         <footer class="card-footer">
           <div class="card-actions">
             <a href="${escapeHTML(sourceUrl)}" target="_blank" rel="noopener noreferrer" class="btn-official">
-              <span>Ver oferta no site oficial</span>
-              <span aria-hidden="true" style="font-size: 0.9em; opacity: 0.85;">↗</span>
+              <span>Ver no site oficial</span>
+              <span aria-hidden="true" class="btn-icon-external">↗</span>
             </a>
             <button type="button" class="btn-share-promo" title="Copiar hiperligação desta oferta" aria-label="Copiar hiperligação da oferta ${escapeHTML(group.title)}" data-url="${escapeHTML(sourceUrl)}">
               <span aria-hidden="true">🔗</span>

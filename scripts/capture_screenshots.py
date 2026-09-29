@@ -45,6 +45,7 @@ def capture(browser_bin, url, output_png, width, height):
         "--headless=new",
         "--disable-gpu",
         f"--window-size={width},{height}",
+        "--virtual-time-budget=2000",
         "--hide-scrollbars",
         f"--screenshot={output_png}",
         url,
