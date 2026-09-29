@@ -18,12 +18,15 @@ from __future__ import annotations
 
 import html
 import json
+import logging
 import re
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
 from pizza_radar.core.classifier import classify_offer_type
@@ -156,17 +159,21 @@ class PizzaHutAdapter(PromoAdapterInterface):
         parsed: list[dict[str, Any]] = []
         for idx, item in enumerate(raw):
             if not isinstance(item, dict):
-                raise ParseError(f"Item {idx} de ofertas da Pizza Hut não é um objeto válido", vendor=self.vendor)
+                logger.warning("Item %d da Pizza Hut ignorado: não é um objeto válido", idx)
+                continue
 
             item_id = item.get("id")
             title_obj = item.get("title")
             title_rendered = title_obj.get("rendered") if isinstance(title_obj, dict) else None
 
             if item_id is None or not title_rendered or str(title_rendered).strip() == "":
-                raise ParseError(
-                    f"Item {idx} da Pizza Hut com campos obrigatórios em falta (id={item_id!r}, title={title_rendered!r})",
-                    vendor=self.vendor,
+                logger.warning(
+                    "Item %d da Pizza Hut ignorado: campos obrigatórios em falta (id=%r, title=%r)",
+                    idx,
+                    item_id,
+                    title_rendered,
                 )
+                continue
 
             clean_title = html.unescape(str(title_rendered)).strip()
             slug = str(item.get("slug") or item_id)
@@ -203,10 +210,12 @@ class PizzaHutAdapter(PromoAdapterInterface):
                         for m in item["dispatch_methods"]
                     ]
                 else:
-                    raise ParseError(
-                        f"Oferta {item_id} ({slug}) da Pizza Hut não possui canal de distribuição comprovado",
-                        vendor=self.vendor,
+                    logger.warning(
+                        "Oferta %s (%s) da Pizza Hut ignorada: não possui canal de distribuição comprovado",
+                        item_id,
+                        slug,
                     )
+                    continue
 
             parsed.append({
                 "id": str(item_id),
@@ -220,6 +229,13 @@ class PizzaHutAdapter(PromoAdapterInterface):
                 "store_names": store_names,
                 "dispatch_methods": channels,
             })
+
+        if raw and not parsed:
+            raise ParseError(
+                "Nenhuma oferta válida da Pizza Hut pôde ser extraída do payload",
+                vendor=self.vendor,
+            )
+
         return parsed
 
     def adapt(
