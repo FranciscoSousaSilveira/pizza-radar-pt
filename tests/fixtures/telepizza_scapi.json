@@ -1,0 +1,416 @@
+{
+  "limit": 20,
+  "total": 20,
+  "data": [
+    {
+      "calloutMsg": "Na compra de 1 Pizza Média ou Familiar,  2ª Pizza é Grátis! Não acumulável com outras promoções.\r\nPromoção valida para pizzas a gosto até 4 ingredientes.",
+      "details": "Na compra de 1 Pizza Média ou Familiar,  2ª Pizza é Grátis! Não acumulável com outras promoções.\r\nPromoção valida para pizzas a gosto até 4 ingredientes.",
+      "id": "2x1_MedFam",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw2bbdc603/triplecard-doubletercas-bts.webp",
+      "name": "2x1 Médias e Familiares",
+      "c_tpz_daysOfWeek": [
+        "2"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_mobileImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw6390a7c8/doublecard-doubletercas-bts.webp",
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw4ef7b378/minicard-doubletercas-bts.png"
+    },
+    {
+      "calloutMsg": "Meu Menu com Pizza Individual Descomplicadas + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Loja e Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao Stock Existente.",
+      "details": "Meu Menu com Pizza Individual Descomplicadas + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Loja e Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao Stock Existente.",
+      "endDate": "2026-10-19T22:45Z",
+      "id": "MMINDTSTK",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw884d22c0/meumenu-5,95tk-double.png",
+      "name": "Meu Menu Individual por 5,95€",
+      "startDate": "2026-08-18T23:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": false,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoFixedPrice": 5.95,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw4cb8857f/meumenu-5,95tk-minicartcard.png"
+    },
+    {
+      "calloutMsg": "Meu Menu com Pizza Individual Descomplicadas + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
+      "details": "Meu Menu com Pizza Individual Descomplicadas + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
+      "endDate": "2026-10-18T23:00Z",
+      "id": "MMINDDSTK",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw151b2524/meumenu-8,95dom-double.png",
+      "name": "Meu Menu Individual por 8,95€",
+      "startDate": "2026-08-18T23:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": false,
+      "c_tpz_promoFixedPrice": 8.95,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw08786bb1/meumenu-8,95dom-minicart.png"
+    },
+    {
+      "calloutMsg": "Meu Menu com Smash Burger de Vaca ou Burger de Frango + Batatas + Bebida 33cl + Voucher* 5€ Staples. Preço exclusivo para Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
+      "details": "Meu Menu com Smash Burger de Vaca ou Burger de Frango + Batatas + Bebida 33cl + Voucher* 5€ Staples. Preço exclusivo para Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
+      "endDate": "2026-10-19T22:45Z",
+      "id": "MMBRGTSTK",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw8e191c0a/meumenuburger-8,95tk-single.png",
+      "name": "Meu Menu Burger por 8,95€",
+      "startDate": "2026-08-18T23:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": false,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwa5517ef6/meumenuburger-8,95tk-minicart.png"
+    },
+    {
+      "calloutMsg": "Meu Menu com Pizza Media Descomplicada + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Loja e Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
+      "details": "Meu Menu com Pizza Media Descomplicada + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Loja e Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
+      "endDate": "2026-10-19T22:45Z",
+      "id": "MMMEDTSTK",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw014c0aa0/meumenu-9,95tk-single.png",
+      "name": "Meu Menu Média por 9,95€",
+      "startDate": "2026-08-18T23:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": false,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoFixedPrice": 9.95,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw952c1331/meumenu-9,95tk-minicart.png"
+    },
+    {
+      "calloutMsg": "Meu Menu com Pizza Média Descomplicada + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
+      "details": "Meu Menu com Pizza Média Descomplicada + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
+      "endDate": "2026-10-19T22:45Z",
+      "id": "MMMEDDSTK",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwf641627f/meumenu-10,95dom-single.png",
+      "name": "Meu Menu Média por 10,95€",
+      "startDate": "2026-08-18T23:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": false,
+      "c_tpz_promoFixedPrice": 10.95,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw0f72b3e5/meumenu-10,95dom-minicart.png"
+    },
+    {
+      "calloutMsg": "Meu Menu com Smash Burger de Vaca ou Burger de Frango + Batatas + Bebida 33cl + Voucher* 5€ Staples. Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
+      "details": "Meu Menu com Smash Burger de Vaca ou Burger de Frango + Batatas + Bebida 33cl + Voucher* 5€ Staples. Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
+      "endDate": "2026-10-19T22:45Z",
+      "id": "MMBRGDSTK",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw8b920716/meumenuburger-11,95dom-single.png",
+      "name": "Meu Menu Burger por 11,95€",
+      "startDate": "2026-08-18T23:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": false,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw81357d8d/meumenuburger-11,95dom-minicart.png"
+    },
+    {
+      "calloutMsg": "3 Pizzas Médias por 7,95€/cada",
+      "details": "3 Pizzas Médias Descomplicada, Essencial ou Receita do Mundo por 7,95€/cada. Promoção aplicável também a Pizzas a Gosto até 3 ing. \r\nPor +2€ faz o upgrade para uma Pizza Especial ou Exclusiva ou Pizza a Gosto de 4 ing. Por +1€, faz o upgrade para massa mãe. \r\nNão acumulável com outras promoções. Promoção válida para pedidos loja ou take-away.",
+      "id": "3PMENOSTK",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw987243ae/bts-7,95tk-doublecard.png",
+      "name": "3 Pizzas Médias por 7,95€/cada",
+      "startDate": "2026-01-05T00:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": false,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_mobileImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw987243ae/bts-7,95tk-doublecard.png",
+      "c_tpz_promoFixedPrice": 23.85,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw193f5d59/bts-7,95tk-minicart.png"
+    },
+    {
+      "calloutMsg": "3 Pizzas Médias por 8,95€/cada",
+      "details": "3 Pizzas Médias Descomplicada, Essencial ou Receita do Mundo por 8,95€/cada. Promoção aplicável também a Pizzas a Gosto até 3 ing. \r\nPor +2€, faz o upgrade para uma Pizza Especial ou Exclusiva ou Pizza a Gosto de 4 ing. Por +1€, faz o upgrade para massa mãe.  Não acumulável com outras promoções. \r\nPromoção válida para pedidos ao domicílio.",
+      "id": "3porMenos",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw700dbba6/bts-8,95dom-doublecard.png",
+      "name": "3 Pizzas Médias por 8,95€/cada",
+      "startDate": "2026-01-05T00:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": false,
+      "c_tpz_mobileImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw700dbba6/bts-8,95dom-doublecard.png",
+      "c_tpz_promoFixedPrice": 26.85,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw09d0a078/bts-8,95dom-minicart.png"
+    },
+    {
+      "calloutMsg": "2 Pizzas Médias por 9,95€/cada",
+      "details": "2 Pizzas Médias Descomplicada, Essencial ou Receita do Mundo por 9,95€/cada. Promoção aplicável também a Pizzas a Gosto até 3 ing. \r\nPor +2€, faz o upgrade para uma Pizza Especial ou Exclusiva ou Pizza a Gosto de 4 ing. Por +1€, faz o upgrade para massa mãe. \r\nNão acumulável com outras promoções. Promoção válida para pedidos ao domicílio, take-away e loja.",
+      "id": "2porMenos",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw35c52b1f/bts-9,95-single.png",
+      "name": "2 Pizzas Médias por 9,95€/cada",
+      "startDate": "2026-01-05T00:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoFixedPrice": 19.9,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwa6c28154/bts-9,95-minicart.png"
+    },
+    {
+      "calloutMsg": "1 Pizza Média por 10,95€",
+      "details": "1 Pizza Média Descomplicada ou Essencial Receita do Mundo por 10,95€. Promoção aplicável também a Pizzas a Gosto até 3 ing. \r\nPor +2€, faz o upgrade para uma Pizza Especial ou Exclusiva ou Pizza a Gosto de 4 ing. Por +1€, faz o upgrade para massa mãe. \r\nNão acumulável com outras promoções. Promoção válida para pedidos take-away ou loja.",
+      "id": "1PMENOSTK",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwa811d5b4/bts-10,95tk-single.png",
+      "name": "1 Pizza Média por 10,95€",
+      "startDate": "2026-01-05T00:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": false,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoFixedPrice": 10.95,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw1ea77940/bts-10,95tk-minicart.png"
+    },
+    {
+      "calloutMsg": "1 Pizza Média por 11,95€",
+      "details": "Pizza Média Descomplicada, Essencial ou Receita do Mundo por 11,95€. Promoção aplicável também a Pizzas a Gosto até 3 ing. \r\nPor +2€, faz o upgrade para uma Pizza Especial ou Exclusiva ou Pizza a Gosto de 4 ing. Por +1€, faz o upgrade para massa mãe. \r\nNão acumulável com outras promoções. Promoção válida para pedidos ao domicílio, take-away e loja.",
+      "id": "1porMenos",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw9c4404b0/bts-11,95dom-single.png",
+      "name": "1 Pizza Média por 11,95€",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": false,
+      "c_tpz_promoFixedPrice": 11.95,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw07bf4b94/bts-11,95dom-minicart.png"
+    },
+    {
+      "calloutMsg": "1 Pizza Média Massa Fina Descomplicada desde 5,95€. Por +1,50€ massa clássica. Por +2,50€ massa mãe. Faz o upgrade para qualquer categoria por +3€. \r\nDisponível em Loja e Take Away nas lojas aderentes. Não acumulável com outras promoções.",
+      "details": "1 Pizza Média Massa Fina Descomplicada desde 5,95€. Por + 1,5€ Massa Clássica. Por +2,50€ massa mãe. Faz o upgrade para qualquer pizza por +3€. \r\nDisponível em Loja e Take Away nas lojas aderentes. Não acumulável com outras promoções.",
+      "endDate": "2026-12-31T23:45Z",
+      "id": "Med595_TK",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw4c3cc0c7/5,95-300x350-card.png",
+      "name": "1 Pizza Média Descomplicada desde 5,95€",
+      "startDate": "2025-03-10T00:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": false,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoFixedPrice": 5.95,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw6323a7c2/medias-desde-5-95-minicart.png"
+    },
+    {
+      "calloutMsg": "8 Pizzolinos Bacon ou Frango BBQ ou Pepperoni ou Topping p/ Pizza por 5,45€. Não acumulável com outras promoções e limitado ao stock existente e às lojas aderentes.",
+      "details": "8 Pizzolinos Bacon ou Frango BBQ ou Pepperoni ou Topping p/ Pizza por 5,45€. Não acumulável com outras promoções e limitado ao stock existente e às lojas aderentes.",
+      "id": "8PIZZOLINO",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw8d22dde7/x8pizzolinos-bts.png",
+      "name": "8 Pizzolinos por 5,45€",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw5511ec40/minicart-x8pizzolinos-bts.png"
+    },
+    {
+      "calloutMsg": "2 bebidas de 1,5L por 5,15€. Não acumulável com outras promoções e limitado ao stock existente e às lojas aderentes.",
+      "details": "2 bebidas de 1,5L por 5,15€. Não acumulável com outras promoções e limitado ao stock existente e às lojas aderentes.",
+      "id": "2BEBGARX",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwe8dae187/x2bebidas1,5l-bts.png",
+      "name": "2 Bebidas 1,5L por 5,15€",
+      "startDate": "2025-09-01T23:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwd5571693/minicart-x2bebidas33cl-bts.png"
+    },
+    {
+      "calloutMsg": "2 bebidas 33cl por 3,60€ (exclui cerveja).  Não acumulável com outras promoções e limitado ao stock existente e às lojas aderentes.",
+      "details": "2 bebidas 33cl por 3,60€ (exclui cerveja).  Não acumulável com outras promoções e limitado ao stock existente e às lojas aderentes.",
+      "endDate": "2026-10-18T22:45Z",
+      "id": "2BEB33K",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwcc73aebc/x2bebidas33cl-bts.png",
+      "name": "2 bebidas 33cl por 3,60€",
+      "startDate": "2026-08-16T23:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw8da8a0d7/minicart-x2bebidas1,5l-bts.png"
+    },
+    {
+      "calloutMsg": "Na compra de 1 Gelado Häagen-Dazs 95ml o 2º Gelado é Grátis!  Não acumulável com outras promoções.Promoção válida apenas nos gelados Häagen-Dazs 95ml.",
+      "details": "Na compra de 1 Gelado Häagen-Dazs 95ml  o 2º Gelado é Grátis!  Não acumulável com outras promoções. Promoção válida apenas nos gelados Häagen-Dazs 95ml.",
+      "id": "2x1_Gel",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw9a06b8bc/2x1-gelados95ml-bts.png",
+      "name": "2X1 em Gelados 95ml",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw66f15254/minicart-2x1gel-bts.png"
+    },
+    {
+      "calloutMsg": "Escolhe a tua pizza Descomplicada, Essencial, Especial ou Exclusiva e saboreia-a com 30% de desconto. Válido para pizzas individuais, médias, familiares e king size em pedidos na app ou site.",
+      "details": "Escolhe a tua pizza Descomplicada, Essencial, Especial ou Exclusiva e saboreia-a com 30% de desconto. Válido para pizzas individuais, médias, familiares e king size em pedidos na app ou site. Não acumulável com outras promoções.",
+      "id": "D30_NC",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwbd98ba36/30desc-300x350-card-haburger.png",
+      "name": "30% desconto em Pizzas",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwe43aa7bf/30desc-300x350-minicard-haburger.png"
+    },
+    {
+      "calloutMsg": "Válido para pizzas Descomplicadas, Essenciais, Especiais ou Exclusivas médias. \r\nNecessário adicionar 3 pizzas médias à promoção. Não acumulável com outras promoções.",
+      "details": "Válido para pizzas Descomplicadas, Essenciais, Especiais ou Exclusivas médias. \r\nNecessário adicionar 3 pizzas médias à promoção. Não acumulável com outras promoções.",
+      "id": "55_NC",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw99bdb177/55desc-300x350-card.png",
+      "name": "-55% em 3 Pizzas Médias",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": true,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwefc3bc40/55desc-300x350-minicard.png"
+    },
+    {
+      "calloutMsg": "Qualquer um dos nossos Buckets de Frango por 9,95€. Válido em Takeaway. Molhos são sugestivos, promoção não incluir qualquer molho.",
+      "details": "Qualquer um dos nossos Buckets de Frango por 9,95€. Válido em Takeaway. Molhos são sugestivos, promoção não incluir qualquer molho.",
+      "id": "BUCKETSLK",
+      "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwbd558f48/bucketsfrango-300x350-card.png",
+      "name": "Bucket Frango por 9,95€",
+      "startDate": "2025-10-01T23:00Z",
+      "c_tpz_daysOfWeek": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "0"
+      ],
+      "c_tpz_isDelivery": false,
+      "c_tpz_isTakeAway": true,
+      "c_tpz_promoFixedPrice": 9.95,
+      "c_tpz_promoMinicartImage": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwb641db42/bucketsfrango-300x350-minicard.png"
+    }
+  ]
+}

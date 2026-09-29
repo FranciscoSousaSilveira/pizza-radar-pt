@@ -56,6 +56,9 @@ _NON_PIZZA_EXCLUSIVE_KEYWORDS: tuple[str, ...] = (
     "nuggets",
     "batatas",
     "garlic bread",
+    "bucket",
+    "buckets",
+    "frango",
 )
 
 _COMPLEMENT_KEYWORDS: tuple[str, ...] = (
@@ -76,6 +79,8 @@ _COMPLEMENT_KEYWORDS: tuple[str, ...] = (
     "pack",
     "entrada",
     "entradas",
+    "bucket",
+    "buckets",
 )
 
 _PIZZA_KEYWORDS: tuple[str, ...] = (

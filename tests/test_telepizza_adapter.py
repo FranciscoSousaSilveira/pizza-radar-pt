@@ -2,14 +2,28 @@
 
 from __future__ import annotations
 
+import json
 import os
 import unittest
 from datetime import datetime, timezone
-from unittest.mock import patch
+from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
-from pizza_radar.adapters.telepizza import TelepizzaAdapter, _extract_cents_from_text
+from pizza_radar.adapters.telepizza import (
+    DEFAULT_PROMOTION_IDS,
+    TelepizzaAdapter,
+    _extract_cents_from_text,
+    _extract_discount_percentage,
+)
 from pizza_radar.core.adapter import NetworkError, ParseError
-from pizza_radar.core.models import Brand, DiscountType, DispatchMethod, StoreScope
+from pizza_radar.core.models import (
+    Brand,
+    DiscountType,
+    DispatchMethod,
+    OfferType,
+    StoreScope,
+    Weekday,
+)
 from pizza_radar.core.validator import validate_promo
 
 _FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
@@ -21,16 +35,23 @@ def _load_html(filename: str) -> str:
         return f.read()
 
 
+def _load_json_fixture(filename: str) -> dict:
+    path = os.path.join(_FIXTURES_DIR, filename)
+    with open(path, encoding="utf-8") as f:
+        return json.loads(f.read(), parse_float=Decimal)
+
+
 def _observed_at() -> datetime:
     return datetime(2026, 9, 28, 15, 0, 0, tzinfo=timezone.utc)
 
 
 class TestTelepizzaAdapter(unittest.TestCase):
-    """Testa o adaptador da Telepizza com HTML sanitizado."""
+    """Testa o adaptador da Telepizza com dados SCAPI e suporte HTML legado."""
 
     def setUp(self) -> None:
         self.adapter = TelepizzaAdapter()
         self.html_content = _load_html("telepizza_promocoes.html")
+        self.scapi_data = _load_json_fixture("telepizza_scapi.json")
 
     def test_extract_cents_helper(self) -> None:
         """Extrai cêntimos com suporte a &euro; e vírgula."""
@@ -39,8 +60,141 @@ class TestTelepizzaAdapter(unittest.TestCase):
         self.assertEqual(_extract_cents_from_text("Preço de 12,50&euro;"), 1250)
         self.assertIsNone(_extract_cents_from_text("2x1 em Todas as Pizzas"))
 
+    def test_extract_discount_percentage_helper(self) -> None:
+        """Extrai percentagem de desconto por regex."""
+        self.assertEqual(_extract_discount_percentage("30% desconto em Pizzas"), 30.0)
+        self.assertEqual(_extract_discount_percentage("-55% em 3 Pizzas Médias"), 55.0)
+        self.assertIsNone(_extract_discount_percentage("Preço fixo 10€"))
+
+    def test_parse_scapi_fixture(self) -> None:
+        """Extrai todas as 20 campanhas oficiais do payload SCAPI."""
+        parsed = self.adapter.parse_scapi(self.scapi_data)
+        self.assertEqual(len(parsed), 20)
+
+        # 2x1 Médias e Familiares
+        p_2x1 = next(p for p in parsed if p["id"] == "2x1_MedFam")
+        self.assertEqual(p_2x1["title"], "2x1 Médias e Familiares")
+        self.assertIn("delivery", p_2x1["channels"])
+        self.assertIn("takeaway", p_2x1["channels"])
+        self.assertEqual(p_2x1["days_of_week"], [Weekday.TUESDAY])
+        self.assertEqual(p_2x1["pizza_count"], 2)
+
+        # MMINDTSTK - Meu Menu Individual por 5,95€
+        p_menu = next(p for p in parsed if p["id"] == "MMINDTSTK")
+        self.assertEqual(p_menu["price_cents"], 595)
+        self.assertEqual(p_menu["channels"], ["takeaway"])
+        self.assertEqual(p_menu["valid_from"], "2026-08-18T23:00Z")
+        self.assertEqual(p_menu["valid_until"], "2026-10-19T22:45Z")
+
+        # 55_NC - -55% em 3 Pizzas Médias
+        p_55 = next(p for p in parsed if p["id"] == "55_NC")
+        self.assertEqual(p_55["discount_percentage"], 55.0)
+        self.assertEqual(p_55["pizza_count"], 3)
+
+    def test_adapt_scapi_all_promotions_and_classification(self) -> None:
+        """Converte todas as campanhas SCAPI em UnifiedPromo e valida tipagem e classificação."""
+        parsed = self.adapter.parse_scapi(self.scapi_data)
+        all_promos = []
+        for it in parsed:
+            adapted = self.adapter.adapt(it, _observed_at())
+            self.assertIsInstance(adapted, list)
+            all_promos.extend(adapted)
+
+        # Confirma que mais de 20 promos são geradas (devido a canais delivery + takeaway)
+        self.assertGreater(len(all_promos), 20)
+
+        for p in all_promos:
+            validated = validate_promo(p)
+            self.assertEqual(validated.vendor, Brand.TELEPIZZA)
+            self.assertEqual(validated.store_scope, StoreScope.UNKNOWN)
+            self.assertEqual(validated.location_scope, "Lisboa")
+
+        # Classificação estrita de produtos NON_PIZZA
+        drinks = [p for p in all_promos if "2BEBGARX" in p.id or "2BEB33K" in p.id]
+        self.assertGreater(len(drinks), 0)
+        for d in drinks:
+            self.assertEqual(d.offer_type, OfferType.NON_PIZZA)
+
+        ice_cream = [p for p in all_promos if "2x1_Gel" in p.id]
+        self.assertGreater(len(ice_cream), 0)
+        for ic in ice_cream:
+            self.assertEqual(ic.offer_type, OfferType.NON_PIZZA)
+
+        chicken = [p for p in all_promos if "BUCKETSLK" in p.id]
+        self.assertGreater(len(chicken), 0)
+        for ck in chicken:
+            self.assertEqual(ck.offer_type, OfferType.NON_PIZZA)
+
+    def test_fetch_promotions_scapi_full(self) -> None:
+        """fetch_promotions() recolhe, adapta e valida com cobertura FEATURED."""
+        with patch.object(self.adapter, "fetch_slas_token", return_value="mock-access-token"), \
+             patch.object(self.adapter, "fetch_scapi_promotions", return_value=self.scapi_data):
+            promos = self.adapter.fetch_promotions()
+
+        self.assertGreater(len(promos), 20)
+        self.assertEqual(self.adapter.coverage_level, "FEATURED")
+        self.assertEqual(
+            self.adapter.coverage_note,
+            "Telepizza Portugal — confirmar disponibilidade na loja/morada",
+        )
+        self.assertIn("Telepizza Portugal — confirmar disponibilidade na loja/morada", promos[0].conditions)
+
+    def test_discover_promotion_ids_with_dynamic_hits(self) -> None:
+        """Descoberta dinâmica extrai e deduplica IDs quando productPromotions está presente."""
+        page1 = {
+            "total": 3,
+            "hits": [
+                {"productId": "prod1", "productPromotions": [{"promotionId": "PROMO_A"}, {"promotionId": "PROMO_B"}]},
+                {"productId": "prod2", "promotions": [{"id": "PROMO_B"}, {"id": "PROMO_C"}]},
+            ]
+        }
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            mock_resp = MagicMock()
+            mock_resp.read.return_value = json.dumps(page1).encode("utf-8")
+            mock_urlopen.return_value.__enter__.return_value = mock_resp
+
+            ids = self.adapter.discover_promotion_ids(token="mock-token", max_pages=1)
+
+        self.assertEqual(ids, ["PROMO_A", "PROMO_B", "PROMO_C"])
+
+    def test_discover_promotion_ids_fallback_on_empty(self) -> None:
+        """Fallback para DEFAULT_PROMOTION_IDS quando o catálogo não tem productPromotions."""
+        page_empty = {
+            "total": 50,
+            "hits": [
+                {"productId": "pizza1", "productName": "Pizza Atlantica"},
+                {"productId": "pizza2", "productName": "Pizza Tuna"},
+            ]
+        }
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            mock_resp = MagicMock()
+            mock_resp.read.return_value = json.dumps(page_empty).encode("utf-8")
+            mock_urlopen.return_value.__enter__.return_value = mock_resp
+
+            ids = self.adapter.discover_promotion_ids(token="mock-token", max_pages=1)
+
+        self.assertEqual(ids, DEFAULT_PROMOTION_IDS)
+
+    def test_fetch_scapi_promotions_chunking(self) -> None:
+        """fetch_scapi_promotions divide mais de 50 IDs em lotes de 50 e unifica as respostas."""
+        fake_ids = [f"PROMO_{i}" for i in range(75)]
+        chunk1 = {"data": [{"id": f"PROMO_{i}", "name": f"P {i}"} for i in range(50)]}
+        chunk2 = {"data": [{"id": f"PROMO_{i}", "name": f"P {i}"} for i in range(50, 75)]}
+
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            resp1 = MagicMock()
+            resp1.read.return_value = json.dumps(chunk1).encode("utf-8")
+            resp2 = MagicMock()
+            resp2.read.return_value = json.dumps(chunk2).encode("utf-8")
+            mock_urlopen.return_value.__enter__.side_effect = [resp1, resp2]
+
+            result = self.adapter.fetch_scapi_promotions(token="mock-token", promo_ids=fake_ids)
+
+        self.assertEqual(result["total"], 75)
+        self.assertEqual(len(result["data"]), 75)
+
     def test_parse_html_fixture(self) -> None:
-        """Extrai os 3 cartões promocionais do HTML."""
+        """Extrai os 3 cartões promocionais do HTML legado."""
         parsed = self.adapter.parse(self.html_content)
         self.assertEqual(len(parsed), 3)
 
@@ -121,23 +275,111 @@ class TestTelepizzaAdapter(unittest.TestCase):
         with self.assertRaises(ParseError):
             self.adapter.parse(html_no_channel)
 
-    def test_fetch_promotions_full_mock(self) -> None:
-        """fetch_promotions() extrai e valida todas as promoções."""
-        with patch.object(self.adapter, "fetch_raw", return_value=self.html_content):
-            promos = self.adapter.fetch_promotions()
-
-        self.assertGreater(len(promos), 0)
-        for p in promos:
-            validate_promo(p)
-            self.assertEqual(p.vendor, Brand.TELEPIZZA)
-            self.assertEqual(p.store_scope, StoreScope.UNKNOWN)
-
     def test_error_propagation(self) -> None:
         """NetworkError e ParseError propagam com vendor=TELEPIZZA."""
-        with patch.object(self.adapter, "fetch_raw", side_effect=NetworkError("Network down", vendor=Brand.TELEPIZZA)):
+        with patch.object(self.adapter, "fetch_slas_token", side_effect=NetworkError("Network down", vendor=Brand.TELEPIZZA)):
             with self.assertRaises(NetworkError) as ctx:
                 self.adapter.fetch_promotions()
             self.assertEqual(ctx.exception.vendor, Brand.TELEPIZZA)
+
+    def test_missing_seeded_id_logs_warning_and_preserves_batch(self) -> None:
+        """ID seeded omitido da resposta SCAPI emite warning sem quebrar as ofertas válidas."""
+        # Apenas 1 ID devolvido dos 2 pedidos
+        partial_data = {
+            "data": [
+                {
+                    "id": "2x1_MedFam",
+                    "name": "2x1 Médias e Familiares",
+                    "c_tpz_isDelivery": True,
+                    "c_tpz_isTakeAway": True,
+                }
+            ]
+        }
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            mock_resp = MagicMock()
+            mock_resp.read.return_value = json.dumps(partial_data).encode("utf-8")
+            mock_urlopen.return_value.__enter__.return_value = mock_resp
+
+            with self.assertLogs("pizza_radar.adapters.telepizza", level="WARNING") as log_ctx:
+                result = self.adapter.fetch_scapi_promotions(
+                    token="mock-token",
+                    promo_ids=["2x1_MedFam", "CAMPANHA_DESCONTINUADA"],
+                )
+
+        self.assertEqual(len(result["data"]), 1)
+        self.assertEqual(result["data"][0]["id"], "2x1_MedFam")
+        self.assertTrue(
+            any("CAMPANHA_DESCONTINUADA" in msg for msg in log_ctx.output),
+            f"Esperado aviso de ID seeded não devolvido nos logs: {log_ctx.output}",
+        )
+
+    def test_expired_campaign_deactivated_deterministic_warning(self) -> None:
+        """Campanha expirada regista warning e é excluída sem quebrar as campanhas ativas."""
+        mixed_data = {
+            "data": [
+                {
+                    "id": "PROMO_EXPIRADA",
+                    "name": "Promo do Passado 10€",
+                    "c_tpz_isDelivery": True,
+                    "endDate": "2025-01-01T00:00:00.000Z",
+                },
+                {
+                    "id": "PROMO_ATIVA",
+                    "name": "Promo Atual 12€",
+                    "c_tpz_isDelivery": True,
+                    "endDate": "2026-12-31T23:59:59.000Z",
+                },
+            ]
+        }
+        ref_time = datetime(2026, 9, 28, 15, 0, 0, tzinfo=timezone.utc)
+        with self.assertLogs("pizza_radar.adapters.telepizza", level="WARNING") as log_ctx:
+            parsed = self.adapter.parse_scapi(mixed_data, reference_time=ref_time)
+
+        self.assertEqual(len(parsed), 1)
+        self.assertEqual(parsed[0]["id"], "PROMO_ATIVA")
+        self.assertTrue(
+            any("PROMO_EXPIRADA" in msg and "expirou" in msg for msg in log_ctx.output),
+            f"Esperado aviso de expiração nos logs: {log_ctx.output}",
+        )
+
+    def test_all_campaigns_expired_returns_empty_without_parse_error(self) -> None:
+        """Se todas as campanhas estiverem expiradas, devolve lista vazia sem quebrar com ParseError."""
+        expired_data = {
+            "data": [
+                {
+                    "id": "EXP_1",
+                    "name": "Promo Expirada 1",
+                    "c_tpz_isDelivery": True,
+                    "endDate": "2025-01-01T00:00:00.000Z",
+                }
+            ]
+        }
+        ref_time = datetime(2026, 9, 28, 15, 0, 0, tzinfo=timezone.utc)
+        parsed = self.adapter.parse_scapi(expired_data, reference_time=ref_time)
+        self.assertEqual(parsed, [])
+
+    def test_decreased_campaign_count_logs_warning(self) -> None:
+        """Diminuição de contagem de campanhas válidas face à lista canónica regista warning."""
+        reduced_scapi = {
+            "data": [
+                {
+                    "id": "2x1_MedFam",
+                    "name": "2x1 Médias e Familiares",
+                    "c_tpz_isDelivery": True,
+                    "endDate": "2026-12-31T23:59:59.000Z",
+                }
+            ]
+        }
+        with patch.object(self.adapter, "fetch_slas_token", return_value="mock-token"), \
+             patch.object(self.adapter, "fetch_scapi_promotions", return_value=reduced_scapi):
+            with self.assertLogs("pizza_radar.adapters.telepizza", level="WARNING") as log_ctx:
+                promos = self.adapter.fetch_promotions()
+
+        self.assertEqual(len(promos), 1)
+        self.assertTrue(
+            any("Contagem de campanhas válidas da Telepizza diminuiu" in msg for msg in log_ctx.output),
+            f"Esperado aviso de diminuição de contagem nos logs: {log_ctx.output}",
+        )
 
 
 if __name__ == "__main__":
