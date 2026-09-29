@@ -6,7 +6,7 @@ Este documento reflete a situação factual, as decisões vigentes e as frentes 
 
 ## 1. Resumo Executivo
 
-- **Fase Atual:** Fase 1 — Fundação, Arquitetura e Contrato Canónico (MVP Lisboa).
+- **Fase Atual:** Fase 2 — Interface Web e Pipeline de Automação / Persistência (MVP Lisboa).
 - **Cobertura Alvo do MVP:** Concelho de Lisboa (Domino's Pizza, Pizza Hut, Telepizza, Papa John's).
 - **Progresso Global:**
   - Fundação documental e regras de equipa consolidadas (`main`).
@@ -15,9 +15,10 @@ Este documento reflete a situação factual, as decisões vigentes e as frentes 
   - Contrato canónico de dados (`UnifiedPromo`), interface agnóstica (`PromoAdapterInterface`), cálculos monetários em cêntimos inteiros e 31 testes unitários determinísticos integrados em `main` ([Issue #7](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/7)).
   - Arquitetura técnica global de execução, alojamento e persistência free-tier (Turso libSQL, Cloudflare Pages, GitHub Actions) formalizada, aprovada e integrada em `main` via squash merge da [PR #15](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/15) ([Issue #14](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/14)).
   - Organização da documentação em base de conhecimento navegável concluída e integrada em `main` via squash merge da [PR #17](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/17) ([Issue #16](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/16)).
-  - **PapaJohnsAdapter** implementado na branch `feat/8-papa-johns-adapter` e integrado em `main` via squash merge da [PR #19](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/19) ([Issue #8](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/8)): parsing de preços via Decimal nativo, desduplicação e agregação entre lojas, exclusão de itens ocultos, separação de camadas fetch/parse/adapt, 63 testes unitários determinísticos, zero IA em runtime.
-  - **Motor Determinístico de Rankings e Identidade** implementado na branch `feat/10-normalization-discounts-ranking` e integrado em `main` via squash merge da [PR #20](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/20) ([Issue #10](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/10)): separação formal de `PersistentIdentity` (imutável para histórico), `StoreVariant` e `VisualPromoGroup` (zero cartões duplicados), rankings explicáveis (`BEST_UNIT_PRICE`, `HIGHEST_DISCOUNT`, `LOWEST_ABSOLUTE_PRICE`, `RECENTLY_OBSERVED` em UTC) e 82 testes determinísticos.
-  - **Adaptadores Telepizza, Domino's e Pizza Hut** implementados na branch `feat/9-telepizza-dominos-pizzahut-adapters` e submetidos na [PR #21](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/21) ([Issue #9](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/9)): `StoreScope.UNKNOWN` para incerteza geográfica, `TelepizzaHTMLParser` imune a permutação de atributos, deteção estrita de canais, loja 140 como âncora e 89 testes unitários determinísticos.
+  - **PapaJohnsAdapter** integrado em `main` via squash merge da [PR #19](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/19) ([Issue #8](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/8)).
+  - **Motor Determinístico de Rankings e Identidade** integrado em `main` via squash merge da [PR #20](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/20) ([Issue #10](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/10)).
+  - **Adaptadores Telepizza, Domino's e Pizza Hut** integrados em `main` via squash merge da [PR #21](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/21) ([Issue #9](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/9)).
+  - **Interface Web Responsiva** implementada na branch `feat/11-responsive-web-interface` ([Issue #11](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/11)): design system com identidade autêntica de pizzarias de Lisboa (sem clichés de IA), mobile-first, 4 rankings explicáveis (`LOWEST_ABSOLUTE_PRICE`, `HIGHEST_DISCOUNT`, `BEST_UNIT_PRICE`, `RECENTLY_OBSERVED`), filtragem dinâmica por marca, canal, dia da semana e comparabilidade, transparência de lojas e incerteza, botões CTA para o site oficial, screenshots desktop/mobile capturados e 112 testes unitários determinísticos.
 
 ---
 
@@ -36,13 +37,13 @@ A tabela reflete o estado no quadro [GitHub Project `Pizza-radar-project`](https
 
 | Referência | Título Real do Ticket | Tipo | Estado no Project | Responsável / Agente | Notas |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **[PR #21](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/21)** / **[#9](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/9)** | [FEAT] Implementar adaptadores para Telepizza, Domino's e Pizza Hut (Lisboa) | FEAT | `Review` | `implementer` / `reviewer` | Branch `feat/9-telepizza-dominos-pizzahut-adapters` sincronizada com a `main`. 3 adaptadores implementados seguindo o padrão canónico com 89 testes unitários. |
+| **[#11](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/11)** | [FEAT] Interface web responsiva para visualização e filtragem de promoções em Lisboa | FEAT | `In Progress` | `ui-designer` | Branch `feat/11-responsive-web-interface`. Interface web responsiva, 4 rankings, filtros dinâmicos, transparência e screenshots. |
+| **[#12](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/12)** | [CHORE] Pipeline de automação para recolha periódica e persistência estática | CHORE | `In Progress` | `implementer` | Branch `chore/12-automation-pipeline-persistence`. Repositório relacional, orquestrador resiliente, exportador e workflow GitHub Actions. |
+| **[PR #21](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/21)** / **[#9](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/9)** | [FEAT] Implementar adaptadores para Telepizza, Domino's e Pizza Hut (Lisboa) | FEAT | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
 | **[PR #20](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/20)** / **[#10](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/10)** | [FEAT] Motor determinístico de normalização, cálculo de descontos e ranking de ofertas | FEAT | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
 | **[PR #19](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/19)** / **[#8](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/8)** | [FEAT] Implementar adaptador para Papa John's Portugal (Lisboa) | FEAT | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
 | **[PR #17](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/17)** / **[#16](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/16)** | [CHORE] Organizar documentação como knowledge base navegável | CHORE | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
 | **[PR #15](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/15)** / **[#14](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/14)** | [ARCH] Arquitetura de execução, alojamento e persistência free-tier | ARCH | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
-| **[#11](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/11)** | [FEAT] Interface web responsiva para visualização e filtragem de promoções em Lisboa | FEAT | `Backlog` | Por alocar | Frontend para apresentação e pesquisa de ofertas. |
-| **[#12](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/12)** | [CHORE] Pipeline de automação para recolha periódica e persistência estática | CHORE | `Backlog` | Por alocar | Workflows agendados de CI/CD para ingestão e deploy no Cloudflare Pages. |
 | **[#18](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/18)** | [SPIKE] Investigar códigos promocionais em canais sociais e parceiros oficiais | SPIKE | `Backlog` | Por alocar | Estudo de viabilidade sem bloqueio do roadmap do MVP. |
 
 ---
@@ -50,12 +51,14 @@ A tabela reflete o estado no quadro [GitHub Project `Pizza-radar-project`](https
 ## 4. Bloqueios e Dependências
 
 - **Bloqueios Atuais:** Não existem bloqueios ativos no projeto.
-- **Dependências Resolvidas:** Contratos canónicos (ADR-001), arquitetura de persistência (ADR-002), primeiro adaptador (#8) e motor determinístico com rankings e identidade (#10) integrados em `main`.
-- **Estado de Execução:** Branch da PR #21 sincronizada com `main` e submetida para revisão final.
+- **Dependências Resolvidas:** Os 4 adaptadores estão concluídos, integrados e testados em `main`. As duas frentes da Fase 2 (Web UI e Pipeline/Persistência) avançam em worktrees isoladas.
 
 ---
 
-## 5. Próximo Marco (Next Milestone)
+## 5. Próximos Passos
 
-- **Marco Imediato:** Revisão e autorização de squash merge da [PR #21](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/21) ([Issue #9](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/9)).
+1. Submissão da PR do Issue #11 (`feat/11-responsive-web-interface`) para revisão independente.
+2. Submissão da PR do Issue #12 (`chore/12-automation-pipeline-persistence`) para revisão independente.
+3. Auditoria e revisão independente de ambas as frentes antes da apresentação ao utilizador (sem efetuar merge).
+
 - **Marco Subsequente:** Com todos os adaptadores e o motor integrados em `main`, avançar para a pipeline agendada de automação e persistência estática ([Issue #12](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/12)) e interface web ([Issue #11](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/11)).
