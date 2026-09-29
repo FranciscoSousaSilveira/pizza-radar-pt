@@ -18,7 +18,8 @@ Este documento reflete a situação factual, as decisões vigentes e as frentes 
   - **PapaJohnsAdapter** integrado em `main` via squash merge da [PR #19](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/19) ([Issue #8](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/8)).
   - **Motor Determinístico de Rankings e Identidade** integrado em `main` via squash merge da [PR #20](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/20) ([Issue #10](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/10)).
   - **Adaptadores Telepizza, Domino's e Pizza Hut** integrados em `main` via squash merge da [PR #21](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/21) ([Issue #9](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/9)).
-  - **Pipeline de Automação e Persistência** implementada na branch `chore/12-automation-pipeline-persistence` ([Issue #12](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/12)): abstração `PromotionRepository` (compatível com SQLite/libSQL), isolamento estrito de falhas por fornecedor, atualização condicional de `consecutive_misses`, desativação determinística por ausências e datas, exportação de snapshot `promotions.json`, workflow agendado de GitHub Actions (10:30 e 17:30 UTC) e 119 testes unitários determinísticos.
+  - **Interface Web Responsiva** integrada em `main` via squash merge da [PR #22](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/22) ([Issue #11](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/11)): design system com identidade autêntica de pizzarias de Lisboa (sem clichés de IA), mobile-first, 4 rankings explicáveis (`LOWEST_ABSOLUTE_PRICE`, `HIGHEST_DISCOUNT`, `BEST_UNIT_PRICE`, `RECENTLY_OBSERVED`), filtragem dinâmica por marca, canal, dia da semana e comparabilidade, transparência de lojas e incerteza, botões CTA para o site oficial, aviso de modo demo e 117 testes unitários determinísticos.
+  - **Pipeline de Automação e Persistência** em validação na branch `chore/12-automation-pipeline-persistence` e [PR #23](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/23) ([Issue #12](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/12)): repositório relacional com suporte a Turso libSQL e SQLite offline, orquestrador com isolamento de falhas por operador, desativação determinística por ausências comprovadas, exportador de snapshot canónico e workflow agendado de GitHub Actions (10:30 e 17:30 UTC).
 
 ---
 
@@ -37,8 +38,8 @@ A tabela reflete o estado no quadro [GitHub Project `Pizza-radar-project`](https
 
 | Referência | Título Real do Ticket | Tipo | Estado no Project | Responsável / Agente | Notas |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **[#12](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/12)** | [CHORE] Pipeline de automação para recolha periódica e persistência estática | CHORE | `In Progress` | `implementer` | Branch `chore/12-automation-pipeline-persistence`. Repositório relacional, orquestrador resiliente, exportador e workflow GitHub Actions. |
-| **[#11](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/11)** | [FEAT] Interface web responsiva para visualização e filtragem de promoções em Lisboa | FEAT | `In Progress` | `ui-designer` | Branch `feat/11-responsive-web-interface`. Interface web responsiva, rankings e acessibilidade. |
+| **[PR #23](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/23)** / **[#12](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/12)** | [CHORE] Pipeline de automação para recolha periódica e persistência estática | CHORE | `In Progress` | `implementer` | Branch `chore/12-automation-pipeline-persistence`. Repositório Turso/libSQL transacional, orquestrador resiliente e workflow GitHub Actions. |
+| **[PR #22](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/22)** / **[#11](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/11)** | [FEAT] Interface web responsiva para visualização e filtragem de promoções em Lisboa | FEAT | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
 | **[PR #21](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/21)** / **[#9](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/9)** | [FEAT] Implementar adaptadores para Telepizza, Domino's e Pizza Hut (Lisboa) | FEAT | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
 | **[PR #20](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/20)** / **[#10](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/10)** | [FEAT] Motor determinístico de normalização, cálculo de descontos e ranking de ofertas | FEAT | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
 | **[PR #19](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/pull/19)** / **[#8](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/8)** | [FEAT] Implementar adaptador para Papa John's Portugal (Lisboa) | FEAT | `Done` *(Fechado)* | `orchestrator` / `reviewer` | Concluído e integrado em `main` via squash merge. |
@@ -51,14 +52,14 @@ A tabela reflete o estado no quadro [GitHub Project `Pizza-radar-project`](https
 ## 4. Bloqueios e Dependências
 
 - **Bloqueios Atuais:** Não existem bloqueios ativos no projeto.
-- **Dependências Resolvidas:** Os 4 adaptadores estão concluídos, integrados e testados em `main`. As duas frentes da Fase 2 (Web UI e Pipeline/Persistência) avançam em worktrees isoladas.
+- **Dependências Resolvidas:** Os 4 adaptadores, o motor de ranking e a interface web estão concluídos e integrados em `main`.
 
 ---
 
 ## 5. Próximos Passos
 
-1. Submissão da PR do Issue #12 (`chore/12-automation-pipeline-persistence`) para revisão independente.
-2. Conclusão da implementação da interface web responsiva do Issue #11 (`feat/11-responsive-web-interface`).
-3. Auditoria e revisão independente de ambas as frentes antes da apresentação ao utilizador (sem efetuar merge).
+1. Concluir as correções obrigatórias da PR #23 (`chore/12-automation-pipeline-persistence`): parsing íntegro de migrações e transações all-or-nothing no Turso.
+2. Auditoria e revisão independente da PR #23 antes da autorização de merge pelo utilizador.
+3. Não efetuar deploy.
 
-- **Marco Subsequente:** Com todos os adaptadores e o motor integrados em `main`, avançar para a pipeline agendada de automação e persistência estática ([Issue #12](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/12)) e interface web ([Issue #11](https://github.com/FranciscoSousaSilveira/pizza-radar-pt/issues/11)).
+- **Marco Subsequente:** Com o frontend e a persistência/pipeline integrados em `main`, o MVP estará pronto para validação de ponta a ponta.

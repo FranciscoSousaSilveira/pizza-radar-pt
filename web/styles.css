@@ -1,0 +1,786 @@
+/* ==========================================================================
+   Pizza Radar Lisboa — Design System & Folha de Estilos
+   Direção: Mobile-first, determinístico, focado em legibilidade e acessibilidade.
+   Sem clichés de IA (sem fundos creme genéricos, sem sombras flutuantes desnecessárias).
+   ========================================================================== */
+
+:root {
+  /* Cores Base */
+  --color-canvas: #F4F6F9;
+  --color-surface: #FFFFFF;
+  --color-border: #DDE2E8;
+  --color-border-subtle: #E9ECEF;
+  --color-border-focus: #1D4ED8;
+
+  /* Tipografia & Texto */
+  --color-text-primary: #111827;
+  --color-text-body: #374151;
+  --color-text-muted: #64748B;
+  --color-text-inverted: #FFFFFF;
+
+  /* Acentos de Ação e Destaque */
+  --color-accent-red: #DC2626;
+  --color-accent-red-hover: #B91C1C;
+  --color-accent-amber: #D97706;
+  --color-accent-amber-bg: #FEF3C7;
+  --color-accent-green: #15803D;
+  --color-accent-green-bg: #DCFCE7;
+  --color-accent-blue-bg: #EFF6FF;
+  --color-accent-blue-border: #BFDBFE;
+
+  /* Marcas Oficiais */
+  --brand-dominos: #006491;
+  --brand-papajohns: #007A3D;
+  --brand-pizzahut: #C8102E;
+  --brand-telepizza: #D62828;
+
+  /* Espaçamentos */
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Tipografia */
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 9999px;
+
+  /* Transições Suaves */
+  --transition-fast: 0.15s ease;
+}
+
+/* Reset Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-canvas);
+  color: var(--color-text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Acessibilidade: Skip Link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 16px;
+  background: var(--color-accent-red);
+  color: var(--color-text-inverted);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  z-index: 1000;
+  text-decoration: none;
+  transition: top var(--transition-fast);
+}
+.skip-link:focus {
+  top: 16px;
+}
+
+/* Banner de Modo de Dados */
+.data-mode-banner {
+  background-color: #FEF3C7;
+  color: #92400E;
+  border-bottom: 1px solid #FCD34D;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.banner-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Focus Visible para Acessibilidade */
+:focus-visible {
+  outline: 3px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Cabeçalho Principal
+   -------------------------------------------------------------------------- */
+.site-header {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.header-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+@media (min-width: 768px) {
+  .header-container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.brand-block {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.brand-logo-badge {
+  background-color: var(--color-accent-red);
+  color: var(--color-text-inverted);
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.site-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.site-tagline {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.header-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background-color: var(--color-canvas);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-body);
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #22C55E;
+}
+
+/* --------------------------------------------------------------------------
+   Banner de Métricas Rápidas
+   -------------------------------------------------------------------------- */
+.metrics-banner {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-sm) var(--space-lg);
+}
+
+.metrics-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  justify-content: space-between;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.metric-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  font-feature-settings: "tnum";
+}
+
+.metric-divider {
+  display: none;
+  width: 1px;
+  height: 28px;
+  background-color: var(--color-border);
+}
+
+@media (min-width: 768px) {
+  .metric-divider {
+    display: block;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Layout Principal
+   -------------------------------------------------------------------------- */
+.main-layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+/* --------------------------------------------------------------------------
+   Secção de Rankings Explicáveis
+   -------------------------------------------------------------------------- */
+.ranking-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+@media (min-width: 768px) {
+  .ranking-tabs {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.ranking-tab {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all var(--transition-fast);
+  min-height: 72px;
+}
+
+.ranking-tab:hover {
+  border-color: var(--color-text-muted);
+}
+
+.ranking-tab.active {
+  background-color: var(--color-text-primary);
+  color: var(--color-text-inverted);
+  border-color: var(--color-text-primary);
+}
+
+.tab-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.tab-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.tab-desc {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.ranking-explanation {
+  background-color: var(--color-accent-blue-bg);
+  border: 1px solid var(--color-accent-blue-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  color: #1E3A8A;
+}
+
+.explanation-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Barra de Filtros
+   -------------------------------------------------------------------------- */
+.filters-section {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.filter-group-label, .field-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.03em;
+}
+
+.chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.chip {
+  background-color: var(--color-canvas);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-body);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 38px;
+}
+
+.chip:hover {
+  background-color: #E5E7EB;
+}
+
+.chip.active {
+  background-color: var(--color-text-primary);
+  color: var(--color-text-inverted);
+  border-color: var(--color-text-primary);
+}
+
+.filter-row-secondary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+@media (min-width: 768px) {
+  .filter-row-secondary {
+    grid-template-columns: 200px 1fr auto;
+    align-items: flex-end;
+  }
+}
+
+.select-field, .search-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.custom-select, .custom-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background-color: var(--color-canvas);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  min-height: 40px;
+}
+
+.custom-input:focus, .custom-select:focus {
+  background-color: var(--color-surface);
+}
+
+.toggle-field {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+}
+
+.toggle-container {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-body);
+}
+
+.toggle-container input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-canvas);
+  position: relative;
+  transition: all var(--transition-fast);
+}
+
+.toggle-container input:checked + .toggle-box {
+  background-color: var(--color-accent-red);
+  border-color: var(--color-accent-red);
+}
+
+.toggle-container input:checked + .toggle-box::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 4px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.results-statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 0 var(--space-2xs);
+}
+
+.btn-reset-filters {
+  background: none;
+  border: none;
+  color: var(--color-accent-red);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   Grelha de Cartões Promocionais
+   -------------------------------------------------------------------------- */
+.promos-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .promos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .promos-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Cartão de Promoção
+   -------------------------------------------------------------------------- */
+.promo-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.promo-card:hover {
+  border-color: #94A3B8;
+  transform: translateY(-2px);
+}
+
+/* Topo do Cartão: Marca e Modalidade */
+.card-header {
+  padding: var(--space-md) var(--space-md) 0 var(--space-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.vendor-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-inverted);
+}
+
+.vendor-DOMINOS { background-color: var(--brand-dominos); }
+.vendor-PAPA_JOHNS { background-color: var(--brand-papajohns); }
+.vendor-PIZZA_HUT { background-color: var(--brand-pizzahut); }
+.vendor-TELEPIZZA { background-color: var(--brand-telepizza); }
+
+.dispatch-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: var(--color-canvas);
+  color: var(--color-text-body);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+/* Corpo do Cartão */
+.card-body {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  flex-grow: 1;
+}
+
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+.card-description {
+  font-size: 0.85rem;
+  color: var(--color-text-body);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Bloco de Preços */
+.pricing-block {
+  background-color: var(--color-canvas);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.price-main-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+.price-value {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  font-feature-settings: "tnum";
+}
+
+.price-original {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+  font-feature-settings: "tnum";
+}
+
+.discount-tag {
+  background-color: var(--color-accent-amber-bg);
+  color: #B45309;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  margin-left: auto;
+}
+
+/* Badges de Composição e Preço por Pizza */
+.unit-price-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--color-accent-green-bg);
+  color: var(--color-accent-green);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+/* Metadados Geográficos e Validade */
+.card-meta {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.meta-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2xs);
+}
+
+.meta-icon {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+.meta-unknown {
+  color: #B45309;
+  font-weight: 600;
+}
+
+/* Rodapé do Cartão com CTA */
+.card-footer {
+  padding: 0 var(--space-md) var(--space-md) var(--space-md);
+}
+
+.btn-official {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background-color: var(--color-text-primary);
+  color: var(--color-text-inverted);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 10px var(--space-md);
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-fast);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-official:hover {
+  background-color: var(--color-accent-red);
+}
+
+/* --------------------------------------------------------------------------
+   Estado Vazio
+   -------------------------------------------------------------------------- */
+.empty-state {
+  background-color: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl) var(--space-lg);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+}
+
+.empty-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.empty-message {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  max-width: 480px;
+}
+
+.btn-clear-empty {
+  margin-top: var(--space-sm);
+  background-color: var(--color-accent-red);
+  color: var(--color-text-inverted);
+  border: none;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+/* --------------------------------------------------------------------------
+   Rodapé Institucional
+   -------------------------------------------------------------------------- */
+.site-footer {
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-2xl) var(--space-lg);
+  margin-top: var(--space-2xl);
+}
+
+.footer-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-xl);
+}
+
+@media (min-width: 768px) {
+  .footer-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.footer-heading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.footer-text {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+
+.footer-legal {
+  display: block;
+  margin-top: var(--space-xs);
+  font-size: 0.75rem;
+  color: #94A3B8;
+}
