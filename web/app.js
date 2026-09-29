@@ -178,10 +178,16 @@
       const statusClass = `status-${(info.status || 'pending').toLowerCase()}`;
       const icon = icons[info.status] || 'ℹ️';
       const label = VENDOR_LABELS[v] || v;
+      let coverageBadge = '';
+      if (info.coverage_level === 'FEATURED') {
+        coverageBadge = ' <span class="badge-coverage badge-coverage-featured" style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-size:0.75rem;font-weight:600;" title="Campanhas principais publicadas no site oficial">Destaques</span>';
+      } else if (info.coverage_level === 'LIMITED') {
+        coverageBadge = ' <span class="badge-coverage badge-coverage-limited" style="background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-size:0.75rem;font-weight:600;" title="Amostra limitada de ofertas">Limitada</span>';
+      }
       return `
         <div class="source-item ${statusClass}" title="${escapeHTML(info.message || '')}">
           <span class="source-status-icon" aria-hidden="true">${icon}</span>
-          <span class="source-name">${escapeHTML(label)}</span>
+          <span class="source-name">${escapeHTML(label)}${coverageBadge}</span>
           <span class="source-desc">${escapeHTML(info.message || '')}</span>
         </div>
       `;

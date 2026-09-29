@@ -29,6 +29,18 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-29] — Domino's: Fallback Híbrido para Homepage Pública Oficial e Nível de Cobertura Transparente
+
+- **Contexto / Ticket:** Issue #28 ([SPIKE] Investigar alternativas públicas oficiais para recolha da Domino's Portugal)
+- **Desafio / Descoberta:** O endpoint `POST /ajax/order.php` da Domino's é bloqueado com HTTP 403 Forbidden pelo Cloudflare WAF perante pedidos provenientes de runners de CI (GitHub Actions). Contudo, a homepage pública oficial (`https://www.dominospizza.pt/`) está completamente aberta (HTTP 200) e contém a totalidade das campanhas de marketing ativas em elementos HTML com atributos estruturados (`combo-id`, `delivery-type`, `offer-title`, `offer-txt`, `data-src`, `infoTooltip`).
+- **Impacto:** O adaptador consegue recolher deterministicamente as 5 campanhas oficiais de topo (Leiria 1=2, Terças de Perder a Cabeça 50% desc, Croissantíssima 9,99€, Média desde 10,95€ e 30% desc frangos), produzindo 8 ofertas unificadas válidas distribuídas pelos canais comprovados (Entrega e Take Away) sem inventar dados nem recorrer a técnicas proibidas de contorno de WAF.
+- **Decisão / Solução:** Implementado um fallback híbrido determinístico em `DominosAdapter`:
+  1. Tenta prioritariamente `POST /ajax/order.php` para recolha do catálogo integral da loja-âncora (`coverage_level = "FULL"`).
+  2. Perante HTTP 403 exclusivamente, ativa o fallback para `https://www.dominospizza.pt/` e extrai as campanhas principais (`coverage_level = "FEATURED"`, nota: `"Campanhas principais publicadas no site oficial"`).
+  3. Erros de parsing no endpoint primário NÃO ativam fallback, preservando a visibilidade de eventuais regressões.
+  4. Adicionada transparência de cobertura na UI (`web/app.js`) com crachá distintivo "Destaques", cumprindo o compromisso de nunca afirmar "todas as promoções" quando apenas uma seleção representativa está acessível.
+- **Ação Futura:** Validar a execução no ambiente real do GitHub Actions após merge da PR #30.
+
 ### [2026-09-29] — Decisão de produto: obrigatoriedade estrita de 4 de 4 marcas e bloqueios de infraestrutura de CI
 
 - **Contexto / Ticket:** Issues #24, #25, #28 e #29 (Bloqueios de Release do MVP Lisboa)
