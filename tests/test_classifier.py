@@ -43,6 +43,7 @@ class TestOfferClassifier(unittest.TestCase):
             ("Asas de Frango Barbecue", "6 unidades com molho barbecue"),
             ("Batatas Rústicas", "Porção individual com molho de alho"),
             ("Cookie Chocolate", "Cookie artesanal com pepitas"),
+            ("Bucket Frango", "Qualquer um dos nossos Buckets de Frango"),
         ]
         for title, desc in cases:
             with self.subTest(title=title):
