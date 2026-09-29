@@ -41,13 +41,6 @@ jobs:
         run: |
           python -m unittest discover tests -v
 
-      - name: Probe Telepizza Residential via Browserless (Temporary Diagnostic Step)
-        if: github.ref == 'refs/heads/feat/29-telepizza-scapi-adapter'
-        env:
-          BROWSERLESS_API_KEY: ${{ secrets.BROWSERLESS_API_KEY }}
-        run: |
-          python docs/spikes/telepizza_residential_probe.py
-
       - name: Run deterministic sync pipeline against Turso
         env:
           # Segredos a configurar nas GitHub Actions Secrets do repositório:
