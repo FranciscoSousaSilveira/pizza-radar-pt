@@ -15,13 +15,18 @@ Regras estritas:
 from __future__ import annotations
 
 import html
+import http.client
+import logging
 import re
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from html.parser import HTMLParser
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
 from pizza_radar.core.models import (
@@ -39,9 +44,19 @@ _HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/128.0.0.0 Safari/537.36"
+        "Chrome/133.0.0.0 Safari/537.36"
     ),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "pt-PT,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Sec-Ch-Ua": '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+    "Sec-Ch-Ua-Mobile": "?0",
+    "Sec-Ch-Ua-Platform": '"Windows"',
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+    "Upgrade-Insecure-Requests": "1",
+    "Connection": "close",
 }
 
 _PRICE_REGEX = re.compile(r"(\d+(?:[.,]\d{1,2})?)\s*(?:€|&euro;|euros)", re.IGNORECASE)
@@ -97,33 +112,50 @@ class TelepizzaHTMLParser(HTMLParser):
 
 
 class TelepizzaAdapter(PromoAdapterInterface):
-    """Adaptador para a Telepizza Portugal."""
+    """Adaptador para a Telepizza Portugal com suporte a retries defensivos."""
 
-    DEFAULT_TIMEOUT: float = 15.0
+    DEFAULT_TIMEOUT: float = 20.0
 
     @property
     def vendor(self) -> Brand:
         return Brand.TELEPIZZA
 
-    def fetch_raw(self, timeout: float = DEFAULT_TIMEOUT) -> str:
-        """Obtém o conteúdo HTML da página pública de promoções da Telepizza."""
+    def fetch_raw(self, timeout: float = DEFAULT_TIMEOUT, max_retries: int = 3) -> str:
+        """Obtém o conteúdo HTML da página pública de promoções da Telepizza com retries determinísticos."""
         req = urllib.request.Request(_URL, headers=_HEADERS, method="GET")
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                body = resp.read()
-        except urllib.error.HTTPError as exc:
-            raise NetworkError(f"HTTP {exc.code} ao aceder a {_URL}: {exc.reason}", vendor=self.vendor) from exc
-        except urllib.error.URLError as exc:
-            raise NetworkError(f"Erro de rede ao aceder a {_URL}: {exc.reason}", vendor=self.vendor) from exc
-        except TimeoutError as exc:
-            raise NetworkError(f"Timeout ({timeout}s) ao aceder a {_URL}", vendor=self.vendor) from exc
-        except OSError as exc:
-            raise NetworkError(f"Erro de I/O ao aceder a {_URL}: {exc}", vendor=self.vendor) from exc
+        last_exc: Exception | None = None
 
-        return body.decode("utf-8", errors="replace")
+        for attempt in range(1, max_retries + 1):
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    body = resp.read()
+                return body.decode("utf-8", errors="replace")
+            except urllib.error.HTTPError as exc:
+                raise NetworkError(f"HTTP {exc.code} ao aceder a {_URL}: {exc.reason}", vendor=self.vendor) from exc
+            except (
+                http.client.RemoteDisconnected,
+                ConnectionResetError,
+                urllib.error.URLError,
+                TimeoutError,
+                OSError,
+            ) as exc:
+                last_exc = exc
+                logger.warning(
+                    "Tentativa %d/%d de recolha da Telepizza falhou: %s",
+                    attempt,
+                    max_retries,
+                    exc,
+                )
+                if attempt < max_retries:
+                    time.sleep(attempt * 1.5)
+
+        raise NetworkError(
+            f"Falha após {max_retries} tentativas ao aceder a {_URL}: {last_exc}",
+            vendor=self.vendor,
+        ) from last_exc
 
     def parse(self, raw_html: str) -> list[dict[str, Any]]:
-        """Extrai os cartões promocionais do HTML usando TelepizzaHTMLParser."""
+        """Extrai os cartões promocionais do HTML usando TelepizzaHTMLParser com resiliência por item."""
         if not isinstance(raw_html, str):
             raise ParseError("Payload bruto de Telepizza não é texto HTML", vendor=self.vendor)
 
@@ -138,22 +170,19 @@ class TelepizzaAdapter(PromoAdapterInterface):
 
         parsed: list[dict[str, Any]] = []
         for card in parser.cards:
-            card_id = card["id"]
-            raw_name = card["name"]
-            raw_detail = card["detail"]
-            img_url = card["img_url"]
-            tab_content = card["tab_content"]
+            card_id = card.get("id")
+            raw_name = card.get("name") or ""
+            raw_detail = card.get("detail") or ""
+            img_url = card.get("img_url")
+            tab_content = card.get("tab_content") or ""
 
             if not card_id or not raw_name.strip():
-                raise ParseError(
-                    f"Cartão da Telepizza com campos obrigatórios ausentes: id={card_id!r}, name={raw_name!r}",
-                    vendor=self.vendor,
-                )
+                logger.warning("Cartão da Telepizza ignorado: id ou nome ausentes (id=%r)", card_id)
+                continue
 
             clean_name = html.unescape(raw_name).strip()
             clean_detail = html.unescape(raw_detail).strip()
 
-            # Extração de canais estritamente baseada em evidência na fonte
             tab_lower = tab_content.lower()
             text_lower = f"{clean_name} {clean_detail}".lower()
             channels: list[str] = []
@@ -167,15 +196,13 @@ class TelepizzaAdapter(PromoAdapterInterface):
                 channels.append("takeaway")
 
             if not channels:
-                raise ParseError(
-                    f"Oferta {card_id} da Telepizza não possui canal de distribuição comprovado (delivery/takeaway)",
-                    vendor=self.vendor,
-                )
+                logger.warning("Oferta %s da Telepizza ignorada: sem canal comprovado", card_id)
+                continue
 
             price_cents = _extract_cents_from_text(clean_name) or _extract_cents_from_text(clean_detail)
 
             parsed.append({
-                "id": card_id,
+                "id": str(card_id),
                 "title": clean_name,
                 "description": clean_detail,
                 "price_cents": price_cents,
@@ -185,6 +212,10 @@ class TelepizzaAdapter(PromoAdapterInterface):
                 "store_ids": [],
                 "store_names": [],
             })
+
+        if parser.cards and not parsed:
+            raise ParseError("Nenhum cartão válido da Telepizza pôde ser extraído do HTML", vendor=self.vendor)
+
         return parsed
 
     def adapt(
