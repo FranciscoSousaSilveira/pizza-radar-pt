@@ -50,6 +50,8 @@ _NON_PIZZA_EXCLUSIVE_KEYWORDS: tuple[str, ...] = (
     "rolinhos",
     "asas de frango",
     "chicken wings",
+    "frango",
+    "frangos",
     "strips",
     "nuggets",
     "batatas",

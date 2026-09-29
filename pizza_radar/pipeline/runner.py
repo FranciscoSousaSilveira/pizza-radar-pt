@@ -35,6 +35,8 @@ class VendorSyncStatus:
     offers_found: int = 0
     error_message: str | None = None
     stats: SyncStats | None = None
+    coverage_level: str = "FULL"
+    coverage_note: str | None = None
 
 
 @dataclass(slots=True)
@@ -130,11 +132,15 @@ def run_pipeline(
                 executed_at=now,
             )
 
+            coverage_level = getattr(adapter, "coverage_level", "FULL")
+            coverage_note = getattr(adapter, "coverage_note", None)
             vendor_results[vendor_name] = VendorSyncStatus(
                 vendor=adapter.vendor,
                 status="SUCCESS",
                 offers_found=offers_count,
                 stats=stats,
+                coverage_level=coverage_level,
+                coverage_note=coverage_note,
             )
             any_success = True
             logger.info(
@@ -193,12 +199,21 @@ def run_pipeline(
     snapshot_path_str: str | None = None
     if snapshot_output_path is not None:
         try:
+            vendor_coverage = {
+                v.vendor.value: {
+                    "coverage_level": v.coverage_level,
+                    "coverage_note": v.coverage_note,
+                }
+                for v in vendor_results.values()
+                if v.status == "SUCCESS"
+            }
             export_snapshot(
                 repo=repo,
                 output_path=snapshot_output_path,
                 location_scope=location_scope,
                 generated_at=now,
                 data_mode=data_mode,
+                vendor_coverage=vendor_coverage,
             )
             snapshot_exported = True
             snapshot_path_str = str(snapshot_output_path)

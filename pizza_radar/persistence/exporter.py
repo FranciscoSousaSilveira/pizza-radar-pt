@@ -73,6 +73,7 @@ def generate_snapshot_dict(
     location_scope: str = "Lisboa",
     generated_at: datetime | None = None,
     data_mode: str = "live",
+    vendor_coverage: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Gera a estrutura de dados do snapshot a partir da base de dados com transparência de estado e isolamento pizza-only."""
     now_dt = generated_at or datetime.now(timezone.utc)
@@ -117,6 +118,10 @@ def generate_snapshot_dict(
         brand_active = [p for p in active_promos if p.vendor == brand]
         count = len(brand_active)
 
+        cov_info = (vendor_coverage or {}).get(brand.value, {})
+        cov_level = cov_info.get("coverage_level", "FULL")
+        cov_note = cov_info.get("coverage_note")
+
         if runs:
             latest_run = runs[0]
             run_status = latest_run.get("status")
@@ -124,7 +129,10 @@ def generate_snapshot_dict(
 
             if run_status == "SUCCESS":
                 status = "SUCCESS"
-                message = f"Atualizado ({count} ofertas ativas)"
+                if cov_note:
+                    message = cov_note
+                else:
+                    message = f"Atualizado ({count} ofertas ativas)"
                 last_success = last_attempt
             else:
                 if count > 0:
@@ -150,6 +158,8 @@ def generate_snapshot_dict(
         vendor_status[brand.value] = {
             "vendor": brand.value,
             "status": status,
+            "coverage_level": cov_level,
+            "coverage_note": cov_note,
             "message": message,
             "active_offers_count": count,
             "last_success_at": last_success,
@@ -178,6 +188,7 @@ def export_snapshot(
     location_scope: str = "Lisboa",
     generated_at: datetime | None = None,
     data_mode: str = "live",
+    vendor_coverage: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Exporta o snapshot determinístico para ficheiro JSON."""
     snapshot = generate_snapshot_dict(
@@ -185,6 +196,7 @@ def export_snapshot(
         location_scope=location_scope,
         generated_at=generated_at,
         data_mode=data_mode,
+        vendor_coverage=vendor_coverage,
     )
     dest = Path(output_path)
     dest.parent.mkdir(parents=True, exist_ok=True)
