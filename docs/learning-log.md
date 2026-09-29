@@ -29,6 +29,19 @@ Quando encontrares um desafio técnico, uma particularidade de um fornecedor ou 
 
 ## Registos
 
+### [2026-09-29] — Domino's: Resolução de Egress via Browserless Content API (Modo Datacenter Free-Tier)
+
+- **Contexto / Ticket:** Issue #28 ([SPIKE] Domino's Portugal) e PR #30
+- **Desafio / Descoberta:** Runners de CI em data centers (Azure ASN no GitHub Actions e Google ASN no Apps Script) sofrem bloqueio HTTP 403 (Cloudflare Bot Fight Mode) tanto no endpoint AJAX como no HTML direto da homepage. Contudo, testes empíricos com a Content API europeia da Browserless (`POST https://production-lon.browserless.io/content`) em modo datacenter (sem proxy residencial, sem bypass de CAPTCHA) obtiveram HTTP 200 com sucesso em 1,54 segundos, extraindo a totalidade dos 5 combos oficiais.
+- **Impacto:** O consumo medido é de apenas 1 unidade por execução. Com 1 execução/dia (30 unidades/mês), o consumo representa ~3% da quota mensal gratuita da Browserless (1.000 unidades/mês), mantendo o custo global do projeto rigorosamente em 0,00€/mês.
+- **Decisão / Solução:** Atualizado o `DominosAdapter` na PR #30 para executar a Content API da Browserless no fallback de HTTP 403:
+  1. Envio da chave de API estritamente no cabeçalho `Authorization: Bearer <token>` (nunca na query string nem exposta em logs/erros).
+  2. Rejeição ativa de imagens, fontes, media e folhas de estilo para otimização de tempo e largura de banda.
+  3. Validação determinística de ausência de desafio Cloudflare e presença de atributos `combo-id`.
+  4. Ausência de segredo ou falhas de rede propagam `NetworkError`, preservando os dados atómicos existentes na base de dados (`status = PRESERVED`).
+  5. Injeção do segredo `BROWSERLESS_API_KEY` no workflow agendado de CI.
+- **Ação Futura:** Configurar o segredo no repositório GitHub via `gh secret set` e validar o snapshot em dry-run.
+
 ### [2026-09-29] — Domino's: Fallback Híbrido para Homepage Pública Oficial e Nível de Cobertura Transparente
 
 - **Contexto / Ticket:** Issue #28 ([SPIKE] Investigar alternativas públicas oficiais para recolha da Domino's Portugal)

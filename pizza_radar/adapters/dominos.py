@@ -19,6 +19,7 @@ import html
 import http.cookiejar
 import json
 import logging
+import os
 import re
 import urllib.error
 import urllib.parse
@@ -45,6 +46,7 @@ from pizza_radar.core.models import (
 _WARMUP_URL = "https://www.dominospizza.pt/menu/areeiro"
 _AJAX_URL = "https://www.dominospizza.pt/ajax/order.php"
 _HOMEPAGE_URL = "https://www.dominospizza.pt/"
+_BROWSERLESS_CONTENT_URL = "https://production-lon.browserless.io/content"
 
 # Loja 140 (Areeiro / Lisboa Centro) é utilizada estritamente como amostra / loja-âncora
 # para observação do catálogo no concelho de Lisboa. Não extrapola nem garante cobertura
@@ -355,6 +357,86 @@ class DominosAdapter(PromoAdapterInterface):
         except OSError as exc:
             raise NetworkError(f"Erro de I/O ao aceder à homepage da Domino's ({_HOMEPAGE_URL}): {exc}", vendor=self.vendor) from exc
 
+    def fetch_browserless_homepage(self, timeout: float = DEFAULT_TIMEOUT) -> str:
+        """Efetua pedido à Browserless Content API (datacenter) para recolha da homepage oficial.
+
+        Utiliza o endpoint europeu (production-lon) sem contornar CAPTCHAs,
+        enviando o token estritamente no header Authorization.
+        """
+        api_key = os.environ.get("BROWSERLESS_API_KEY", "").strip()
+        if not api_key:
+            raise NetworkError(
+                "Chave de API Browserless (BROWSERLESS_API_KEY) não configurada no ambiente",
+                vendor=self.vendor,
+            )
+
+        payload = {
+            "url": _HOMEPAGE_URL,
+            "rejectResourceTypes": ["image", "media", "font", "stylesheet"],
+            "gotoOptions": {
+                "waitUntil": "domcontentloaded",
+                "timeout": int(timeout * 1000),
+            },
+        }
+
+        req = urllib.request.Request(
+            _BROWSERLESS_CONTENT_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "Cache-Control": "no-cache",
+                "Accept": "text/html, */*",
+            },
+            method="POST",
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                target_code = resp.headers.get("X-Response-Code") or resp.headers.get("x-response-code")
+                if target_code == "403":
+                    raise NetworkError(
+                        f"Target devolveu HTTP 403 através da Browserless (X-Response-Code: {target_code})",
+                        vendor=self.vendor,
+                    )
+                body = resp.read().decode("utf-8", errors="replace")
+        except urllib.error.HTTPError as exc:
+            clean_reason = exc.reason or ""
+            raise NetworkError(
+                f"Browserless API respondeu com HTTP {exc.code}: {clean_reason}",
+                vendor=self.vendor,
+            ) from exc
+        except urllib.error.URLError as exc:
+            raise NetworkError(
+                f"Erro de rede ao comunicar com Browserless API: {exc.reason}",
+                vendor=self.vendor,
+            ) from exc
+        except TimeoutError as exc:
+            raise NetworkError(
+                f"Timeout ({timeout}s) ao comunicar com Browserless API",
+                vendor=self.vendor,
+            ) from exc
+        except OSError as exc:
+            raise NetworkError(
+                f"Erro de I/O ao comunicar com Browserless API: {exc}",
+                vendor=self.vendor,
+            ) from exc
+
+        # Verificação determinística de página de desafio Cloudflare
+        if "Just a moment..." in body or "cf-browser-verification" in body:
+            raise NetworkError(
+                "Browserless devolveu página de desafio Cloudflare ('Just a moment...')",
+                vendor=self.vendor,
+            )
+
+        if "combo-id" not in body:
+            raise ParseError(
+                "HTML obtido via Browserless não contém atributos 'combo-id'",
+                vendor=self.vendor,
+            )
+
+        return body
+
     def parse_homepage(self, html_content: str) -> list[dict[str, Any]]:
         """Extrai as campanhas promocionais estruturadas da homepage oficial."""
         parser = _DominosHomepageParser()
@@ -500,12 +582,11 @@ class DominosAdapter(PromoAdapterInterface):
 
             logger.warning(
                 "Endpoint ajax/order.php da Domino's bloqueado com HTTP 403 (%s). "
-                "A ativar fallback determinístico para a homepage oficial %s",
+                "A ativar fallback determinístico para a homepage oficial via Browserless Content API",
                 exc,
-                _HOMEPAGE_URL,
             )
 
-            homepage_html = self.fetch_homepage_raw(timeout=timeout)
+            homepage_html = self.fetch_browserless_homepage(timeout=timeout)
             parsed_homepage = self.parse_homepage(homepage_html)
             for item in parsed_homepage:
                 for promo in self.adapt_homepage(item, observed_at):

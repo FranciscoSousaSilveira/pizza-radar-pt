@@ -46,8 +46,10 @@ jobs:
           # Segredos a configurar nas GitHub Actions Secrets do repositório:
           # - TURSO_DATABASE_URL: URL do endpoint libSQL (ex.: libsql://pizza-radar-org.turso.io)
           # - TURSO_AUTH_TOKEN: Token de autenticação gerado via Turso CLI
+          # - BROWSERLESS_API_KEY: Chave de API para fallback da Domino's via Browserless Content API
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+          BROWSERLESS_API_KEY: ${{ secrets.BROWSERLESS_API_KEY }}
         run: |
           # Cria pasta de dados para o snapshot estático da web
           mkdir -p web/data
