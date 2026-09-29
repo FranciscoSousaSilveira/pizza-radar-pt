@@ -41,6 +41,10 @@ jobs:
         run: |
           python -m unittest discover tests -v
 
+      - name: Probe Telepizza and Domino's surfaces in runner
+        run: |
+          python scripts/probe_telepizza.py
+
       - name: Run deterministic sync pipeline against Turso
         env:
           # Segredos a configurar nas GitHub Actions Secrets do repositório:
