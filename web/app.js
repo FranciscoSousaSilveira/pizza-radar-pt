@@ -180,7 +180,8 @@
       const label = VENDOR_LABELS[v] || v;
       let coverageBadge = '';
       if (info.coverage_level === 'FEATURED') {
-        coverageBadge = ' <span class="badge-coverage badge-coverage-featured" style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-size:0.75rem;font-weight:600;" title="Campanhas principais publicadas no site oficial">Destaques</span>';
+        const note = info.coverage_note || (v === 'TELEPIZZA' ? 'Telepizza Portugal — confirmar disponibilidade na loja/morada' : 'Campanhas principais publicadas no site oficial');
+        coverageBadge = ` <span class="badge-coverage badge-coverage-featured" style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-size:0.75rem;font-weight:600;" title="${escapeHTML(note)}">Destaques</span>`;
       } else if (info.coverage_level === 'LIMITED') {
         coverageBadge = ' <span class="badge-coverage badge-coverage-limited" style="background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-size:0.75rem;font-weight:600;" title="Amostra limitada de ofertas">Limitada</span>';
       }
@@ -531,10 +532,13 @@
       `;
     } else {
       // Incerteza comunicada com honestidade e transparência
+      const unknownText = group.vendor === 'TELEPIZZA'
+        ? 'Telepizza Portugal — confirmar disponibilidade na loja/morada'
+        : 'Lojas participantes não discriminadas no catálogo online oficial';
       storeScopeHTML = `
         <div class="meta-item meta-unknown">
           <span class="meta-icon" aria-hidden="true">⚠️</span>
-          <span>Lojas participantes não discriminadas no catálogo online oficial</span>
+          <span>${escapeHTML(unknownText)}</span>
         </div>
       `;
     }

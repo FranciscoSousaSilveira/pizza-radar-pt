@@ -1,4 +1,4 @@
-"""Adaptador de recolha de promoções para a Telepizza Portugal (Lisboa).
+"""Adaptador de recolha de promoções para a Telepizza Portugal.
 
 Implementa PromoAdapterInterface com integração primária via Salesforce B2C Commerce API (SCAPI):
   - Autenticação SLAS guest com fluxo PKCE legítimo (sem credenciais privadas).
@@ -13,6 +13,7 @@ Regras estritas:
   - Zero IA em runtime.
   - Zero segredos comitados (SLAS client_id é o identificador público da storefront oficial).
   - StoreScope.UNKNOWN (promoções a nível de site sem associação de lojas específicas de Lisboa).
+  - Desativação determinística de campanhas expiradas ou descontinuadas sem quebrar o lote.
   - Falhas isoladas em NetworkError e ParseError.
 """
 
@@ -134,6 +135,21 @@ def _extract_discount_percentage(text: str) -> float | None:
     return None
 
 
+def _is_expired(end_date_str: str | None, reference_time: datetime | None = None) -> bool:
+    """Verifica de forma determinística se uma data de expiração ISO já foi ultrapassada."""
+    if not end_date_str or not isinstance(end_date_str, str):
+        return False
+    try:
+        clean_str = end_date_str.replace("Z", "+00:00")
+        dt = datetime.fromisoformat(clean_str)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        ref = reference_time or datetime.now(tz=timezone.utc)
+        return dt < ref
+    except (ValueError, TypeError):
+        return False
+
+
 class TelepizzaHTMLParser(HTMLParser):
     """Parser HTML tolerante para extrair cartões promocionais da Telepizza.
 
@@ -174,7 +190,7 @@ class TelepizzaAdapter(PromoAdapterInterface):
     def __init__(self) -> None:
         self.coverage_level: str = "FEATURED"
         self.coverage_note: str | None = (
-            "Campanhas principais sincronizadas via API oficial Salesforce (amostra de 20 campanhas ativas)"
+            "Telepizza Portugal — confirmar disponibilidade na loja/morada"
         )
 
     @property
@@ -392,6 +408,19 @@ class TelepizzaAdapter(PromoAdapterInterface):
             if isinstance(chunk_items, list):
                 all_data.extend(chunk_items)
 
+        # Verificação automática de IDs seeded que deixaram de ser devolvidos pela SCAPI
+        returned_ids = {
+            str(item.get("id")).strip()
+            for item in all_data
+            if isinstance(item, dict) and item.get("id")
+        }
+        missing_ids = [pid for pid in ids if pid not in returned_ids]
+        for mid in missing_ids:
+            logger.warning(
+                "ID seeded da Telepizza não devolvido pela SCAPI (descontinuado ou inexistente): %s",
+                mid,
+            )
+
         return {"limit": len(all_data), "total": len(all_data), "data": all_data}
 
     def fetch_raw(
@@ -433,8 +462,12 @@ class TelepizzaAdapter(PromoAdapterInterface):
             vendor=self.vendor,
         ) from last_exc
 
-    def parse_scapi(self, raw: dict[str, Any]) -> list[dict[str, Any]]:
-        """Extrai as promoções estruturadas da resposta SCAPI com tolerância por item."""
+    def parse_scapi(
+        self,
+        raw: dict[str, Any],
+        reference_time: datetime | None = None,
+    ) -> list[dict[str, Any]]:
+        """Extrai as promoções estruturadas da resposta SCAPI com tolerância por item e desativação determinística de expiradas."""
         data_list = raw.get("data", [])
         if not isinstance(data_list, list):
             raise ParseError("Chave 'data' de promoções SCAPI não é uma lista", vendor=self.vendor)
@@ -448,6 +481,16 @@ class TelepizzaAdapter(PromoAdapterInterface):
             name = item.get("name")
             if not promo_id or not name:
                 logger.warning("Item %d da Telepizza com id ou name ausentes: %r", idx, item)
+                continue
+
+            # Verificação determinística de expiração
+            end_date = item.get("endDate")
+            if _is_expired(end_date, reference_time=reference_time):
+                logger.warning(
+                    "Campanha Telepizza '%s' expirou em %s e foi desativada deterministicamente",
+                    promo_id,
+                    end_date,
+                )
                 continue
 
             clean_name = html.unescape(str(name)).strip()
@@ -543,7 +586,14 @@ class TelepizzaAdapter(PromoAdapterInterface):
             })
 
         if data_list and not parsed:
-            raise ParseError("Nenhuma promoção válida pôde ser extraída da SCAPI da Telepizza", vendor=self.vendor)
+            # Se todos os itens foram desativados por expiração, devolve lista vazia sem quebrar o lote
+            any_expired = any(
+                _is_expired(it.get("endDate"), reference_time=reference_time)
+                for it in data_list
+                if isinstance(it, dict)
+            )
+            if not any_expired:
+                raise ParseError("Nenhuma promoção válida pôde ser extraída da SCAPI da Telepizza", vendor=self.vendor)
 
         return parsed
 
@@ -615,10 +665,14 @@ class TelepizzaAdapter(PromoAdapterInterface):
 
         return parsed
 
-    def parse(self, raw: str | dict[str, Any]) -> list[dict[str, Any]]:
+    def parse(
+        self,
+        raw: str | dict[str, Any],
+        reference_time: datetime | None = None,
+    ) -> list[dict[str, Any]]:
         """Polimorfismo para parsear tanto resposta SCAPI (dict) como HTML legado (str)."""
         if isinstance(raw, dict):
-            return self.parse_scapi(raw)
+            return self.parse_scapi(raw, reference_time=reference_time)
         elif isinstance(raw, str):
             return self.parse_html(raw)
         raise ParseError(f"Tipo inesperado para payload da Telepizza: {type(raw).__name__}", vendor=self.vendor)
@@ -667,6 +721,14 @@ class TelepizzaAdapter(PromoAdapterInterface):
             pizza_count=item.get("pizza_count"),
         )
 
+        # Condições com nota honesta de aplicabilidade geográfica
+        disclaimer = "Telepizza Portugal — confirmar disponibilidade na loja/morada"
+        base_conditions = item.get("conditions", description) or ""
+        if disclaimer.lower() not in base_conditions.lower():
+            conditions = f"{base_conditions} ({disclaimer})" if base_conditions else disclaimer
+        else:
+            conditions = base_conditions
+
         channels_to_create = [channel] if channel is not None else item.get("channels", ["delivery"])
 
         promos: list[UnifiedPromo] = []
@@ -684,7 +746,7 @@ class TelepizzaAdapter(PromoAdapterInterface):
                     price_cents=price_cents,
                     discount_type=discount_type,
                     discount_percentage=discount_pct,
-                    conditions=item.get("conditions", description),
+                    conditions=conditions,
                     days_of_week=days_of_week,
                     dispatch_methods=[dispatch_method],
                     store_scope=StoreScope.UNKNOWN,
@@ -706,12 +768,25 @@ class TelepizzaAdapter(PromoAdapterInterface):
             return promos[0]
         return promos
 
-    def fetch_promotions(self, timeout: float = DEFAULT_TIMEOUT) -> list[UnifiedPromo]:
+    def fetch_promotions(
+        self,
+        timeout: float = DEFAULT_TIMEOUT,
+        reference_time: datetime | None = None,
+    ) -> list[UnifiedPromo]:
         """Recolhe promoções oficiais da Telepizza através da Salesforce SCAPI."""
-        observed_at = datetime.now(tz=timezone.utc)
+        observed_at = reference_time or datetime.now(tz=timezone.utc)
         token = self.fetch_slas_token(timeout=timeout)
         raw_scapi = self.fetch_scapi_promotions(token=token, timeout=timeout)
-        parsed = self.parse_scapi(raw_scapi)
+        parsed = self.parse_scapi(raw_scapi, reference_time=observed_at)
+
+        # Verificação automática de diminuição de campanhas válidas
+        valid_campaign_ids = {it["id"] for it in parsed}
+        if len(valid_campaign_ids) < len(DEFAULT_PROMOTION_IDS):
+            logger.warning(
+                "Contagem de campanhas válidas da Telepizza diminuiu: %d de %d esperadas",
+                len(valid_campaign_ids),
+                len(DEFAULT_PROMOTION_IDS),
+            )
 
         promos: list[UnifiedPromo] = []
         seen_ids: set[str] = set()
@@ -726,6 +801,6 @@ class TelepizzaAdapter(PromoAdapterInterface):
 
         self.coverage_level = "FEATURED"
         self.coverage_note = (
-            "Campanhas principais sincronizadas via API oficial Salesforce (amostra de 20 campanhas ativas)"
+            "Telepizza Portugal — confirmar disponibilidade na loja/morada"
         )
         return self.validate_and_filter(promos)

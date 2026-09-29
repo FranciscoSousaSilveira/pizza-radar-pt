@@ -135,8 +135,9 @@ class TestTelepizzaAdapter(unittest.TestCase):
         self.assertEqual(self.adapter.coverage_level, "FEATURED")
         self.assertEqual(
             self.adapter.coverage_note,
-            "Campanhas principais sincronizadas via API oficial Salesforce (amostra de 20 campanhas ativas)",
+            "Telepizza Portugal — confirmar disponibilidade na loja/morada",
         )
+        self.assertIn("Telepizza Portugal — confirmar disponibilidade na loja/morada", promos[0].conditions)
 
     def test_discover_promotion_ids_with_dynamic_hits(self) -> None:
         """Descoberta dinâmica extrai e deduplica IDs quando productPromotions está presente."""
@@ -280,6 +281,105 @@ class TestTelepizzaAdapter(unittest.TestCase):
             with self.assertRaises(NetworkError) as ctx:
                 self.adapter.fetch_promotions()
             self.assertEqual(ctx.exception.vendor, Brand.TELEPIZZA)
+
+    def test_missing_seeded_id_logs_warning_and_preserves_batch(self) -> None:
+        """ID seeded omitido da resposta SCAPI emite warning sem quebrar as ofertas válidas."""
+        # Apenas 1 ID devolvido dos 2 pedidos
+        partial_data = {
+            "data": [
+                {
+                    "id": "2x1_MedFam",
+                    "name": "2x1 Médias e Familiares",
+                    "c_tpz_isDelivery": True,
+                    "c_tpz_isTakeAway": True,
+                }
+            ]
+        }
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            mock_resp = MagicMock()
+            mock_resp.read.return_value = json.dumps(partial_data).encode("utf-8")
+            mock_urlopen.return_value.__enter__.return_value = mock_resp
+
+            with self.assertLogs("pizza_radar.adapters.telepizza", level="WARNING") as log_ctx:
+                result = self.adapter.fetch_scapi_promotions(
+                    token="mock-token",
+                    promo_ids=["2x1_MedFam", "CAMPANHA_DESCONTINUADA"],
+                )
+
+        self.assertEqual(len(result["data"]), 1)
+        self.assertEqual(result["data"][0]["id"], "2x1_MedFam")
+        self.assertTrue(
+            any("CAMPANHA_DESCONTINUADA" in msg for msg in log_ctx.output),
+            f"Esperado aviso de ID seeded não devolvido nos logs: {log_ctx.output}",
+        )
+
+    def test_expired_campaign_deactivated_deterministic_warning(self) -> None:
+        """Campanha expirada regista warning e é excluída sem quebrar as campanhas ativas."""
+        mixed_data = {
+            "data": [
+                {
+                    "id": "PROMO_EXPIRADA",
+                    "name": "Promo do Passado 10€",
+                    "c_tpz_isDelivery": True,
+                    "endDate": "2025-01-01T00:00:00.000Z",
+                },
+                {
+                    "id": "PROMO_ATIVA",
+                    "name": "Promo Atual 12€",
+                    "c_tpz_isDelivery": True,
+                    "endDate": "2026-12-31T23:59:59.000Z",
+                },
+            ]
+        }
+        ref_time = datetime(2026, 9, 28, 15, 0, 0, tzinfo=timezone.utc)
+        with self.assertLogs("pizza_radar.adapters.telepizza", level="WARNING") as log_ctx:
+            parsed = self.adapter.parse_scapi(mixed_data, reference_time=ref_time)
+
+        self.assertEqual(len(parsed), 1)
+        self.assertEqual(parsed[0]["id"], "PROMO_ATIVA")
+        self.assertTrue(
+            any("PROMO_EXPIRADA" in msg and "expirou" in msg for msg in log_ctx.output),
+            f"Esperado aviso de expiração nos logs: {log_ctx.output}",
+        )
+
+    def test_all_campaigns_expired_returns_empty_without_parse_error(self) -> None:
+        """Se todas as campanhas estiverem expiradas, devolve lista vazia sem quebrar com ParseError."""
+        expired_data = {
+            "data": [
+                {
+                    "id": "EXP_1",
+                    "name": "Promo Expirada 1",
+                    "c_tpz_isDelivery": True,
+                    "endDate": "2025-01-01T00:00:00.000Z",
+                }
+            ]
+        }
+        ref_time = datetime(2026, 9, 28, 15, 0, 0, tzinfo=timezone.utc)
+        parsed = self.adapter.parse_scapi(expired_data, reference_time=ref_time)
+        self.assertEqual(parsed, [])
+
+    def test_decreased_campaign_count_logs_warning(self) -> None:
+        """Diminuição de contagem de campanhas válidas face à lista canónica regista warning."""
+        reduced_scapi = {
+            "data": [
+                {
+                    "id": "2x1_MedFam",
+                    "name": "2x1 Médias e Familiares",
+                    "c_tpz_isDelivery": True,
+                    "endDate": "2026-12-31T23:59:59.000Z",
+                }
+            ]
+        }
+        with patch.object(self.adapter, "fetch_slas_token", return_value="mock-token"), \
+             patch.object(self.adapter, "fetch_scapi_promotions", return_value=reduced_scapi):
+            with self.assertLogs("pizza_radar.adapters.telepizza", level="WARNING") as log_ctx:
+                promos = self.adapter.fetch_promotions()
+
+        self.assertEqual(len(promos), 1)
+        self.assertTrue(
+            any("Contagem de campanhas válidas da Telepizza diminuiu" in msg for msg in log_ctx.output),
+            f"Esperado aviso de diminuição de contagem nos logs: {log_ctx.output}",
+        )
 
 
 if __name__ == "__main__":
