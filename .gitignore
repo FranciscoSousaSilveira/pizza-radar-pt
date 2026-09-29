@@ -86,3 +86,6 @@ Thumbs.db
 *.sqlite3
 local_cache.db
 pizza_radar.db
+
+# Knowledge Graph Artifacts
+graphify-out/

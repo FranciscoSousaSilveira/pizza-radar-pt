@@ -84,6 +84,8 @@
     statusText: document.getElementById('status-text'),
     sourcesSummary: document.getElementById('sources-summary-text'),
     sourcesGrid: document.getElementById('sources-grid'),
+    btnClearSearch: document.getElementById('btn-clear-search'),
+    btnBackToTop: document.getElementById('btn-back-to-top'),
   };
 
   // Inicialização
@@ -109,6 +111,7 @@
       handleDataMode(state.dataMode, data);
       renderSourcesStatus(data);
       updateMetricsBanner(data);
+      updateChipCounts(data);
       applyFiltersAndRender();
     } catch (err) {
       console.error('Erro ao carregar promotions.json:', err);
@@ -211,6 +214,51 @@
     }
   }
 
+  // Atualizar Contadores Dinâmicos nos Chips (Operate + Read)
+  function updateChipCounts(data) {
+    const groups = data.groups || [];
+    const total = groups.length;
+
+    // Contadores por Tipo de Produto
+    const pizzaOnlyCount = groups.filter((g) => g.offer_type === 'PIZZA' || g.offer_type === 'BUNDLE_WITH_PIZZA').length;
+    const nonPizzaCount = groups.filter((g) => g.offer_type === 'NON_PIZZA').length;
+
+    elements.productChips.forEach((chip) => {
+      const type = chip.dataset.product;
+      if (type === 'PIZZA_ONLY') chip.textContent = `🍕 Apenas Pizzas e Menus (${pizzaOnlyCount})`;
+      else if (type === 'ALL') chip.textContent = `Todas as Ofertas (${total})`;
+      else if (type === 'NON_PIZZA') chip.textContent = `🥤 Apenas Complementos (${nonPizzaCount})`;
+    });
+
+    // Contadores por Marca
+    const vendorCounts = {
+      ALL: total,
+      DOMINOS: groups.filter((g) => g.vendor === 'DOMINOS').length,
+      PAPA_JOHNS: groups.filter((g) => g.vendor === 'PAPA_JOHNS').length,
+      PIZZA_HUT: groups.filter((g) => g.vendor === 'PIZZA_HUT').length,
+      TELEPIZZA: groups.filter((g) => g.vendor === 'TELEPIZZA').length,
+    };
+
+    elements.vendorChips.forEach((chip) => {
+      const v = chip.dataset.vendor;
+      const count = vendorCounts[v] !== undefined ? vendorCounts[v] : 0;
+      const label = v === 'ALL' ? 'Todas' : (VENDOR_LABELS[v] || v);
+      chip.textContent = `${label} (${count})`;
+    });
+
+    // Contadores por Canal
+    elements.channelChips.forEach((chip) => {
+      const ch = chip.dataset.channel;
+      if (ch === 'ALL') {
+        chip.textContent = `Todos (${total})`;
+      } else {
+        const count = groups.filter((g) => g.dispatch_methods && g.dispatch_methods.includes(ch)).length;
+        const label = CHANNEL_LABELS[ch] || ch;
+        chip.textContent = `${label} (${count})`;
+      }
+    });
+  }
+
   // Configurar Ouvintes de Eventos
   function setupEventListeners() {
     // Tabs de Ranking
@@ -286,15 +334,72 @@
       });
     }
 
-    // Campo de Pesquisa com debounce simples
+    // Campo de Pesquisa com debounce simples e botão limpar
     if (elements.searchInput) {
       let debounceTimeout = null;
       elements.searchInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (elements.btnClearSearch) {
+          elements.btnClearSearch.style.display = val.length > 0 ? 'flex' : 'none';
+        }
         clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(() => {
-          state.searchQuery = e.target.value.trim().toLowerCase();
+          state.searchQuery = val.trim().toLowerCase();
           applyFiltersAndRender();
         }, 150);
+      });
+    }
+
+    // Botão Limpar Pesquisa
+    if (elements.btnClearSearch) {
+      elements.btnClearSearch.addEventListener('click', () => {
+        if (elements.searchInput) {
+          elements.searchInput.value = '';
+          elements.searchInput.focus();
+        }
+        state.searchQuery = '';
+        elements.btnClearSearch.style.display = 'none';
+        applyFiltersAndRender();
+      });
+    }
+
+    // Botão Flutuante Voltar ao Topo
+    if (elements.btnBackToTop) {
+      elements.btnBackToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 350) {
+          elements.btnBackToTop.style.display = 'flex';
+        } else {
+          elements.btnBackToTop.style.display = 'none';
+        }
+      }, { passive: true });
+    }
+
+    // Delegação de Partilha / Cópia de Ligação nos Cartões
+    if (elements.promosGrid) {
+      elements.promosGrid.addEventListener('click', async (e) => {
+        const shareBtn = e.target.closest('.btn-share-promo');
+        if (!shareBtn) return;
+        const urlToCopy = shareBtn.dataset.url || window.location.href;
+        try {
+          await navigator.clipboard.writeText(urlToCopy);
+          const iconSpan = shareBtn.querySelector('span');
+          if (iconSpan) {
+            const originalText = iconSpan.textContent;
+            iconSpan.textContent = '✓';
+            iconSpan.style.color = '#15803D';
+            shareBtn.title = 'Hiperligação copiada!';
+            setTimeout(() => {
+              iconSpan.textContent = originalText;
+              iconSpan.style.color = '';
+              shareBtn.title = 'Copiar hiperligação desta oferta';
+            }, 1800);
+          }
+        } catch {
+          // Fallback gracioso caso clipboard API esteja indisponível
+        }
       });
     }
 
@@ -549,12 +654,30 @@
     // CTA Oficial
     const sourceUrl = group.source_url || '#';
 
+    // Imagem Oficial (se disponível)
+    let imageHTML = '';
+    if (group.image_url) {
+      imageHTML = `
+        <div class="card-image-wrap">
+          <img src="${escapeHTML(group.image_url)}" alt="${escapeHTML(group.title)}" class="card-image" loading="lazy" decoding="async" onerror="this.closest('.card-image-wrap').remove()">
+        </div>
+      `;
+    }
+
+    // Super Desconto (destaque para economias >= 40%)
+    let superDiscountHTML = '';
+    if (group.max_discount_percentage && group.max_discount_percentage >= 40) {
+      superDiscountHTML = `<span class="badge-super-discount" title="Desconto igual ou superior a 40%">🔥 Super Desconto</span>`;
+    }
+
     return `
       <article class="promo-card" id="card-${escapeHTML(group.persistent_id)}">
+        ${imageHTML}
         <header class="card-header">
           <div class="card-header-left" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
             <span class="vendor-badge vendor-${escapeHTML(group.vendor)}">${escapeHTML(vendorLabel)}</span>
             ${offerTypeBadgeHTML}
+            ${superDiscountHTML}
             ${preservedBadgeHTML}
           </div>
           <span class="dispatch-badge">${escapeHTML(channels)}</span>
@@ -583,9 +706,15 @@
         </div>
 
         <footer class="card-footer">
-          <a href="${escapeHTML(sourceUrl)}" target="_blank" rel="noopener noreferrer" class="btn-official">
-            Ver oferta no site oficial
-          </a>
+          <div class="card-actions">
+            <a href="${escapeHTML(sourceUrl)}" target="_blank" rel="noopener noreferrer" class="btn-official">
+              <span>Ver oferta no site oficial</span>
+              <span aria-hidden="true" style="font-size: 0.9em; opacity: 0.85;">↗</span>
+            </a>
+            <button type="button" class="btn-share-promo" title="Copiar hiperligação desta oferta" aria-label="Copiar hiperligação da oferta ${escapeHTML(group.title)}" data-url="${escapeHTML(sourceUrl)}">
+              <span aria-hidden="true">🔗</span>
+            </button>
+          </div>
         </footer>
       </article>
     `;

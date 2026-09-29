@@ -168,7 +168,11 @@
 
           <div class="search-field">
             <label for="search-input" class="field-label">Pesquisar oferta</label>
-            <input type="search" id="search-input" class="custom-input" placeholder="Ex: duo, familiar, média, 2x1..." autocomplete="off">
+            <div class="search-input-wrap">
+              <span class="search-icon-hint" aria-hidden="true">🔍</span>
+              <input type="search" id="search-input" class="custom-input with-icon" placeholder="Ex: duo, familiar, média, 2x1..." autocomplete="off">
+              <button type="button" id="btn-clear-search" class="btn-clear-search" aria-label="Limpar termo de pesquisa" style="display: none;">✕</button>
+            </div>
           </div>
 
           <div class="toggle-field">
@@ -233,7 +237,10 @@
         </p>
       </div>
     </div>
-  </footer>
+  <!-- Botão Flutuante Voltar ao Topo -->
+  <button type="button" id="btn-back-to-top" class="btn-back-to-top" aria-label="Voltar ao topo da página" style="display: none;">
+    <span aria-hidden="true">↑</span>
+  </button>
 
   <script src="app.js"></script>
 </body>
