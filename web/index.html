@@ -58,6 +58,19 @@
     </div>
   </section>
 
+  <!-- Painel de Transparência de Fontes por Marca -->
+  <section class="sources-status-section" aria-label="Transparência de fontes por marca">
+    <div class="sources-status-container">
+      <div class="sources-status-header">
+        <h2 class="sources-status-title">📡 Estado das Fontes em Lisboa</h2>
+        <span class="sources-status-summary" id="sources-summary-text">A verificar cobertura...</span>
+      </div>
+      <div class="sources-chips-grid" id="sources-grid">
+        <!-- Renderizado dinamicamente via app.js -->
+      </div>
+    </div>
+  </section>
+
   <!-- Conteúdo Principal -->
   <main id="main-content" class="main-layout" role="main">
 
@@ -103,6 +116,16 @@
     <!-- Barra de Filtros e Pesquisa -->
     <section class="filters-section" aria-label="Filtros de pesquisa">
       <div class="filters-bar">
+
+        <!-- Filtro de Tipo de Oferta (Foco em Pizzas por omissão) -->
+        <div class="filter-group">
+          <label class="filter-group-label" id="label-product-filter">Tipo de Oferta</label>
+          <div class="chips-row" role="group" aria-labelledby="label-product-filter" id="product-chips">
+            <button type="button" class="chip active" data-product="PIZZA_ONLY" aria-pressed="true">🍕 Apenas Pizzas e Menus</button>
+            <button type="button" class="chip" data-product="ALL" aria-pressed="false">Todas as Ofertas</button>
+            <button type="button" class="chip" data-product="NON_PIZZA" aria-pressed="false">🥤 Apenas Complementos</button>
+          </div>
+        </div>
 
         <!-- Filtro de Marcas -->
         <div class="filter-group">

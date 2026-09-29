@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from pizza_radar.core.models import UnifiedPromo
+from pizza_radar.core.models import OfferType, UnifiedPromo
 from pizza_radar.engine.identity import VisualPromoGroup
 
 
@@ -50,14 +50,20 @@ class RankedItem:
 
 
 def rank_by_unit_price(items: list[UnifiedPromo | VisualPromoGroup]) -> list[RankedItem]:
-    """Ordena ofertas pelo menor preço unitário por pizza (apenas comparáveis).
+    """Ordena ofertas pelo menor preço unitário por pizza (apenas comparáveis do tipo PIZZA ou BUNDLE_WITH_PIZZA).
 
     Regra estrita: apenas calcula a partir de variantes individualmente comparáveis.
+    Ofertas NON_PIZZA (refrigerantes, gelados, sobremesas) e UNKNOWN são categoricamente excluídas.
     Nunca divide o menor preço global do grupo pela contagem de pizzas de outra variante.
     """
     eligible: list[tuple[int, UnifiedPromo | VisualPromoGroup, str]] = []
 
     for item in items:
+        # Rejeitar categoricamente ofertas não relacionadas com pizza
+        item_offer_type = getattr(item, "offer_type", OfferType.UNKNOWN)
+        if item_offer_type not in (OfferType.PIZZA, OfferType.BUNDLE_WITH_PIZZA):
+            continue
+
         if isinstance(item, UnifiedPromo):
             if (
                 item.is_comparable_for_unit_price
@@ -76,7 +82,10 @@ def rank_by_unit_price(items: list[UnifiedPromo | VisualPromoGroup]) -> list[Ran
             # Encontra variantes estritamente comparáveis dentro do grupo
             comp_variants = [
                 v for v in item.variants
-                if v.is_comparable_for_unit_price and v.price_per_pizza_cents is not None and v.pizza_count
+                if v.is_comparable_for_unit_price
+                and v.price_per_pizza_cents is not None
+                and v.pizza_count
+                and getattr(v, "offer_type", item.offer_type) in (OfferType.PIZZA, OfferType.BUNDLE_WITH_PIZZA)
             ]
             if comp_variants:
                 # Escolhe a melhor variante comparável do grupo
@@ -163,14 +172,23 @@ def rank_by_discount(items: list[UnifiedPromo | VisualPromoGroup]) -> list[Ranke
     return ranked
 
 
-def rank_by_lowest_price(items: list[UnifiedPromo | VisualPromoGroup]) -> list[RankedItem]:
+def rank_by_lowest_price(
+    items: list[UnifiedPromo | VisualPromoGroup],
+    pizza_only: bool = False,
+) -> list[RankedItem]:
     """Ordena ofertas pelo menor preço absoluto (desembolso mínimo em cêntimos).
 
     Explicação: 'Preço total de X,XX€'.
+    Se pizza_only=True, restringe exclusivamente a ofertas PIZZA e BUNDLE_WITH_PIZZA.
     """
     eligible: list[tuple[int, UnifiedPromo | VisualPromoGroup, str]] = []
 
     for item in items:
+        if pizza_only:
+            item_offer_type = getattr(item, "offer_type", OfferType.UNKNOWN)
+            if item_offer_type not in (OfferType.PIZZA, OfferType.BUNDLE_WITH_PIZZA):
+                continue
+
         if isinstance(item, UnifiedPromo):
             if item.price_cents is not None and item.price_euros is not None:
                 expl = f"Preço de {item.price_euros:.2f}€".replace(".", ",")

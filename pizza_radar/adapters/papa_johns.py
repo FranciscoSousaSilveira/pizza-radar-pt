@@ -30,6 +30,7 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Any
 
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
+from pizza_radar.core.classifier import classify_offer_type
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
@@ -488,6 +489,14 @@ class PapaJohnsAdapter(PromoAdapterInterface):
         else:
             canonical_id = f"pj_{parsed_item['id']}_{dispatch_method_raw}"
 
+        # Classificação determinística da oferta
+        offer_type = classify_offer_type(
+            title=parsed_item["name"],
+            description=parsed_item["description"],
+            included_items=[],
+            pizza_count=None,
+        )
+
         return UnifiedPromo(
             id=canonical_id,
             vendor=Brand.PAPA_JOHNS,
@@ -511,6 +520,7 @@ class PapaJohnsAdapter(PromoAdapterInterface):
             image_url=image_url,
             source_url="https://www.papajohns.pt/promocoes/",
             location_scope="Lisboa",
+            offer_type=offer_type,
         )
 
     # ------------------------------------------------------------------

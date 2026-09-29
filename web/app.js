@@ -15,7 +15,9 @@
   const state = {
     allGroups: [],
     stats: null,
+    vendorStatus: {},
     activeRanking: 'LOWEST_ABSOLUTE_PRICE',
+    filterProduct: 'PIZZA_ONLY',
     filterVendor: 'ALL',
     filterChannel: 'ALL',
     filterDay: 'ALL',
@@ -35,7 +37,7 @@
     },
     BEST_UNIT_PRICE: {
       title: 'Melhor Preço / Pizza',
-      text: 'Calcula o custo por unidade inteira. Exclui estritamente ofertas onde a contagem de pizzas não é declarada ou comprovada pelo operador.',
+      text: 'Calcula o custo por unidade inteira de pizza (estritamente para pizzas e menus comparáveis). Exclui categoricamente complementos e sobremesas.',
     },
     RECENTLY_OBSERVED: {
       title: 'Recém Observadas',
@@ -67,6 +69,7 @@
     btnClearEmpty: document.getElementById('btn-clear-empty'),
     rankingTabs: document.querySelectorAll('.ranking-tab'),
     rankingExplanation: document.getElementById('explanation-text'),
+    productChips: document.querySelectorAll('#product-chips .chip'),
     vendorChips: document.querySelectorAll('#vendor-chips .chip'),
     channelChips: document.querySelectorAll('#channel-chips .chip'),
     selectDay: document.getElementById('select-day'),
@@ -79,6 +82,8 @@
     dataModeBanner: document.getElementById('data-mode-banner'),
     dataModeText: document.getElementById('data-mode-text'),
     statusText: document.getElementById('status-text'),
+    sourcesSummary: document.getElementById('sources-summary-text'),
+    sourcesGrid: document.getElementById('sources-grid'),
   };
 
   // Inicialização
@@ -98,9 +103,11 @@
       const data = await response.json();
       state.allGroups = data.groups || [];
       state.stats = data.stats || {};
+      state.vendorStatus = data.vendor_status || {};
       state.dataMode = data.data_mode || 'demo';
 
-      handleDataMode(state.dataMode);
+      handleDataMode(state.dataMode, data);
+      renderSourcesStatus(data);
       updateMetricsBanner(data);
       applyFiltersAndRender();
     } catch (err) {
@@ -116,8 +123,8 @@
     }
   }
 
-  // Tratamento do Modo de Dados (Demo vs Live)
-  function handleDataMode(mode) {
+  // Tratamento do Modo de Dados (Demo vs Live) e Transparência
+  function handleDataMode(mode, data) {
     const isLive = mode === 'live';
     if (elements.dataModeBanner) {
       if (!isLive) {
@@ -132,11 +139,51 @@
 
     if (elements.statusText) {
       if (isLive) {
-        elements.statusText.textContent = '4 marcas monitorizadas • Atualizado 2x ao dia';
+        const updated = data && data.vendors_updated_count !== undefined ? data.vendors_updated_count : 1;
+        const total = (data && data.total_vendors_configured) || 4;
+        elements.statusText.textContent = `${updated} de ${total} marcas atualizadas nesta recolha`;
       } else {
         elements.statusText.textContent = '4 marcas monitorizadas • Modo de demonstração';
       }
     }
+  }
+
+  // Renderizar Painel de Transparência de Fontes por Marca
+  function renderSourcesStatus(data) {
+    if (!elements.sourcesGrid) return;
+    const statusMap = data.vendor_status || {};
+    const knownVendors = ['DOMINOS', 'PAPA_JOHNS', 'PIZZA_HUT', 'TELEPIZZA'];
+    const updatedCount = data.vendors_updated_count !== undefined ? data.vendors_updated_count : 0;
+    const totalCount = data.total_vendors_configured || 4;
+
+    if (elements.sourcesSummary) {
+      if (data.data_mode === 'demo') {
+        elements.sourcesSummary.textContent = 'Dados de demonstração local';
+      } else {
+        elements.sourcesSummary.textContent = `${updatedCount} de ${totalCount} marcas atualizadas nesta recolha`;
+      }
+    }
+
+    const icons = {
+      SUCCESS: '✅',
+      PRESERVED: '⚠️',
+      UNAVAILABLE: '❌',
+      PENDING: '⏳',
+    };
+
+    elements.sourcesGrid.innerHTML = knownVendors.map((v) => {
+      const info = statusMap[v] || { status: 'PENDING', message: 'A aguardar recolha' };
+      const statusClass = `status-${(info.status || 'pending').toLowerCase()}`;
+      const icon = icons[info.status] || 'ℹ️';
+      const label = VENDOR_LABELS[v] || v;
+      return `
+        <div class="source-item ${statusClass}" title="${escapeHTML(info.message || '')}">
+          <span class="source-status-icon" aria-hidden="true">${icon}</span>
+          <span class="source-name">${escapeHTML(label)}</span>
+          <span class="source-desc">${escapeHTML(info.message || '')}</span>
+        </div>
+      `;
+    }).join('');
   }
 
   // Atualizar Banner de Métricas Rápidas
@@ -168,6 +215,20 @@
         tab.setAttribute('aria-selected', 'true');
         state.activeRanking = tab.dataset.ranking;
         updateRankingExplanation();
+        applyFiltersAndRender();
+      });
+    });
+
+    // Chips de Tipo de Produto (Pizzas vs Complementos)
+    elements.productChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        elements.productChips.forEach((c) => {
+          c.classList.remove('active');
+          c.setAttribute('aria-pressed', 'false');
+        });
+        chip.classList.add('active');
+        chip.setAttribute('aria-pressed', 'true');
+        state.filterProduct = chip.dataset.product;
         applyFiltersAndRender();
       });
     });
@@ -247,12 +308,17 @@
 
   // Limpar Todos os Filtros
   function resetFilters() {
+    state.filterProduct = 'PIZZA_ONLY';
     state.filterVendor = 'ALL';
     state.filterChannel = 'ALL';
     state.filterDay = 'ALL';
     state.filterComparableOnly = false;
     state.searchQuery = '';
 
+    elements.productChips.forEach((c) => {
+      c.classList.toggle('active', c.dataset.product === 'PIZZA_ONLY');
+      c.setAttribute('aria-pressed', c.dataset.product === 'PIZZA_ONLY' ? 'true' : 'false');
+    });
     elements.vendorChips.forEach((c) => {
       c.classList.toggle('active', c.dataset.vendor === 'ALL');
       c.setAttribute('aria-pressed', c.dataset.vendor === 'ALL' ? 'true' : 'false');
@@ -271,6 +337,13 @@
   // Aplicar Filtros e Ordenação
   function applyFiltersAndRender() {
     let filtered = [...state.allGroups];
+
+    // 0. Filtro por Tipo de Produto (Pizzas por omissão)
+    if (state.filterProduct === 'PIZZA_ONLY') {
+      filtered = filtered.filter((g) => g.offer_type === 'PIZZA' || g.offer_type === 'BUNDLE_WITH_PIZZA');
+    } else if (state.filterProduct === 'NON_PIZZA') {
+      filtered = filtered.filter((g) => g.offer_type === 'NON_PIZZA');
+    }
 
     // 1. Filtro por Fornecedor
     if (state.filterVendor !== 'ALL') {
@@ -341,8 +414,12 @@
         });
 
       case 'BEST_UNIT_PRICE':
-        // Apenas itens comparáveis entram no topo; não comparáveis são excluídos do ranking unitário
-        const comparableOnly = list.filter((g) => g.is_comparable_for_unit_price && g.min_price_per_pizza_cents !== null);
+        // Apenas ofertas de pizza comparáveis entram no ranking unitário (exclui categoricamente complementos)
+        const comparableOnly = list.filter((g) =>
+          (g.offer_type === 'PIZZA' || g.offer_type === 'BUNDLE_WITH_PIZZA') &&
+          g.is_comparable_for_unit_price &&
+          g.min_price_per_pizza_cents !== null
+        );
         return comparableOnly.sort((a, b) => {
           const uA = a.min_price_per_pizza_cents || 9999999;
           const uB = b.min_price_per_pizza_cents || 9999999;
@@ -385,6 +462,22 @@
     const channels = (group.dispatch_methods || [])
       .map((c) => CHANNEL_LABELS[c] || c)
       .join(' • ');
+
+    // Badges de Tipo e Preservação
+    let offerTypeBadgeHTML = '';
+    if (group.offer_type === 'PIZZA') {
+      offerTypeBadgeHTML = '<span class="badge-offer-type type-pizza">🍕 Pizza</span>';
+    } else if (group.offer_type === 'BUNDLE_WITH_PIZZA') {
+      offerTypeBadgeHTML = '<span class="badge-offer-type type-bundle">🍕 Menu</span>';
+    } else if (group.offer_type === 'NON_PIZZA') {
+      offerTypeBadgeHTML = '<span class="badge-offer-type type-non-pizza">🥤 Complemento</span>';
+    }
+
+    const vStatus = state.vendorStatus && state.vendorStatus[group.vendor];
+    let preservedBadgeHTML = '';
+    if (vStatus && vStatus.status === 'PRESERVED') {
+      preservedBadgeHTML = '<span class="badge-preserved" title="Oferta preservada de recolha anterior">Preservada</span>';
+    }
 
     // Preço e Desconto
     const displayPrice = group.display_price_label || 'Preço sob consulta';
@@ -447,7 +540,11 @@
     return `
       <article class="promo-card" id="card-${escapeHTML(group.persistent_id)}">
         <header class="card-header">
-          <span class="vendor-badge vendor-${escapeHTML(group.vendor)}">${escapeHTML(vendorLabel)}</span>
+          <div class="card-header-left" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <span class="vendor-badge vendor-${escapeHTML(group.vendor)}">${escapeHTML(vendorLabel)}</span>
+            ${offerTypeBadgeHTML}
+            ${preservedBadgeHTML}
+          </div>
           <span class="dispatch-badge">${escapeHTML(channels)}</span>
         </header>
 
@@ -484,7 +581,8 @@
 
   // Atualizar Barra de Estado
   function updateStatusBar(count) {
-    const isFiltered = state.filterVendor !== 'ALL' ||
+    const isFiltered = state.filterProduct !== 'PIZZA_ONLY' ||
+                       state.filterVendor !== 'ALL' ||
                        state.filterChannel !== 'ALL' ||
                        state.filterDay !== 'ALL' ||
                        state.filterComparableOnly ||

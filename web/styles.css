@@ -784,3 +784,134 @@ body {
   font-size: 0.75rem;
   color: #94A3B8;
 }
+
+/* --------------------------------------------------------------------------
+   Painel de Transparência de Fontes
+   -------------------------------------------------------------------------- */
+.sources-status-section {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-sm) var(--space-lg);
+}
+
+.sources-status-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.sources-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.sources-status-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.sources-status-summary {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-body);
+}
+
+.sources-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-xs);
+}
+
+.source-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-canvas);
+  border: 1px solid var(--color-border);
+  font-size: 0.8rem;
+}
+
+.source-item.status-success {
+  border-color: #86EFAC;
+  background-color: #F0FDF4;
+}
+
+.source-item.status-preserved {
+  border-color: #FDE68A;
+  background-color: #FFFBEB;
+}
+
+.source-item.status-unavailable {
+  border-color: #FECACA;
+  background-color: #FEF2F2;
+}
+
+.source-item.status-pending {
+  border-color: #E2E8F0;
+  background-color: #F8FAFC;
+}
+
+.source-status-icon {
+  font-size: 0.95rem;
+}
+
+.source-name {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.source-desc {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  margin-left: auto;
+}
+
+/* Badges de Tipo de Oferta */
+.badge-offer-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.badge-offer-type.type-pizza {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.badge-offer-type.type-bundle {
+  background-color: #E0E7FF;
+  color: #3730A3;
+}
+
+.badge-offer-type.type-non-pizza {
+  background-color: #F1F5F9;
+  color: #475569;
+}
+
+.badge-preserved {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 600;
+  background-color: #FFFBEB;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
