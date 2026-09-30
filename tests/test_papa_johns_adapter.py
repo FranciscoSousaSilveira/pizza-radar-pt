@@ -48,6 +48,7 @@ from pizza_radar.adapters.papa_johns import (
     PapaJohnsAdapter,
     _parse_availability,
     _parse_pizza_size,
+    _resolve_papa_johns_url,
     _select_image_url,
     _sort_store_ids,
     parse_price_to_cents,
@@ -550,6 +551,38 @@ class TestPapaJohnsAdapterErrorsAndIntegration(unittest.TestCase):
         # Nenhum item oculto (hidden=true) foi publicado
         promo_ids = [p.id for p in promos]
         self.assertFalse(any("252_in_store" in pid for pid in promo_ids))
+
+    def test_resolve_papa_johns_direct_urls(self) -> None:
+        """Verifica se campanhas conhecidas apontam diretamente para landing pages com configurador."""
+        self.assertEqual(
+            _resolve_papa_johns_url("O PAPITO"),
+            "https://www.papajohns.pt/promocoes/o-papito-menu-individual/",
+        )
+        self.assertEqual(
+            _resolve_papa_johns_url("O PAPITO Delivery"),
+            "https://www.papajohns.pt/promocoes/o-papito-menu-individual/",
+        )
+        self.assertEqual(
+            _resolve_papa_johns_url("Duo Bestial + entrada"),
+            "https://www.papajohns.pt/promocoes/duo-bestial/",
+        )
+        self.assertEqual(
+            _resolve_papa_johns_url("Trio Bestial."),
+            "https://www.papajohns.pt/promocoes/trio-bestial/",
+        )
+        self.assertEqual(
+            _resolve_papa_johns_url("Papa às 3ªs"),
+            "https://www.papajohns.pt/promocoes/papa-as-3as/",
+        )
+        self.assertEqual(
+            _resolve_papa_johns_url("Super John."),
+            "https://www.papajohns.pt/promocoes/super-john/",
+        )
+        # Promoções sem landing page dedicada usam o catálogo geral
+        self.assertEqual(
+            _resolve_papa_johns_url("Campanha Desconhecida Nova"),
+            "https://www.papajohns.pt/promocoes/",
+        )
 
 
 if __name__ == "__main__":

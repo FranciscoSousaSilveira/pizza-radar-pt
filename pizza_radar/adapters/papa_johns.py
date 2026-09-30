@@ -232,8 +232,11 @@ _PAPA_JOHNS_KNOWN_SLUGS: dict[str, str] = {
     "papito": "o-papito-menu-individual/",
     "duo bestial": "duo-bestial/",
     "trio bestial": "trio-bestial/",
+    "papa às 3ªs": "papa-as-3as/",
     "papa às 3as": "papa-as-3as/",
     "papa as 3as": "papa-as-3as/",
+    "papa às 3": "papa-as-3as/",
+    "papa as 3": "papa-as-3as/",
     "super john": "super-john/",
 }
 
