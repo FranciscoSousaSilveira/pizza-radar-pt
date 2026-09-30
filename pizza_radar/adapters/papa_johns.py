@@ -228,6 +228,29 @@ def _parse_availability(availability: Any) -> list[Weekday]:
     return days
 
 
+_PAPA_JOHNS_KNOWN_SLUGS: dict[str, str] = {
+    "papito": "o-papito-menu-individual/",
+    "duo bestial": "duo-bestial/",
+    "trio bestial": "trio-bestial/",
+    "papa às 3as": "papa-as-3as/",
+    "papa as 3as": "papa-as-3as/",
+    "super john": "super-john/",
+}
+
+
+def _resolve_papa_johns_url(title: str) -> str:
+    """Resolve o URL oficial mais específico para uma promoção Papa John's.
+
+    Se existir uma página de campanha dedicada com configurador ('Pede Já'),
+    encaminha diretamente para essa página. Caso contrário, utiliza a página geral.
+    """
+    clean_title = title.lower()
+    for key, slug in _PAPA_JOHNS_KNOWN_SLUGS.items():
+        if key in clean_title:
+            return f"https://www.papajohns.pt/promocoes/{slug}"
+    return "https://www.papajohns.pt/promocoes/"
+
+
 def _sort_store_ids(store_ids: list[str] | set[str]) -> list[str]:
     """Ordena store_ids deterministicamente (ordem numérica quando aplicável)."""
     return sorted(set(store_ids), key=lambda s: (0, int(s)) if s.isdigit() else (1, s))
@@ -677,7 +700,7 @@ class PapaJohnsAdapter(PromoAdapterInterface):
             pizza_size=pizza_size,
             included_items=included_items,
             image_url=image_url,
-            source_url="https://www.papajohns.pt/promocoes/",
+            source_url=_resolve_papa_johns_url(parsed_item["name"]),
             location_scope="Lisboa",
             offer_type=offer_type,
         )

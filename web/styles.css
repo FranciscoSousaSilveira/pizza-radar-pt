@@ -1146,6 +1146,36 @@ body {
   white-space: nowrap;
 }
 
+/* Badges de Canal de Atendimento (Entrega / Take Away) */
+.badge-channel {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-channel-both {
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+}
+
+.badge-channel-delivery {
+  background: #EFF6FF;
+  color: #1E40AF;
+  border: 1px solid #BFDBFE;
+}
+
+.badge-channel-takeaway {
+  background: #F0FDF4;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+}
+
 /* better-typography: text-wrap balance no título, entrelinha 1.25 */
 .card-title {
   font-size: 1.15rem;
@@ -1160,6 +1190,13 @@ body {
   overflow: hidden;
 }
 
+.description-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
 /* better-typography: text-wrap pretty na descrição, entrelinha 1.45 */
 .card-description {
   font-size: 0.88rem;
@@ -1171,6 +1208,41 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: all var(--transition-fast);
+}
+
+.card-description.is-expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+.btn-toggle-desc {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 2px 0 4px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-brand-primary, #E03A3E);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.btn-toggle-desc:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.btn-toggle-desc svg {
+  transition: transform var(--transition-fast);
+}
+
+.btn-toggle-desc[aria-expanded="true"] svg {
+  transform: rotate(180deg);
 }
 
 /* Bloco de Preços */

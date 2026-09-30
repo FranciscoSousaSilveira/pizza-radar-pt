@@ -94,6 +94,46 @@
     await loadData();
   }
 
+  // Unifica grupos promocionais que partilham a mesma marca, título e preço em canais complementares
+  function deduplicateVisualGroups(groups) {
+    const unified = [];
+    const seenMap = new Map();
+
+    for (const group of groups) {
+      const normTitle = (group.title || '').trim().toLowerCase();
+      const priceKey = group.min_price_cents !== null && group.min_price_cents !== undefined ? group.min_price_cents : group.display_price_label;
+      const key = `${group.vendor}|${normTitle}|${priceKey}|${group.offer_type}`;
+
+      if (seenMap.has(key)) {
+        const existing = seenMap.get(key);
+        // Fundir métodos de atendimento (ex.: ['DELIVERY'] + ['TAKE_AWAY'])
+        if (group.dispatch_methods) {
+          for (const dm of group.dispatch_methods) {
+            if (!existing.dispatch_methods.includes(dm)) {
+              existing.dispatch_methods.push(dm);
+            }
+          }
+        }
+        // Fundir variantes de loja caso existam
+        if (group.variants && existing.variants) {
+          for (const v of group.variants) {
+            if (!existing.variants.some((ev) => ev.variant_id === v.variant_id)) {
+              existing.variants.push(v);
+            }
+          }
+        }
+      } else {
+        const cloned = {
+          ...group,
+          dispatch_methods: [...(group.dispatch_methods || [])]
+        };
+        seenMap.set(key, cloned);
+        unified.push(cloned);
+      }
+    }
+    return unified;
+  }
+
   // Carregar dados de snapshot
   async function loadData() {
     try {
@@ -103,7 +143,7 @@
         throw new Error(`Falha HTTP ao carregar snapshot: ${response.status}`);
       }
       const data = await response.json();
-      state.allGroups = data.groups || [];
+      state.allGroups = deduplicateVisualGroups(data.groups || []);
       state.stats = data.stats || {};
       state.vendorStatus = data.vendor_status || {};
       state.dataMode = data.data_mode || 'demo';
@@ -205,7 +245,7 @@
 
   // Atualizar Contadores Dinâmicos nos Chips (Operate + Read)
   function updateChipCounts(data) {
-    const groups = data.groups || [];
+    const groups = state.allGroups || data.groups || [];
     const total = groups.length;
 
     // Contadores por Tipo de Produto
@@ -366,9 +406,26 @@
       }, { passive: true });
     }
 
-    // Delegação de Partilha / Cópia de Ligação nos Cartões
+    // Delegação de Eventos nos Cartões (Partilha e Expansão de Descrição)
     if (elements.promosGrid) {
       elements.promosGrid.addEventListener('click', async (e) => {
+        // Toggle de Descrição Expandida ("Ver mais / Ver menos")
+        const toggleBtn = e.target.closest('.btn-toggle-desc');
+        if (toggleBtn) {
+          const targetId = toggleBtn.dataset.target;
+          const descEl = document.getElementById(targetId);
+          if (descEl) {
+            const isExpanded = descEl.classList.toggle('is-expanded');
+            toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+            const labelSpan = toggleBtn.querySelector('.toggle-label');
+            if (labelSpan) {
+              labelSpan.textContent = isExpanded ? 'Ver menos' : 'Ver mais';
+            }
+          }
+          return;
+        }
+
+        // Partilha / Cópia de Hiperligação
         const shareBtn = e.target.closest('.btn-share-promo');
         if (!shareBtn) return;
         const urlToCopy = shareBtn.dataset.url || window.location.href;
@@ -582,6 +639,38 @@
       preservedBadgeHTML = '<span class="badge-preserved" title="Oferta preservada da recolha anterior">Preservada</span>';
     }
 
+    // Badges de Canal de Atendimento no Cartão
+    let channelBadgeHTML = '';
+    const hasDelivery = (group.dispatch_methods || []).includes('DELIVERY');
+    const hasTakeAway = (group.dispatch_methods || []).includes('TAKE_AWAY');
+    if (hasDelivery && hasTakeAway) {
+      channelBadgeHTML = '<span class="badge-channel badge-channel-both" title="Disponível para entrega e take away">🛵 Entrega & 🥡 Take Away</span>';
+    } else if (hasDelivery) {
+      channelBadgeHTML = '<span class="badge-channel badge-channel-delivery" title="Exclusivo entrega ao domicílio">🛵 Entrega</span>';
+    } else if (hasTakeAway) {
+      channelBadgeHTML = '<span class="badge-channel badge-channel-takeaway" title="Exclusivo levantamento em loja">🥡 Take Away</span>';
+    }
+
+    // Descrição e Botão Ver mais / Ver menos
+    let descriptionHTML = '';
+    if (group.description) {
+      const descId = `desc-${escapeHTML(group.persistent_id)}`;
+      const isLong = group.description.length > 70;
+      descriptionHTML = `
+        <div class="description-wrap">
+          <p class="card-description" id="${descId}">${escapeHTML(group.description)}</p>
+          ${isLong ? `
+            <button type="button" class="btn-toggle-desc" aria-expanded="false" aria-controls="${descId}" data-target="${descId}">
+              <span class="toggle-label">Ver mais</span>
+              <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M5 7.5l5 5 5-5"></path>
+              </svg>
+            </button>
+          ` : ''}
+        </div>
+      `;
+    }
+
     // Preço e Desconto
     const displayPrice = group.display_price_label || 'Preço sob consulta';
 
@@ -692,12 +781,13 @@
         <div class="card-body">
           <div class="card-tags-row">
             ${offerTypeBadgeHTML}
+            ${channelBadgeHTML}
             ${superDiscountHTML}
             ${preservedBadgeHTML}
           </div>
 
           <h3 class="card-title">${escapeHTML(group.title)}</h3>
-          ${group.description ? `<p class="card-description">${escapeHTML(group.description)}</p>` : ''}
+          ${descriptionHTML}
 
           <div class="pricing-block">
             <div class="price-main-row">
