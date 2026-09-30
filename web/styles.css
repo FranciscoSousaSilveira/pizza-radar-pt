@@ -10,12 +10,12 @@
 
 :root {
   /* Cores Base do Canvas e Superfícies (Warm Artisanal Stone & Dough) */
-  --color-canvas: #F6F3EE;
-  --color-canvas-alt: #EFEBE3;
+  --color-canvas: #EFEBE4;
+  --color-canvas-alt: #E6E1D7;
   --color-surface: #FFFFFF;
-  --color-surface-subtle: #FAF8F5;
-  --color-border: #E5E0D5;
-  --color-border-subtle: #EFEBE3;
+  --color-surface-subtle: #F8F5EE;
+  --color-border: #E0DAD0;
+  --color-border-subtle: #EBE5DB;
   --color-border-focus: #1C1917;
 
   /* Tipografia & Hierarquia de Texto */
@@ -75,12 +75,12 @@ body {
   background-color: var(--color-canvas);
   background-image: 
     /* 1. Halo luminoso de forno a lenha no topo (Warm Lisbon oven ambient glow) */
-    radial-gradient(ellipse 90% 520px at 50% -30px, rgba(194, 65, 12, 0.085) 0%, rgba(217, 119, 6, 0.038) 42%, transparent 75%),
+    radial-gradient(ellipse 90% 560px at 50% -40px, rgba(194, 65, 12, 0.12) 0%, rgba(217, 119, 6, 0.05) 45%, transparent 75%),
     /* 2. Feixe focal suave de radar */
-    radial-gradient(circle 850px at 50% 220px, rgba(194, 65, 12, 0.022) 0%, transparent 65%),
-    /* 3. Textura tátil de coordenadas de radar & sêmola fina */
-    radial-gradient(rgba(41, 37, 36, 0.075) 1.25px, transparent 1.25px);
-  background-size: 100% 100%, 100% 100%, 28px 28px;
+    radial-gradient(circle 900px at 50% 200px, rgba(194, 65, 12, 0.035) 0%, transparent 65%),
+    /* 3. Textura tátil visível de coordenadas de radar & sêmola fina */
+    radial-gradient(rgba(41, 37, 36, 0.12) 1.5px, transparent 1.5px);
+  background-size: 100% 100%, 100% 100%, 24px 24px;
   background-position: top center, top center, 0 0;
   color: var(--color-text-body);
   line-height: 1.5;
@@ -276,9 +276,38 @@ body {
    ========================================================================== */
 .hero-section {
   width: 100%;
-  padding: 36px 16px 20px;
+  padding: 36px 20px 28px;
   text-align: center;
-  background: radial-gradient(circle at 50% 10%, rgba(194, 65, 12, 0.05) 0%, transparent 65%);
+  background: linear-gradient(160deg, #FFFFFF 0%, #FAF5EE 55%, #F4EBE0 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 20px -2px rgba(28, 25, 23, 0.05), 0 1px 3px rgba(28, 25, 23, 0.03);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(194, 65, 12, 0.08) 0%, rgba(217, 119, 6, 0.04) 40%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero-section::after {
+  content: "";
+  position: absolute;
+  bottom: -50px;
+  left: -50px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(21, 128, 61, 0.05) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 .hero-container {
@@ -459,7 +488,7 @@ body {
 }
 
 .feature-card {
-  background: var(--color-surface);
+  background: #FDFAF6;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 22px 20px;
@@ -514,7 +543,13 @@ body {
   flex-direction: column;
   gap: 20px;
   width: 100%;
-  padding-top: 12px;
+  padding: 20px 22px 24px;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.04), 0 6px 20px -4px rgba(28, 25, 23, 0.04);
 }
 
 .radar-section-header {
@@ -540,14 +575,14 @@ body {
    Layout Principal
    ========================================================================== */
 .main-layout {
-  max-width: 1240px;
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 16px 20px 60px;
+  padding: 16px 20px 48px;
   width: 100%;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 18px;
 }
 /* ==========================================================================
    Segmented Control de Ordenação (Editorial Tabs)
@@ -620,11 +655,13 @@ body {
 
 /* better-ui: Sombras em camadas translúcidas e raios concêntricos */
 .discovery-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   padding: 16px 20px;
-  box-shadow: var(--shadow-subtle);
+  box-shadow: 0 1px 4px rgba(28, 25, 23, 0.05), 0 4px 16px -2px rgba(28, 25, 23, 0.04);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -925,24 +962,30 @@ body {
 .promos-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 20px;
 }
 
-@media (min-width: 680px) {
+@media (min-width: 640px) {
   .promos-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (min-width: 1040px) {
+@media (min-width: 980px) {
   .promos-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
+@media (min-width: 1300px) {
+  .promos-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 /* Cartão Individual */
 .promo-card {
-  background: var(--color-surface);
+  background: #FDFAF6;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -1110,11 +1153,11 @@ body {
 
 /* Corpo do Cartão */
 .card-body {
-  padding: 16px 18px 14px;
+  padding: 14px 16px 12px;
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 10px;
+  gap: 8px;
 }
 
 .card-tags-row {
@@ -1264,11 +1307,12 @@ body {
   transform: rotate(180deg);
 }
 
-/* Bloco de Preços */
 .pricing-block {
   margin-top: auto;
-  padding-top: 10px;
-  border-top: 1px dashed var(--color-border-subtle);
+  padding: 10px 12px;
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1340,8 +1384,8 @@ body {
 
 /* Rodapé do Cartão */
 .card-footer {
-  padding: 12px 18px 16px;
-  background: var(--color-surface);
+  padding: 10px 16px 14px;
+  background: var(--color-surface-subtle);
   border-top: 1px solid var(--color-border-subtle);
 }
 
@@ -1413,7 +1457,7 @@ body {
    ========================================================================== */
 .empty-state {
   grid-column: 1 / -1;
-  background: var(--color-surface);
+  background: #FDFAF6;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 48px 24px;
@@ -1671,7 +1715,8 @@ body {
     border-radius: var(--radius-md);
   }
   .features-section {
-    padding: 16px 0 8px;
+    padding: 24px 16px 16px;
+    margin-top: 12px;
   }
   .features-heading {
     font-size: 1.25rem;
