@@ -290,7 +290,7 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
                     pizza_size=promo.pizza_size,
                     offer_type=promo.offer_type,
                     is_comparable_for_unit_price=promo.is_comparable_for_unit_price,
-                    observed_at=promo.observed_at,
+                    observed_at=promo.last_seen_at or promo.observed_at,
                     conditions=promo.conditions,
                     valid_from=promo.valid_from,
                     valid_until=promo.valid_until,
