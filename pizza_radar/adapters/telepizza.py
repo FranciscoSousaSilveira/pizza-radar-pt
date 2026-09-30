@@ -756,7 +756,7 @@ class TelepizzaAdapter(PromoAdapterInterface):
                     pizza_size=PizzaSize.UNKNOWN,
                     included_items=[],
                     image_url=image_url,
-                    source_url=_URL,
+                    source_url=f"{_URL}#offerDetails_{item['id']}" if item.get("id") else _URL,
                     location_scope="Lisboa",
                     offer_type=offer_type,
                     valid_from=item.get("valid_from"),

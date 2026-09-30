@@ -731,7 +731,7 @@
     const freshnessText = formatObservationDate(group.most_recent_observed_at);
 
     // CTA Oficial
-    const sourceUrl = group.source_url || '#';
+    const sourceUrl = resolveDirectPromoUrl(group);
 
     // Super Desconto (destaque para economias >= 40%)
     let superDiscountHTML = '';
@@ -860,6 +860,54 @@
     } catch {
       return 'Observação confirmada';
     }
+  }
+
+  function resolveDirectPromoUrl(group) {
+    if (!group) return '#';
+    let url = group.source_url || '#';
+
+    // Telepizza: navegar diretamente para a âncora do cartão/modal #offerDetails_{id}
+    if (group.vendor === 'TELEPIZZA') {
+      if (!url.includes('#offerDetails_') && Array.isArray(group.variants) && group.variants.length > 0) {
+        const vId = group.variants[0].variant_id || '';
+        const match = vId.match(/^tp_(.+?)_(delivery|takeaway)$/);
+        const promoId = match ? match[1] : '';
+        if (promoId) {
+          return `https://www.telepizza.pt/promocoes#offerDetails_${encodeURIComponent(promoId)}`;
+        }
+      }
+      return url.includes('promocoes') ? url : 'https://www.telepizza.pt/promocoes';
+    }
+
+    // Domino's: encaminhar diretamente para o carrossel de promoções #content-for-scroll
+    if (group.vendor === 'DOMINOS') {
+      if (url === 'https://www.dominospizza.pt/' || url === 'https://www.dominospizza.pt' || !url.includes('#')) {
+        return 'https://www.dominospizza.pt/#content-for-scroll';
+      }
+      return url;
+    }
+
+    // Papa John's: mapear slugs oficiais conhecidas
+    if (group.vendor === 'PAPA_JOHNS') {
+      const lower = (group.title || '').toLowerCase();
+      if (lower.includes('papa day') || lower.includes('papa às 3') || lower.includes('papa as 3')) {
+        return 'https://www.papajohns.pt/promocoes/papa-as-3as/';
+      }
+      if (lower.includes('super john')) {
+        return 'https://www.papajohns.pt/promocoes/super-john/';
+      }
+      if (lower.includes('trio bestial')) {
+        return 'https://www.papajohns.pt/promocoes/trio-bestial/';
+      }
+      if (lower.includes('duo bestial')) {
+        return 'https://www.papajohns.pt/promocoes/duo-bestial/';
+      }
+      if (lower.includes('papito')) {
+        return 'https://www.papajohns.pt/promocoes/o-papito-menu-individual/';
+      }
+    }
+
+    return url;
   }
 
   function escapeHTML(str) {

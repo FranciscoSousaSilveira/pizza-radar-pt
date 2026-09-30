@@ -548,6 +548,8 @@ body {
   padding: 4px;
   border-radius: var(--radius-pill);
   display: flex;
+  justify-content: center;
+  margin: 0 auto;
   gap: 4px;
   width: 100%;
   max-width: 640px;

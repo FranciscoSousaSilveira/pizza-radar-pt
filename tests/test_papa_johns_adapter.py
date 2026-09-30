@@ -575,6 +575,10 @@ class TestPapaJohnsAdapterErrorsAndIntegration(unittest.TestCase):
             "https://www.papajohns.pt/promocoes/papa-as-3as/",
         )
         self.assertEqual(
+            _resolve_papa_johns_url("Papa Day"),
+            "https://www.papajohns.pt/promocoes/papa-as-3as/",
+        )
+        self.assertEqual(
             _resolve_papa_johns_url("Super John."),
             "https://www.papajohns.pt/promocoes/super-john/",
         )

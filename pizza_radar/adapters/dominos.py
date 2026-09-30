@@ -46,6 +46,7 @@ from pizza_radar.core.models import (
 _WARMUP_URL = "https://www.dominospizza.pt/menu/areeiro"
 _AJAX_URL = "https://www.dominospizza.pt/ajax/order.php"
 _HOMEPAGE_URL = "https://www.dominospizza.pt/"
+_OFFERS_URL = "https://www.dominospizza.pt/#content-for-scroll"
 _BROWSERLESS_CONTENT_URL = "https://production-lon.browserless.io/content"
 
 # Loja 140 (Areeiro / Lisboa Centro) é utilizada estritamente como amostra / loja-âncora
@@ -335,7 +336,7 @@ class DominosAdapter(PromoAdapterInterface):
             pizza_size=PizzaSize.UNKNOWN,
             included_items=[],
             image_url=image_url,
-            source_url="https://www.dominospizza.pt/promocoes",
+            source_url=_OFFERS_URL,
             location_scope="Lisboa",
             offer_type=offer_type,
         )
@@ -541,7 +542,7 @@ class DominosAdapter(PromoAdapterInterface):
                     pizza_size=PizzaSize.UNKNOWN,
                     included_items=[],
                     image_url=image_url,
-                    source_url=_HOMEPAGE_URL,
+                    source_url=_OFFERS_URL,
                     location_scope="Lisboa",
                     offer_type=offer_type,
                 )
