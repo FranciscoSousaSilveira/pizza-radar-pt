@@ -17,7 +17,7 @@
     stats: null,
     vendorStatus: {},
     activeRanking: 'LOWEST_ABSOLUTE_PRICE',
-    filterProduct: 'PIZZA_ONLY',
+    filterProduct: 'ALL',
     filterVendor: 'ALL',
     filterChannel: 'ALL',
     filterDay: 'ALL',
@@ -249,13 +249,15 @@
     const total = groups.length;
 
     // Contadores por Tipo de Produto
-    const pizzaOnlyCount = groups.filter((g) => g.offer_type === 'PIZZA' || g.offer_type === 'BUNDLE_WITH_PIZZA').length;
+    const pizzaCount = groups.filter((g) => g.offer_type === 'PIZZA').length;
+    const menuCount = groups.filter((g) => g.offer_type === 'BUNDLE_WITH_PIZZA').length;
     const nonPizzaCount = groups.filter((g) => g.offer_type === 'NON_PIZZA').length;
 
     elements.productChips.forEach((chip) => {
       const type = chip.dataset.product;
-      if (type === 'PIZZA_ONLY') chip.textContent = `Pizzas e Menus (${pizzaOnlyCount})`;
-      else if (type === 'ALL') chip.textContent = `Todas as Ofertas (${total})`;
+      if (type === 'ALL') chip.textContent = `Todas as Ofertas (${total})`;
+      else if (type === 'PIZZA') chip.textContent = `Pizzas (${pizzaCount})`;
+      else if (type === 'BUNDLE_WITH_PIZZA') chip.textContent = `Menus (${menuCount})`;
       else if (type === 'NON_PIZZA') chip.textContent = `Acompanhamentos (${nonPizzaCount})`;
     });
 
@@ -468,7 +470,7 @@
 
   // Limpar Todos os Filtros
   function resetFilters() {
-    state.filterProduct = 'PIZZA_ONLY';
+    state.filterProduct = 'ALL';
     state.filterVendor = 'ALL';
     state.filterChannel = 'ALL';
     state.filterDay = 'ALL';
@@ -476,8 +478,8 @@
     state.searchQuery = '';
 
     elements.productChips.forEach((c) => {
-      c.classList.toggle('active', c.dataset.product === 'PIZZA_ONLY');
-      c.setAttribute('aria-pressed', c.dataset.product === 'PIZZA_ONLY' ? 'true' : 'false');
+      c.classList.toggle('active', c.dataset.product === 'ALL');
+      c.setAttribute('aria-pressed', c.dataset.product === 'ALL' ? 'true' : 'false');
     });
     elements.vendorChips.forEach((c) => {
       c.classList.toggle('active', c.dataset.vendor === 'ALL');
@@ -498,9 +500,11 @@
   function applyFiltersAndRender() {
     let filtered = [...state.allGroups];
 
-    // 0. Filtro por Tipo de Produto (Pizzas por omissão)
-    if (state.filterProduct === 'PIZZA_ONLY') {
-      filtered = filtered.filter((g) => g.offer_type === 'PIZZA' || g.offer_type === 'BUNDLE_WITH_PIZZA');
+    // 0. Filtro por Tipo de Produto
+    if (state.filterProduct === 'PIZZA') {
+      filtered = filtered.filter((g) => g.offer_type === 'PIZZA');
+    } else if (state.filterProduct === 'BUNDLE_WITH_PIZZA') {
+      filtered = filtered.filter((g) => g.offer_type === 'BUNDLE_WITH_PIZZA');
     } else if (state.filterProduct === 'NON_PIZZA') {
       filtered = filtered.filter((g) => g.offer_type === 'NON_PIZZA');
     }
@@ -824,7 +828,7 @@
 
   // Atualizar Barra de Estado
   function updateStatusBar(count) {
-    const isFiltered = state.filterProduct !== 'PIZZA_ONLY' ||
+    const isFiltered = state.filterProduct !== 'ALL' ||
                        state.filterVendor !== 'ALL' ||
                        state.filterChannel !== 'ALL' ||
                        state.filterDay !== 'ALL' ||

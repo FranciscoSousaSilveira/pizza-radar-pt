@@ -126,8 +126,9 @@
             </div>
 
             <div class="chips-row product-chips-row" role="group" aria-label="Tipo de Oferta" id="product-chips">
-              <button type="button" class="chip active" data-product="PIZZA_ONLY" aria-pressed="true">Pizzas e Menus</button>
-              <button type="button" class="chip" data-product="ALL" aria-pressed="false">Todas as Ofertas</button>
+              <button type="button" class="chip active" data-product="ALL" aria-pressed="true">Todas as Ofertas</button>
+              <button type="button" class="chip" data-product="PIZZA" aria-pressed="false">Pizzas</button>
+              <button type="button" class="chip" data-product="BUNDLE_WITH_PIZZA" aria-pressed="false">Menus</button>
               <button type="button" class="chip" data-product="NON_PIZZA" aria-pressed="false">Acompanhamentos</button>
             </div>
           </div>
@@ -143,7 +144,7 @@
             </div>
           </div>
 
-          <!-- Linha 3: Canais, Dia da Semana e Comparabilidade -->
+          <!-- Linha 3: Canais e Comparabilidade -->
           <div class="discovery-row discovery-row-options">
             <div class="chips-row channel-chips-row" role="group" aria-label="Canal de Atendimento" id="channel-chips">
               <button type="button" class="chip active" data-channel="ALL" aria-pressed="true">Todos os Canais</button>
@@ -153,20 +154,6 @@
             </div>
 
             <div class="secondary-controls">
-              <div class="select-field">
-                <label for="select-day" class="sr-only">Dia da Semana</label>
-                <select id="select-day" class="custom-select" aria-label="Filtrar por dia da semana">
-                  <option value="ALL">Qualquer dia</option>
-                  <option value="MONDAY">Segunda-feira</option>
-                  <option value="TUESDAY">Terça-feira</option>
-                  <option value="WEDNESDAY">Quarta-feira</option>
-                  <option value="THURSDAY">Quinta-feira</option>
-                  <option value="FRIDAY">Sexta-feira</option>
-                  <option value="SATURDAY">Sábado</option>
-                  <option value="SUNDAY">Domingo</option>
-                </select>
-              </div>
-
               <div class="toggle-field">
                 <label class="toggle-container" for="toggle-comparable">
                   <input type="checkbox" id="toggle-comparable">
@@ -205,7 +192,7 @@
     <section id="how-it-works" class="features-section" aria-labelledby="features-title">
       <div class="features-header">
         <h2 id="features-title" class="features-heading">Porquê o Pizza Radar?</h2>
-        <p class="features-intro">Transparência matemática para aproveitares o melhor valor real em cada encomenda.</p>
+        <p class="features-intro">Transparência total para aproveitares o melhor valor real em cada encomenda.</p>
       </div>
 
       <div class="features-grid">
@@ -227,7 +214,7 @@
             </svg>
           </div>
           <h3 class="feature-title">Preço Unitário por Pizza</h3>
-          <p class="feature-text">Decompomos menus 2x1, trios e packs familiares no valor real por pizza individual, para comparares com justiça matemática.</p>
+          <p class="feature-text">Decompomos menus 2x1, trios e packs familiares no valor real por pizza individual, para saberes exatamente quanto custa cada pizza.</p>
         </div>
 
         <div class="feature-card">
