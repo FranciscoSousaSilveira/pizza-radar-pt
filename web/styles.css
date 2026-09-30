@@ -9,12 +9,13 @@
    ========================================================================== */
 
 :root {
-  /* Cores Base do Canvas e Superfícies (Warm Porcelain Editorial) */
-  --color-canvas: #FBFBFA;
+  /* Cores Base do Canvas e Superfícies (Warm Artisanal Stone & Dough) */
+  --color-canvas: #F6F3EE;
+  --color-canvas-alt: #EFEBE3;
   --color-surface: #FFFFFF;
-  --color-surface-subtle: #F5F5F3;
-  --color-border: #E7E5E0;
-  --color-border-subtle: #EEEEEC;
+  --color-surface-subtle: #FAF8F5;
+  --color-border: #E5E0D5;
+  --color-border-subtle: #EFEBE3;
   --color-border-focus: #1C1917;
 
   /* Tipografia & Hierarquia de Texto */
@@ -50,9 +51,9 @@
   --radius-pill: 9999px;
 
   /* better-ui: Sombras em camadas translúcidas */
-  --shadow-subtle: 0 1px 2px rgba(28, 25, 23, 0.04), 0 3px 8px rgba(28, 25, 23, 0.03);
-  --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.05), 0 6px 16px -2px rgba(28, 25, 23, 0.04);
-  --shadow-hover: 0 4px 6px -1px rgba(28, 25, 23, 0.08), 0 16px 28px -4px rgba(28, 25, 23, 0.1);
+  --shadow-subtle: 0 1px 2px rgba(28, 25, 23, 0.05), 0 3px 8px rgba(28, 25, 23, 0.04);
+  --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.06), 0 8px 24px -4px rgba(28, 25, 23, 0.06);
+  --shadow-hover: 0 6px 14px -2px rgba(28, 25, 23, 0.09), 0 20px 32px -6px rgba(28, 25, 23, 0.12);
   --shadow-badge: 0 1px 4px rgba(0, 0, 0, 0.18);
 
   /* better-ui: Curva tátil exata e duração estrita */
@@ -72,6 +73,15 @@
 body {
   font-family: var(--font-family);
   background-color: var(--color-canvas);
+  background-image: 
+    /* 1. Halo luminoso de forno a lenha no topo (Warm Lisbon oven ambient glow) */
+    radial-gradient(ellipse 90% 520px at 50% -30px, rgba(194, 65, 12, 0.085) 0%, rgba(217, 119, 6, 0.038) 42%, transparent 75%),
+    /* 2. Feixe focal suave de radar */
+    radial-gradient(circle 850px at 50% 220px, rgba(194, 65, 12, 0.022) 0%, transparent 65%),
+    /* 3. Textura tátil de coordenadas de radar & sêmola fina */
+    radial-gradient(rgba(41, 37, 36, 0.075) 1.25px, transparent 1.25px);
+  background-size: 100% 100%, 100% 100%, 28px 28px;
+  background-position: top center, top center, 0 0;
   color: var(--color-text-body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -157,9 +167,9 @@ body {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(246, 243, 238, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--color-border);
   padding: 12px 20px;
   transition: background-color 0.2s var(--ease-tactile);
@@ -406,7 +416,13 @@ body {
    ========================================================================== */
 .features-section {
   width: 100%;
-  padding: 24px 0 12px;
+  padding: 40px 24px 32px;
+  background: #ECE7DE;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: inset 0 1px 3px rgba(28, 25, 23, 0.02);
+  margin-top: 16px;
+  margin-bottom: 8px;
 }
 
 .features-header {
@@ -544,7 +560,7 @@ body {
 
 /* better-ui: Raio concêntrico e transições explícitas */
 .ranking-segmented-control {
-  background: #EAE8E3;
+  background: #E5E0D4;
   padding: 4px;
   border-radius: var(--radius-pill);
   display: flex;
@@ -553,6 +569,7 @@ body {
   gap: 4px;
   width: 100%;
   max-width: 640px;
+  border: 1px solid rgba(28, 25, 23, 0.06);
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
