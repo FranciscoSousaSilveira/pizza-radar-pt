@@ -1654,6 +1654,7 @@ body {
   font-weight: 700;
   cursor: pointer;
   z-index: 100;
+  display: flex;
   align-items: center;
   justify-content: center;
   transition-property: transform, background-color;
@@ -1672,6 +1673,16 @@ body {
 @media (max-width: 640px) {
   .site-header {
     padding: 10px 14px;
+  }
+  /* Em mobile, esconde o texto do badge — mantém só o ponto verde */
+  .header-status-badge .status-text {
+    display: none;
+  }
+  .header-status-badge {
+    padding: 6px 8px;
+    border-radius: 50%;
+    min-width: 30px;
+    justify-content: center;
   }
   .header-nav .nav-link {
     display: none;
@@ -1728,18 +1739,34 @@ body {
     padding: 16px 14px;
   }
   .main-layout {
-    padding: 8px 12px 40px;
-    gap: 20px;
+    padding: 8px 10px 36px;
+    gap: 14px;
   }
   .radar-section-title {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+  }
+  .radar-section-subtitle {
+    font-size: 0.82rem;
+  }
+  /* radar-app-section: reduz padding lateral para mobile */
+  .radar-app-section {
+    padding: 14px 12px 16px;
+    border-radius: var(--radius-lg);
+    gap: 14px;
   }
   .ranking-segmented-control {
     max-width: 100%;
+    padding: 3px;
+    gap: 2px;
+    /* Gradiente lateral: indica visualmente que há mais opções para a direita */
+    mask-image: linear-gradient(to right, black 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
   }
   .ranking-tab {
-    padding: 8px 12px;
-    font-size: 0.82rem;
+    padding: 9px 14px;
+    font-size: 0.84rem;
+    min-width: auto;
+    flex-shrink: 0;
   }
   .discovery-card {
     padding: 12px;
@@ -1747,20 +1774,50 @@ body {
   }
   /* better-typography: manter 16px no mobile para não disparar zoom do iOS Safari */
   .search-input {
-    height: 42px;
+    height: 44px;
     font-size: 16px !important;
   }
+  /* Chips: tamanho mínimo de toque 44px (WCAG 2.5.5) */
   .chip {
-    height: 34px;
-    padding: 0 10px;
-    font-size: 0.8rem;
+    height: 44px;
+    padding: 0 14px;
+    font-size: 0.84rem;
+    border-radius: var(--radius-md);
+  }
+  /* Chips rows: scroll horizontal com snap táctil */
+  .chips-row {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .chips-row .chip {
+    scroll-snap-align: start;
   }
   .custom-select {
-    height: 34px;
-    font-size: 0.82rem;
+    height: 44px;
+    font-size: 0.86rem;
+    padding: 0 14px;
   }
   .toggle-container {
+    font-size: 0.84rem;
+  }
+  .toggle-switch {
+    width: 44px;
+    height: 26px;
+  }
+  .toggle-switch::after {
+    width: 22px;
+    height: 22px;
+  }
+  .toggle-container input:checked + .toggle-switch::after {
+    transform: translateX(18px);
+  }
+  .results-statusbar {
     font-size: 0.82rem;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .promos-grid {
+    gap: 12px;
   }
   .card-body {
     padding: 12px 14px 10px;
@@ -1775,11 +1832,74 @@ body {
   .price-value {
     font-size: 1.45rem;
   }
+  .pricing-block {
+    padding: 8px 10px;
+    gap: 4px;
+  }
   .card-footer {
     padding: 10px 14px 12px;
   }
   .btn-official {
-    height: 38px;
-    font-size: 0.84rem;
+    height: 44px;
+    font-size: 0.9rem;
+  }
+  .btn-share-promo {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+  .hero-actions {
+    gap: 10px;
+  }
+}
+
+/* Ultra-narrow (≤400px): ajustes para 360px e Galaxy S8/A */
+@media (max-width: 400px) {
+  .main-layout {
+    padding: 6px 8px 32px;
+    gap: 12px;
+  }
+  .hero-title {
+    font-size: 1.3rem;
+  }
+  .hero-subtitle {
+    font-size: 0.82rem;
+    margin-bottom: 14px;
+  }
+  /* Em 360px o botão secundário fica debaixo do primário — esconde-se */
+  .btn-hero-secondary {
+    display: none;
+  }
+  /* Market strip: grelha 2×2 em vez de linha que transborda */
+  .header-market-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 10px;
+    text-align: center;
+    font-size: 0.74rem;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+  }
+  .market-sep {
+    display: none;
+  }
+  .radar-app-section {
+    padding: 12px 10px 14px;
+    gap: 12px;
+  }
+  .ranking-tab {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+  .chip {
+    height: 40px;
+    padding: 0 12px;
+    font-size: 0.8rem;
+  }
+  .card-body {
+    padding: 10px 12px 8px;
+  }
+  .price-value {
+    font-size: 1.35rem;
   }
 }
