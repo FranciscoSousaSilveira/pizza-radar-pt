@@ -1668,238 +1668,420 @@ body {
 }
 
 /* ==========================================================================
-   Mobile Responsive Fine-Tuning (Above the Fold Priority)
+   Mobile Responsive Fine-Tuning (Above the Fold Priority & Native App Feel)
+   Aplica-se EXCLUSIVAMENTE em ecrãs móveis (≤640px)
    ========================================================================== */
 @media (max-width: 640px) {
+  /* Toque responsivo nativo sem flash cinzento */
+  *, *::before, *::after {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Barra de Navegação Superior Sticky */
   .site-header {
-    padding: 10px 14px;
+    padding: max(8px, env(safe-area-inset-top, 0px)) 12px 8px;
+    background: rgba(246, 243, 238, 0.95);
   }
-  /* Em mobile, esconde o texto do badge — mantém só o ponto verde */
-  .header-status-badge .status-text {
-    display: none;
+  .brand-nav-logo {
+    width: 32px;
+    height: 32px;
   }
-  .header-status-badge {
-    padding: 6px 8px;
-    border-radius: 50%;
-    min-width: 30px;
-    justify-content: center;
+  .brand-title {
+    font-size: 1.05rem;
+  }
+  .city-badge {
+    font-size: 0.62rem;
+    padding: 2px 6px;
   }
   .header-nav .nav-link {
     display: none;
   }
-  .brand-title {
-    font-size: 1.15rem;
-  }
   .header-status-badge {
     padding: 4px 8px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
+    gap: 5px;
+    border-radius: var(--radius-pill);
   }
+  .header-status-badge .status-text {
+    display: inline;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  /* Layout Principal */
+  .main-layout {
+    padding: 8px 10px calc(24px + env(safe-area-inset-bottom, 0px));
+    gap: 10px;
+  }
+
+  /* Hero Section: Compacto, sem redundâncias, foco nas promoções imediatas */
   .hero-section {
-    padding: 24px 12px 16px;
+    padding: 14px 14px 12px;
+    border-radius: var(--radius-lg);
   }
-  .hero-logo-halo {
-    width: 86px;
-    height: 86px;
+  /* Oculta o logótipo gigante: já existe o logótipo na barra fixa 50px acima */
+  .hero-badge-wrap {
+    display: none;
   }
   .hero-title {
-    font-size: 1.45rem;
-    line-height: 1.2;
-    margin-bottom: 10px;
+    font-size: 1.18rem;
+    line-height: 1.25;
+    margin-bottom: 5px;
+    letter-spacing: -0.02em;
   }
   .hero-subtitle {
-    font-size: 0.86rem;
-    line-height: 1.45;
-    margin-bottom: 18px;
+    font-size: 0.8rem;
+    line-height: 1.35;
+    margin-bottom: 8px;
+    color: var(--color-text-muted);
   }
-  .btn-hero-primary {
-    padding: 10px 18px;
-    font-size: 0.88rem;
+  /* Oculta botões redundantes: no telemóvel as promoções estão logo abaixo */
+  .hero-actions {
+    display: none;
   }
-  .btn-hero-secondary {
-    padding: 10px 16px;
-    font-size: 0.88rem;
-  }
+  /* Faixa de resumo compacta e perfeitamente centrada */
   .header-market-strip {
-    font-size: 0.78rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px 8px;
     padding: 6px 12px;
-    gap: 6px;
-    border-radius: var(--radius-md);
+    font-size: 0.74rem;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.85);
   }
-  .features-section {
-    padding: 24px 16px 16px;
-    margin-top: 12px;
-  }
-  .features-heading {
-    font-size: 1.25rem;
-  }
-  .features-intro {
-    font-size: 0.84rem;
-  }
-  .feature-card {
-    padding: 16px 14px;
-  }
-  .main-layout {
-    padding: 8px 10px 36px;
-    gap: 14px;
-  }
-  .radar-section-title {
-    font-size: 1.2rem;
-  }
-  .radar-section-subtitle {
-    font-size: 0.82rem;
-  }
-  /* radar-app-section: reduz padding lateral para mobile */
+
+  /* Secção do Radar de Ofertas */
   .radar-app-section {
-    padding: 14px 12px 16px;
+    padding: 10px 10px 12px;
     border-radius: var(--radius-lg);
-    gap: 14px;
+    gap: 8px;
   }
+  /* Oculta cabeçalho repetitivo no telemóvel para dar primazia aos controlos e ofertas */
+  .radar-section-header {
+    display: none;
+  }
+
+  /* Segmented Control de Ordenação: 3 botões lado a lado sem corte ou scroll horizontal */
   .ranking-segmented-control {
+    display: flex;
+    width: 100%;
     max-width: 100%;
     padding: 3px;
     gap: 2px;
-    /* Gradiente lateral: indica visualmente que há mais opções para a direita */
-    mask-image: linear-gradient(to right, black 80%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+    overflow: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
+    background: #E5E0D4;
+    border-radius: var(--radius-pill);
   }
   .ranking-tab {
-    padding: 9px 14px;
-    font-size: 0.84rem;
-    min-width: auto;
-    flex-shrink: 0;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 4px;
+    font-size: clamp(0.72rem, 2.7vw, 0.82rem);
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    justify-content: center;
+    border-radius: var(--radius-pill);
   }
+
+  /* Barra de Descoberta & Filtros */
   .discovery-card {
-    padding: 12px;
-    gap: 10px;
+    padding: 10px 10px 8px;
+    gap: 8px;
+    border-radius: var(--radius-lg);
   }
-  /* better-typography: manter 16px no mobile para não disparar zoom do iOS Safari */
+  .search-input-wrap {
+    width: 100%;
+  }
   .search-input {
-    height: 44px;
-    font-size: 16px !important;
+    height: 40px;
+    font-size: 16px !important; /* Previne auto-zoom indesejado no Safari iOS */
+    padding: 0 36px 0 36px;
   }
-  /* Chips: tamanho mínimo de toque 44px (WCAG 2.5.5) */
-  .chip {
-    height: 44px;
-    padding: 0 14px;
-    font-size: 0.84rem;
-    border-radius: var(--radius-md);
+  .search-icon {
+    left: 12px;
+    width: 16px;
+    height: 16px;
   }
-  /* Chips rows: scroll horizontal com snap táctil */
+  .btn-clear-search {
+    right: 10px;
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Carrosséis horizontais de chips */
   .chips-row {
-    scroll-snap-type: x mandatory;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding: 2px 0;
   }
   .chips-row .chip {
     scroll-snap-align: start;
+    flex-shrink: 0;
   }
-  .custom-select {
-    height: 44px;
-    font-size: 0.86rem;
-    padding: 0 14px;
+  .chip {
+    height: 34px;
+    padding: 0 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+  }
+
+  .discovery-row-brands {
+    padding-top: 6px;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+  .discovery-row-options {
+    padding-top: 6px;
+    border-top: 1px solid var(--color-border-subtle);
+    gap: 6px;
+    flex-direction: column;
+  }
+  .secondary-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
   }
   .toggle-container {
-    font-size: 0.84rem;
+    font-size: 0.78rem;
   }
   .toggle-switch {
-    width: 44px;
-    height: 26px;
+    width: 36px;
+    height: 20px;
   }
   .toggle-switch::after {
-    width: 22px;
-    height: 22px;
+    width: 16px;
+    height: 16px;
+    top: 2px;
+    left: 2px;
   }
   .toggle-container input:checked + .toggle-switch::after {
-    transform: translateX(18px);
+    transform: translateX(16px);
   }
+
+  /* Barra de resultados */
   .results-statusbar {
-    font-size: 0.82rem;
-    flex-wrap: wrap;
-    gap: 4px;
+    padding-top: 6px;
+    border-top: 1px solid var(--color-border-subtle);
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
+  .btn-reset-filters {
+    font-size: 0.78rem;
+  }
+
+  /* Grelha e Cartões Promocionais Otimizados para Scroll Móvel */
   .promos-grid {
     gap: 12px;
   }
-  .card-body {
-    padding: 12px 14px 10px;
-    gap: 8px;
-  }
-  .card-title {
-    font-size: 1.05rem;
-  }
-  .card-description {
-    font-size: 0.84rem;
-  }
-  .price-value {
-    font-size: 1.45rem;
-  }
-  .pricing-block {
-    padding: 8px 10px;
-    gap: 4px;
-  }
-  .card-footer {
-    padding: 10px 14px 12px;
-  }
-  .btn-official {
-    height: 44px;
-    font-size: 0.9rem;
-  }
-  .btn-share-promo {
-    width: 44px;
-    height: 44px;
-    font-size: 1.1rem;
-  }
-  .hero-actions {
-    gap: 10px;
-  }
-}
-
-/* Ultra-narrow (≤400px): ajustes para 360px e Galaxy S8/A */
-@media (max-width: 400px) {
-  .main-layout {
-    padding: 6px 8px 32px;
-    gap: 12px;
-  }
-  .hero-title {
-    font-size: 1.3rem;
-  }
-  .hero-subtitle {
-    font-size: 0.82rem;
-    margin-bottom: 14px;
-  }
-  /* Em 360px o botão secundário fica debaixo do primário — esconde-se */
-  .btn-hero-secondary {
-    display: none;
-  }
-  /* Market strip: grelha 2×2 em vez de linha que transborda */
-  .header-market-strip {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px 10px;
-    text-align: center;
-    font-size: 0.74rem;
-    padding: 8px 12px;
+  .promo-card {
     border-radius: var(--radius-md);
   }
-  .market-sep {
+  /* Proporção de imagem mais panorâmica para permitir ver mais conteúdo por ecrã */
+  .card-media {
+    aspect-ratio: 16 / 8.5;
+    max-height: 160px;
+    border-top-left-radius: var(--radius-md);
+    border-top-right-radius: var(--radius-md);
+  }
+  .floating-badge-top-left {
+    top: 8px;
+    left: 8px;
+  }
+  .floating-badge-top-right {
+    top: 8px;
+    right: 8px;
+  }
+  .floating-badge-bottom-right {
+    bottom: 8px;
+    right: 8px;
+  }
+  .vendor-badge {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+  }
+  .discount-tag {
+    font-size: 0.74rem;
+    padding: 3px 8px;
+  }
+  .dispatch-badge {
+    font-size: 0.68rem;
+    padding: 3px 7px;
+  }
+
+  /* Corpo do Cartão */
+  .card-body {
+    padding: 10px 12px 10px;
+    gap: 6px;
+  }
+  /* Oculta o badge de canal no corpo do cartão (já está claramente visível na imagem acima) */
+  .card-tags-row .badge-channel {
     display: none;
   }
-  .radar-app-section {
-    padding: 12px 10px 14px;
-    gap: 12px;
+  .badge-offer-type,
+  .badge-super-discount,
+  .badge-preserved {
+    font-size: 0.7rem;
+    padding: 2px 6px;
   }
-  .ranking-tab {
-    padding: 8px 10px;
+  .card-title {
+    font-size: 1.02rem;
+    line-height: 1.25;
+    margin-bottom: 2px;
+  }
+  .card-description {
     font-size: 0.8rem;
+    line-height: 1.35;
   }
-  .chip {
-    height: 40px;
-    padding: 0 12px;
-    font-size: 0.8rem;
+  .btn-toggle-desc {
+    font-size: 0.74rem;
+    padding: 1px 0;
   }
-  .card-body {
-    padding: 10px 12px 8px;
+
+  /* Bloco de Preços: Formato horizontal executivo */
+  .pricing-block {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    padding: 7px 10px;
+    margin-top: 4px;
+    border-radius: var(--radius-xs);
+  }
+  .price-main-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
   }
   .price-value {
     font-size: 1.35rem;
+    font-weight: 850;
+  }
+  .price-original {
+    font-size: 0.88rem;
+  }
+  .unit-price-badge {
+    font-size: 0.76rem;
+    padding: 3px 8px;
+    border-radius: var(--radius-xs);
+  }
+
+  /* Metadados */
+  .card-meta {
+    gap: 2px;
+    font-size: 0.75rem;
+    margin-top: 2px;
+  }
+
+  /* Rodapé do Cartão */
+  .card-footer {
+    padding: 8px 12px 10px;
+  }
+  .card-actions {
+    gap: 8px;
+  }
+  .btn-official {
+    height: 42px;
+    font-size: 0.86rem;
+    border-radius: var(--radius-pill);
+    gap: 6px;
+  }
+  .btn-share-promo {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-pill);
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  /* Secção de Destaques / Como Funciona */
+  .features-section {
+    padding: 20px 14px 16px;
+    margin-top: 10px;
+    border-radius: var(--radius-lg);
+  }
+  .features-heading {
+    font-size: 1.2rem;
+  }
+  .features-intro {
+    font-size: 0.8rem;
+  }
+  .feature-card {
+    padding: 14px 12px;
+  }
+  .feature-title {
+    font-size: 0.95rem;
+  }
+  .feature-text {
+    font-size: 0.82rem;
+  }
+
+  /* Rodapé Institucional */
+  .site-footer {
+    padding: 28px 14px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .footer-text {
+    font-size: 0.8rem;
+  }
+
+  /* Botão Flutuante Voltar ao Topo */
+  .btn-back-to-top {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    right: 14px;
+    width: 42px;
+    height: 42px;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+  }
+}
+
+/* Dispositivos Ultra-Estreitos (≤380px, ex: iPhone SE, Galaxy A) */
+@media (max-width: 380px) {
+  .main-layout {
+    padding: 6px 6px calc(24px + env(safe-area-inset-bottom, 0px));
+    gap: 8px;
+  }
+  .hero-title {
+    font-size: 1.1rem;
+  }
+  .hero-subtitle {
+    font-size: 0.76rem;
+  }
+  .header-market-strip {
+    font-size: 0.7rem;
+    gap: 3px 6px;
+    padding: 4px 8px;
+  }
+  .ranking-tab {
+    font-size: 0.7rem;
+    padding: 7px 2px;
+  }
+  .chip {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 0.76rem;
+  }
+  .card-body {
+    padding: 8px 10px 8px;
+  }
+  .price-value {
+    font-size: 1.25rem;
   }
 }

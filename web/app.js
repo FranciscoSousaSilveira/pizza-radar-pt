@@ -427,10 +427,25 @@
           return;
         }
 
-        // Partilha / Cópia de Hiperligação
+        // Partilha / Cópia de Hiperligação (Nativo em mobile, clipboard em desktop)
         const shareBtn = e.target.closest('.btn-share-promo');
         if (!shareBtn) return;
         const urlToCopy = shareBtn.dataset.url || window.location.href;
+        const cardTitle = shareBtn.closest('.promo-card')?.querySelector('.card-title')?.textContent?.trim() || 'Pizza Radar PT';
+
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: cardTitle,
+              text: `${cardTitle} — Pizza Radar Lisboa`,
+              url: urlToCopy,
+            });
+            return;
+          } catch (err) {
+            if (err && err.name === 'AbortError') return; // Cancelado pelo utilizador
+          }
+        }
+
         try {
           await navigator.clipboard.writeText(urlToCopy);
           const iconSpan = shareBtn.querySelector('span');

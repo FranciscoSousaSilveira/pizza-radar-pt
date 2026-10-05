@@ -7,24 +7,22 @@ O **Pizza Radar PT** tem como objetivo centralizar e simplificar a consulta de p
 ## 2. Problema e Proposta de Valor
 
 - **Problema:** Fragmentação da informação de ofertas promocionais entre múltiplos operadores no mercado português. Cada cadeia mantém campanhas próprias (dias temáticos, cupões, menus de grupo) com formatos distintos e dispersos.
-- **Proposta de Valor:** Uma plataforma unificada e intuitiva que apresenta as campanhas ativas com atualização periódica e fiável (não em tempo real), poupando tempo e dinheiro ao consumidor.
+- **Proposta de Valor:** Uma plataforma unificada e intuitiva que apresenta as campanhas atualizadas periodicamente, indicando a data e hora da última verificação, poupando tempo e dinheiro ao consumidor.
 
 ## 3. Âmbito do MVP
 
 O Produto Viável Mínimo (MVP) estabelece uma base sólida com limites bem definidos:
-- **Localização:** Concelho de Lisboa (cidade de Lisboa; outros concelhos da Área Metropolitana de Lisboa ficam fora do âmbito inicial).
+- **Localização:** concelho de Lisboa.
 - **Vendedores Iniciais:**
   1. Domino's Pizza
   2. Pizza Hut
   3. Telepizza
   4. Papa John's
 - **Fontes de Dados:** Apenas páginas públicas e oficiais de promoções e campanhas.
-- **Frequência de Atualização:** Atualizações periódicas regulares (não contínuas / não em tempo real).
 
 ## 4. Fora de Âmbito
 
-- Expansão geográfica fora do concelho de Lisboa (restante Área Metropolitana de Lisboa e outras regiões do país neste momento).
-- Atualizações em tempo real contínuo ou streaming de dados (a agregação opera com sincronização periódica).
+- Expansão geográfica fora de Lisboa neste momento.
 - Outras marcas ou estabelecimentos independentes.
 - Intermediação de pagamentos ou checkout interno.
 - Campanhas personalizadas baseadas em histórico ou fidelização privada com login.
@@ -39,21 +37,11 @@ O Produto Viável Mínimo (MVP) estabelece uma base sólida com limites bem defi
 
 ## 6. Utilizadores-Alvo
 
-- Consumidores no concelho de Lisboa à procura de refeições rápidas e económicas.
+- Consumidores em Lisboa à procura de refeições rápidas e económicas.
 - Grupos, famílias ou estudantes a organizar jantares partilhados.
 
 ## 7. Critérios de Sucesso do MVP
 
-1. Catálogo com atualização periódica e fiável das promoções públicas dos quatro vendedores no concelho de Lisboa.
+1. Catálogo atualizado e fiável das promoções públicas dos quatro vendedores em Lisboa.
 2. Interface simples e navegável.
 3. Manutenção sustentável e processo de recolha de dados documentado e robusto.
-
----
-
-## 8. Documentos Relacionados
-
-- [Índice Central da Base de Conhecimento](README.md)
-- [Estado Atual do Projeto](current-state.md)
-- [Relatório de Viabilidade de Fontes](source-feasibility.md)
-- [Architecture Decision Records (ADRs)](decisions/README.md)
-- [Regras para Agentes e Colaboradores](../AGENTS.md)
