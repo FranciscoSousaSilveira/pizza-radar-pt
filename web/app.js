@@ -22,7 +22,15 @@
     filterChannel: 'ALL',
     filterDay: 'ALL',
     filterComparableOnly: false,
+    filterOnlyOpenBrands: false,
     searchQuery: '',
+    // Estado de Lojas de Lisboa
+    stores: [],
+    filterStoreBrand: 'ALL',
+    filterStoreStatus: 'ALL', // 'ALL' ou 'OPEN'
+    filterStoreService: 'ALL', // 'ALL', 'DELIVERY', 'TAKE_AWAY'
+    storesSearchQuery: '',
+    currentMobileView: 'promos', // 'promos' ou 'stores'
   };
 
   // Explicações dos Rankings
@@ -72,6 +80,7 @@
     productChips: document.querySelectorAll('#product-chips .chip'),
     vendorChips: document.querySelectorAll('#vendor-chips .chip'),
     channelChips: document.querySelectorAll('#channel-chips .chip'),
+    filterOpenNowPromos: document.getElementById('filter-open-now-promos'),
     selectDay: document.getElementById('select-day'),
     searchInput: document.getElementById('search-input'),
     toggleComparable: document.getElementById('toggle-comparable'),
@@ -86,12 +95,38 @@
     sourcesGrid: document.getElementById('sources-grid'),
     btnClearSearch: document.getElementById('btn-clear-search'),
     btnBackToTop: document.getElementById('btn-back-to-top'),
+    // Elementos de Lojas de Lisboa
+    radarSection: document.getElementById('radar-section'),
+    storesSection: document.getElementById('stores-section'),
+    btnViewPromos: document.getElementById('btn-view-promos'),
+    btnViewStores: document.getElementById('btn-view-stores'),
+    headerStoresCount: document.getElementById('header-stores-count'),
+    storesGrid: document.getElementById('stores-grid'),
+    storesEmptyState: document.getElementById('stores-empty-state'),
+    storesResultsCount: document.getElementById('stores-results-count'),
+    lisbonClockBadge: document.getElementById('lisbon-clock-badge'),
+    storesSearchInput: document.getElementById('stores-search-input'),
+    btnClearStoresSearch: document.getElementById('btn-clear-stores-search'),
+    btnClearStoresEmpty: document.getElementById('btn-clear-stores-empty'),
+    storeBrandChips: document.querySelectorAll('.chip-store-brand'),
+    storeStatusChips: document.querySelectorAll('.chip-status'),
+    storeServiceChips: document.querySelectorAll('.chip-service'),
+    countStoresOpenNow: document.getElementById('count-stores-open-now'),
+    countBrandAll: document.getElementById('count-brand-all'),
+    countBrandDominos: document.getElementById('count-brand-dominos'),
+    countBrandPapajohns: document.getElementById('count-brand-papajohns'),
+    countBrandPizzahut: document.getElementById('count-brand-pizzahut'),
+    countBrandTelepizza: document.getElementById('count-brand-telepizza'),
+    navLinkPromos: document.getElementById('nav-link-promos'),
+    navLinkStores: document.getElementById('nav-link-stores'),
   };
 
   // Inicialização
   async function init() {
     setupEventListeners();
-    await loadData();
+    setupStoresEventListeners();
+    await Promise.all([loadData(), loadStoresData()]);
+    startLiveClock();
   }
 
   // Unifica grupos promocionais que partilham a mesma marca, título e preço em canais complementares
@@ -349,6 +384,16 @@
       });
     });
 
+    // Filtro Lojas Abertas Agora nas Promoções
+    if (elements.filterOpenNowPromos) {
+      elements.filterOpenNowPromos.addEventListener('click', () => {
+        state.filterOnlyOpenBrands = !state.filterOnlyOpenBrands;
+        elements.filterOpenNowPromos.classList.toggle('active', state.filterOnlyOpenBrands);
+        elements.filterOpenNowPromos.setAttribute('aria-pressed', state.filterOnlyOpenBrands ? 'true' : 'false');
+        applyFiltersAndRender();
+      });
+    }
+
     // Dropdown Dia da Semana
     if (elements.selectDay) {
       elements.selectDay.addEventListener('change', (e) => {
@@ -490,6 +535,7 @@
     state.filterChannel = 'ALL';
     state.filterDay = 'ALL';
     state.filterComparableOnly = false;
+    state.filterOnlyOpenBrands = false;
     state.searchQuery = '';
 
     elements.productChips.forEach((c) => {
@@ -504,6 +550,10 @@
       c.classList.toggle('active', c.dataset.channel === 'ALL');
       c.setAttribute('aria-pressed', c.dataset.channel === 'ALL' ? 'true' : 'false');
     });
+    if (elements.filterOpenNowPromos) {
+      elements.filterOpenNowPromos.classList.remove('active');
+      elements.filterOpenNowPromos.setAttribute('aria-pressed', 'false');
+    }
     if (elements.selectDay) elements.selectDay.value = 'ALL';
     if (elements.searchInput) elements.searchInput.value = '';
     if (elements.toggleComparable) elements.toggleComparable.checked = false;
@@ -527,6 +577,11 @@
     // 1. Filtro por Fornecedor
     if (state.filterVendor !== 'ALL') {
       filtered = filtered.filter((g) => g.vendor === state.filterVendor);
+    }
+
+    // 1.1 Filtro por Marcas com Lojas Abertas Agora em Lisboa
+    if (state.filterOnlyOpenBrands) {
+      filtered = filtered.filter((g) => isBrandOpenNow(g.vendor));
     }
 
     // 2. Filtro por Canal de Atendimento
@@ -793,6 +848,11 @@
       `;
     }
 
+    const brandIsOpen = isBrandOpenNow(group.vendor);
+    const storeStatusBadgeHTML = brandIsOpen
+      ? `<span class="badge-brand-status badge-brand-open" title="Lojas desta marca em Lisboa abertas agora"><span class="status-dot-small dot-open" aria-hidden="true"></span> Aberta agora</span>`
+      : `<span class="badge-brand-status badge-brand-closed" title="Lojas desta marca em Lisboa fechadas neste momento"><span class="status-dot-small dot-closed" aria-hidden="true"></span> Fechada agora</span>`;
+
     return `
       <article class="promo-card" id="card-${escapeHTML(group.persistent_id)}">
         ${mediaHTML}
@@ -800,6 +860,7 @@
         <div class="card-body">
           <div class="card-tags-row">
             ${offerTypeBadgeHTML}
+            ${storeStatusBadgeHTML}
             ${channelBadgeHTML}
             ${superDiscountHTML}
             ${preservedBadgeHTML}
@@ -933,6 +994,513 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  // =========================================================================
+  // Módulo de Lojas de Lisboa (33 Lojas Oficiais • Horários em Tempo Real)
+  // =========================================================================
+
+  // Converte data atual para data e hora oficial de Lisboa (UTC+0 / UTC+1 DST)
+  function getLisbonNow() {
+    const now = new Date();
+    // Utiliza Intl para obter componentes no fuso horário Europe/Lisbon determinístico
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Lisbon',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(now);
+    const dateObj = {};
+    for (const p of parts) {
+      if (p.type !== 'literal') {
+        dateObj[p.type] = parseInt(p.value, 10);
+      }
+    }
+    // Determinar dia da semana em Lisboa
+    const lisbonDate = new Date(Date.UTC(dateObj.year, dateObj.month - 1, dateObj.day, dateObj.hour, dateObj.minute, dateObj.second));
+    const dayOfWeek = lisbonDate.getUTCDay(); // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+    const currentMinutes = dateObj.hour * 60 + dateObj.minute;
+
+    return {
+      now,
+      hours: dateObj.hour,
+      minutes: dateObj.minute,
+      currentMinutes,
+      dayOfWeek,
+      formattedTime: `${String(dateObj.hour).padStart(2, '0')}:${String(dateObj.minute).padStart(2, '0')}`,
+    };
+  }
+
+  function parseHHMMToMinutes(hhmm) {
+    if (!hhmm) return 0;
+    const [h, m] = hhmm.split(':').map((v) => parseInt(v, 10));
+    return h * 60 + m;
+  }
+
+  // Calcula determinística do estado de uma loja (is_open, closing_soon, status_code, label)
+  function getStoreStatus(store, lisbonTime) {
+    if (!store || !store.schedule) {
+      return {
+        isOpen: false,
+        closingSoon: false,
+        statusCode: 'UNKNOWN',
+        label: 'Horário sob consulta',
+        closeTime: null,
+      };
+    }
+
+    const { currentMinutes, dayOfWeek } = lisbonTime || getLisbonNow();
+    const prevDay = (dayOfWeek + 6) % 7;
+    const prevSched = store.schedule[String(prevDay)];
+
+    // 1. Verificar se a loja ainda está aberta de turno que cruzou a meia-noite (ex.: 11:30 às 01:00)
+    if (prevSched) {
+      const prevOpenMin = parseHHMMToMinutes(prevSched.open);
+      const prevCloseMin = parseHHMMToMinutes(prevSched.close);
+      if (prevCloseMin < prevOpenMin) {
+        if (currentMinutes < prevCloseMin) {
+          const minsLeft = prevCloseMin - currentMinutes;
+          const closingSoon = minsLeft <= 30;
+          return {
+            isOpen: true,
+            closingSoon,
+            statusCode: closingSoon ? 'CLOSING_SOON' : 'OPEN',
+            closeTime: prevSched.close,
+            label: closingSoon ? `Fecha em breve às ${prevSched.close}` : `Aberta agora • Fecha às ${prevSched.close}`,
+          };
+        }
+      }
+    }
+
+    // 2. Verificar horário do dia de hoje
+    const todaySched = store.schedule[String(dayOfWeek)];
+    if (!todaySched) {
+      return {
+        isOpen: false,
+        closingSoon: false,
+        statusCode: 'CLOSED',
+        label: 'Fechada hoje',
+        closeTime: null,
+      };
+    }
+
+    const todayOpenMin = parseHHMMToMinutes(todaySched.open);
+    const todayCloseMin = parseHHMMToMinutes(todaySched.close);
+
+    // Caso A: Fecho no próprio dia (ex.: 10:00 às 23:00)
+    if (todayCloseMin >= todayOpenMin) {
+      if (currentMinutes >= todayOpenMin && currentMinutes < todayCloseMin) {
+        const minsLeft = todayCloseMin - currentMinutes;
+        const closingSoon = minsLeft <= 30;
+        return {
+          isOpen: true,
+          closingSoon,
+          statusCode: closingSoon ? 'CLOSING_SOON' : 'OPEN',
+          closeTime: todaySched.close,
+          label: closingSoon ? `Fecha em breve às ${todaySched.close}` : `Aberta agora • Fecha às ${todaySched.close}`,
+        };
+      } else if (currentMinutes < todayOpenMin) {
+        return {
+          isOpen: false,
+          closingSoon: false,
+          statusCode: 'CLOSED',
+          closeTime: null,
+          label: `Fechada • Abre hoje às ${todaySched.open}`,
+        };
+      } else {
+        const nextDay = (dayOfWeek + 1) % 7;
+        const nextSched = store.schedule[String(nextDay)];
+        const nextOpen = nextSched ? nextSched.open : '11:30';
+        return {
+          isOpen: false,
+          closingSoon: false,
+          statusCode: 'CLOSED',
+          closeTime: null,
+          label: `Fechada • Abre amanhã às ${nextOpen}`,
+        };
+      }
+    }
+
+    // Caso B: Fecho após a meia-noite (ex.: 11:30 às 00:30 ou 01:00)
+    if (currentMinutes >= todayOpenMin) {
+      const minsLeft = (1440 - currentMinutes) + todayCloseMin;
+      const closingSoon = minsLeft <= 30;
+      return {
+        isOpen: true,
+        closingSoon,
+        statusCode: closingSoon ? 'CLOSING_SOON' : 'OPEN',
+        closeTime: todaySched.close,
+        label: closingSoon ? `Fecha em breve às ${todaySched.close}` : `Aberta agora • Fecha às ${todaySched.close}`,
+      };
+    } else {
+      return {
+        isOpen: false,
+        closingSoon: false,
+        statusCode: 'CLOSED',
+        closeTime: null,
+        label: `Fechada • Abre hoje às ${todaySched.open}`,
+      };
+    }
+  }
+
+  // Verifica se uma marca tem pelo menos 1 loja aberta agora em Lisboa
+  function isBrandOpenNow(brand) {
+    if (!state.stores || state.stores.length === 0) return true; // fallback neutro
+    const lisbonTime = getLisbonNow();
+    return state.stores.some((s) => s.brand === brand && getStoreStatus(s, lisbonTime).isOpen);
+  }
+
+  // Carregar dados de lojas de Lisboa
+  async function loadStoresData() {
+    try {
+      const response = await fetch('data/stores.json');
+      if (!response.ok) {
+        throw new Error(`Falha HTTP ao carregar stores.json: ${response.status}`);
+      }
+      state.stores = await response.json();
+      updateStoresHeaderCounts();
+      applyStoresFiltersAndRender();
+    } catch (err) {
+      console.warn('Não foi possível carregar stores.json:', err);
+      if (elements.storesGrid) {
+        elements.storesGrid.innerHTML = `
+          <div class="empty-state" role="alert" style="grid-column: 1 / -1;">
+            <h3 class="empty-title">Horários Temporariamente Indisponíveis</h3>
+            <p class="empty-message">Os horários das lojas estão a ser sincronizados. Tenta atualizar a página dentro de momentos.</p>
+          </div>
+        `;
+      }
+    }
+  }
+
+  // Atualizar contadores e relógio de Lisboa
+  function updateStoresHeaderCounts() {
+    const lisbonTime = getLisbonNow();
+    let openCount = 0;
+    const brandCounts = {
+      ALL: state.stores.length,
+      DOMINOS: 0,
+      PAPA_JOHNS: 0,
+      PIZZA_HUT: 0,
+      TELEPIZZA: 0,
+    };
+
+    for (const store of state.stores) {
+      if (brandCounts[store.brand] !== undefined) {
+        brandCounts[store.brand]++;
+      }
+      const st = getStoreStatus(store, lisbonTime);
+      if (st.isOpen) openCount++;
+    }
+
+    if (elements.headerStoresCount) {
+      elements.headerStoresCount.textContent = `${openCount}/${state.stores.length} abertas`;
+    }
+    if (elements.countStoresOpenNow) {
+      elements.countStoresOpenNow.textContent = String(openCount);
+    }
+    if (elements.countBrandAll) elements.countBrandAll.textContent = String(brandCounts.ALL);
+    if (elements.countBrandDominos) elements.countBrandDominos.textContent = String(brandCounts.DOMINOS);
+    if (elements.countBrandPapajohns) elements.countBrandPapajohns.textContent = String(brandCounts.PAPA_JOHNS);
+    if (elements.countBrandPizzahut) elements.countBrandPizzahut.textContent = String(brandCounts.PIZZA_HUT);
+    if (elements.countBrandTelepizza) elements.countBrandTelepizza.textContent = String(brandCounts.TELEPIZZA);
+
+    if (elements.lisbonClockBadge) {
+      elements.lisbonClockBadge.textContent = `🕒 Hora de Lisboa: ${lisbonTime.formattedTime}`;
+    }
+  }
+
+  // Filtrar e Renderizar Lojas
+  function applyStoresFiltersAndRender() {
+    if (!state.stores || state.stores.length === 0) return;
+    const lisbonTime = getLisbonNow();
+
+    let filtered = [...state.stores];
+
+    // 1. Filtro por Marca
+    if (state.filterStoreBrand !== 'ALL') {
+      filtered = filtered.filter((s) => s.brand === state.filterStoreBrand);
+    }
+
+    // 2. Filtro por Estado (Apenas Abertas)
+    if (state.filterStoreStatus === 'OPEN') {
+      filtered = filtered.filter((s) => getStoreStatus(s, lisbonTime).isOpen);
+    }
+
+    // 3. Filtro por Serviço (DELIVERY, TAKE_AWAY)
+    if (state.filterStoreService !== 'ALL') {
+      filtered = filtered.filter((s) => s.services && s.services.includes(state.filterStoreService));
+    }
+
+    // 4. Pesquisa por Texto (Bairro, Morada, Nome)
+    if (state.storesSearchQuery) {
+      const q = state.storesSearchQuery;
+      filtered = filtered.filter((s) => {
+        const nameMatch = (s.name || '').toLowerCase().includes(q);
+        const neighMatch = (s.neighborhood || '').toLowerCase().includes(q);
+        const addrMatch = (s.address || '').toLowerCase().includes(q);
+        const brandMatch = (VENDOR_LABELS[s.brand] || '').toLowerCase().includes(q);
+        return nameMatch || neighMatch || addrMatch || brandMatch;
+      });
+    }
+
+    // Ordenar: primeiro abertas (OPEN / CLOSING_SOON), depois fechadas, desempate por marca e nome
+    filtered.sort((a, b) => {
+      const stA = getStoreStatus(a, lisbonTime);
+      const stB = getStoreStatus(b, lisbonTime);
+      if (stA.isOpen !== stB.isOpen) {
+        return stA.isOpen ? -1 : 1;
+      }
+      if (a.brand !== b.brand) {
+        return a.brand.localeCompare(b.brand);
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    renderStoresGrid(filtered, lisbonTime);
+    updateStoresStatusBar(filtered.length);
+  }
+
+  // Renderizar Grelha de Lojas
+  function renderStoresGrid(storesList, lisbonTime) {
+    if (!elements.storesGrid) return;
+
+    if (storesList.length === 0) {
+      elements.storesGrid.style.display = 'none';
+      if (elements.storesEmptyState) elements.storesEmptyState.style.display = 'flex';
+      return;
+    }
+
+    elements.storesGrid.style.display = 'grid';
+    if (elements.storesEmptyState) elements.storesEmptyState.style.display = 'none';
+
+    elements.storesGrid.innerHTML = storesList.map((s) => buildStoreCardHTML(s, lisbonTime)).join('');
+  }
+
+  // Constrói HTML do Cartão de Loja
+  function buildStoreCardHTML(store, lisbonTime) {
+    const status = getStoreStatus(store, lisbonTime);
+    const vendorLabel = VENDOR_LABELS[store.brand] || store.brand;
+
+    let badgeClass = 'status-badge-closed';
+    let dotClass = 'dot-closed';
+    if (status.statusCode === 'OPEN') {
+      badgeClass = 'status-badge-open';
+      dotClass = 'dot-open';
+    } else if (status.statusCode === 'CLOSING_SOON') {
+      badgeClass = 'status-badge-closing-soon';
+      dotClass = 'dot-closing-soon';
+    }
+
+    const servicesBadgesHTML = (store.services || []).map((srv) => {
+      if (srv === 'DELIVERY') return '<span class="store-service-pill">🛵 Entrega</span>';
+      if (srv === 'TAKE_AWAY') return '<span class="store-service-pill">🥡 Take Away</span>';
+      if (srv === 'DINE_IN') return '<span class="store-service-pill">🍽️ Sala</span>';
+      return `<span class="store-service-pill">${escapeHTML(srv)}</span>`;
+    }).join(' ');
+
+    const phoneHTML = store.phone
+      ? `<a href="tel:${escapeHTML(store.phone.replace(/\s+/g, ''))}" class="store-phone-link" title="Ligar para ${escapeHTML(store.name)}">
+           <svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 4a1 1 0 011-1h3a1 1 0 011 1v2a1 1 0 01-1 1H6a11 11 0 005 5v-1a1 1 0 011-1h2a1 1 0 011 1v3a1 1 0 01-1 1h-1C7.82 17 3 12.18 3 7V4z"></path></svg>
+           <span>${escapeHTML(store.phone)}</span>
+         </a>`
+      : '';
+
+    return `
+      <article class="store-card store-card-${escapeHTML(store.brand.toLowerCase())}" id="store-${escapeHTML(store.id)}">
+        <header class="store-card-header">
+          <div class="store-brand-badge store-brand-${escapeHTML(store.brand)}">
+            ${escapeHTML(vendorLabel)}
+          </div>
+          <div class="store-status-badge ${badgeClass}">
+            <span class="status-dot-small ${dotClass}" aria-hidden="true"></span>
+            <span>${escapeHTML(status.label)}</span>
+          </div>
+        </header>
+
+        <div class="store-card-body">
+          <h3 class="store-name">${escapeHTML(store.name)}</h3>
+          <div class="store-neighborhood">📍 ${escapeHTML(store.neighborhood)}</div>
+          <p class="store-address">${escapeHTML(store.address)}</p>
+
+          <div class="store-services-row">
+            ${servicesBadgesHTML}
+          </div>
+        </div>
+
+        <footer class="store-card-footer">
+          ${phoneHTML}
+          <a href="${escapeHTML(store.official_url)}" target="_blank" rel="noopener noreferrer" class="btn-store-order">
+            <span>Pedir Online</span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        </footer>
+      </article>
+    `;
+  }
+
+  function updateStoresStatusBar(count) {
+    if (!elements.storesResultsCount) return;
+    if (count === 1) {
+      elements.storesResultsCount.textContent = '1 loja encontrada em Lisboa';
+    } else {
+      elements.storesResultsCount.textContent = `${count} lojas encontradas em Lisboa`;
+    }
+  }
+
+  // Ouvintes de Eventos para a Secção de Lojas e Alternância Mobile
+  function setupStoresEventListeners() {
+    // 1. Mobile Nav Switcher (Abas de topo em telemóvel)
+    if (elements.btnViewPromos && elements.btnViewStores) {
+      elements.btnViewPromos.addEventListener('click', () => switchMobileView('promos'));
+      elements.btnViewStores.addEventListener('click', () => switchMobileView('stores'));
+    }
+
+    if (elements.navLinkPromos) {
+      elements.navLinkPromos.addEventListener('click', (e) => {
+        if (window.innerWidth <= 640) {
+          e.preventDefault();
+          switchMobileView('promos');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
+
+    if (elements.navLinkStores) {
+      elements.navLinkStores.addEventListener('click', (e) => {
+        if (window.innerWidth <= 640) {
+          e.preventDefault();
+          switchMobileView('stores');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
+
+    // 2. Chips de Marca de Loja
+    elements.storeBrandChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        elements.storeBrandChips.forEach((c) => {
+          c.classList.remove('active');
+          c.setAttribute('aria-pressed', 'false');
+        });
+        chip.classList.add('active');
+        chip.setAttribute('aria-pressed', 'true');
+        state.filterStoreBrand = chip.dataset.storeBrand;
+        applyStoresFiltersAndRender();
+      });
+    });
+
+    // 3. Chips de Estado (Todas vs Apenas Abertas)
+    elements.storeStatusChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        elements.storeStatusChips.forEach((c) => {
+          c.classList.remove('active');
+        });
+        chip.classList.add('active');
+        state.filterStoreStatus = chip.dataset.storeStatus;
+        applyStoresFiltersAndRender();
+      });
+    });
+
+    // 4. Chips de Serviço (Todos, Entrega, Take Away)
+    elements.storeServiceChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        elements.storeServiceChips.forEach((c) => {
+          c.classList.remove('active');
+        });
+        chip.classList.add('active');
+        state.filterStoreService = chip.dataset.storeService;
+        applyStoresFiltersAndRender();
+      });
+    });
+
+    // 5. Pesquisa de Lojas
+    if (elements.storesSearchInput) {
+      let storeDebounceTimeout = null;
+      elements.storesSearchInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (elements.btnClearStoresSearch) {
+          elements.btnClearStoresSearch.style.display = val.length > 0 ? 'flex' : 'none';
+        }
+        clearTimeout(storeDebounceTimeout);
+        storeDebounceTimeout = setTimeout(() => {
+          state.storesSearchQuery = val.trim().toLowerCase();
+          applyStoresFiltersAndRender();
+        }, 150);
+      });
+    }
+
+    if (elements.btnClearStoresSearch) {
+      elements.btnClearStoresSearch.addEventListener('click', () => {
+        if (elements.storesSearchInput) {
+          elements.storesSearchInput.value = '';
+          elements.storesSearchInput.focus();
+        }
+        state.storesSearchQuery = '';
+        elements.btnClearStoresSearch.style.display = 'none';
+        applyStoresFiltersAndRender();
+      });
+    }
+
+    if (elements.btnClearStoresEmpty) {
+      elements.btnClearStoresEmpty.addEventListener('click', () => {
+        state.filterStoreBrand = 'ALL';
+        state.filterStoreStatus = 'ALL';
+        state.filterStoreService = 'ALL';
+        state.storesSearchQuery = '';
+        elements.storeBrandChips.forEach((c) => c.classList.toggle('active', c.dataset.storeBrand === 'ALL'));
+        elements.storeStatusChips.forEach((c) => c.classList.toggle('active', c.dataset.storeStatus === 'ALL'));
+        elements.storeServiceChips.forEach((c) => c.classList.toggle('active', c.dataset.storeService === 'ALL'));
+        if (elements.storesSearchInput) elements.storesSearchInput.value = '';
+        if (elements.btnClearStoresSearch) elements.btnClearStoresSearch.style.display = 'none';
+        applyStoresFiltersAndRender();
+      });
+    }
+  }
+
+  // Alternar vista no telemóvel
+  function switchMobileView(view) {
+    state.currentMobileView = view;
+    if (view === 'promos') {
+      if (elements.btnViewPromos) {
+        elements.btnViewPromos.classList.add('active');
+        elements.btnViewPromos.setAttribute('aria-selected', 'true');
+      }
+      if (elements.btnViewStores) {
+        elements.btnViewStores.classList.remove('active');
+        elements.btnViewStores.setAttribute('aria-selected', 'false');
+      }
+      if (elements.radarSection) elements.radarSection.classList.remove('mobile-view-hidden');
+      if (elements.storesSection) elements.storesSection.classList.add('mobile-view-hidden');
+    } else {
+      if (elements.btnViewStores) {
+        elements.btnViewStores.classList.add('active');
+        elements.btnViewStores.setAttribute('aria-selected', 'true');
+      }
+      if (elements.btnViewPromos) {
+        elements.btnViewPromos.classList.remove('active');
+        elements.btnViewPromos.setAttribute('aria-selected', 'false');
+      }
+      if (elements.radarSection) elements.radarSection.classList.add('mobile-view-hidden');
+      if (elements.storesSection) elements.storesSection.classList.remove('mobile-view-hidden');
+    }
+  }
+
+  // Relógio em tempo real com atualização a cada 60 segundos
+  function startLiveClock() {
+    setInterval(() => {
+      updateStoresHeaderCounts();
+      applyStoresFiltersAndRender();
+      // Se o filtro de marcas abertas estiver ativo nas promoções, re-renderiza promoções também
+      if (state.filterOnlyOpenBrands) {
+        applyFiltersAndRender();
+      }
+    }, 60000);
   }
 
   // Arranque

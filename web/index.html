@@ -33,13 +33,26 @@
         </a>
 
         <nav class="header-nav" aria-label="Navegação rápida">
-          <a href="#radar-section" class="nav-link">Promoções</a>
+          <a href="#radar-section" class="nav-link nav-link-active" id="nav-link-promos">Promoções</a>
+          <a href="#stores-section" class="nav-link" id="nav-link-stores">Lojas Abertas</a>
           <a href="#how-it-works" class="nav-link">Como Funciona</a>
           <div class="header-status-badge" aria-label="Estado da monitorização">
             <span class="status-indicator" aria-hidden="true"></span>
             <span class="status-text" id="status-text">4 marcas monitorizadas</span>
           </div>
         </nav>
+      </div>
+
+      <!-- Barra de Alternância Rápida para Telemóvel (Mobile Switcher) -->
+      <div class="mobile-nav-switcher" role="tablist" aria-label="Mudar entre Promoções e Lojas Abertas">
+        <button type="button" class="mobile-nav-tab active" id="btn-view-promos" role="tab" aria-selected="true" aria-controls="radar-section">
+          <span>🍕 Promoções</span>
+        </button>
+        <button type="button" class="mobile-nav-tab" id="btn-view-stores" role="tab" aria-selected="false" aria-controls="stores-section">
+          <span class="status-dot-small dot-open" aria-hidden="true"></span>
+          <span>🕒 Lojas Abertas</span>
+          <span class="stores-live-count-badge" id="header-stores-count">--</span>
+        </button>
       </div>
     </div>
   </header>
@@ -104,7 +117,8 @@
         </button>
 
         <button type="button" class="ranking-tab" role="tab" id="tab-unit-price" aria-selected="false" aria-controls="promos-grid" data-ranking="BEST_UNIT_PRICE">
-          Melhor Preço / Pizza
+          <span class="tab-label-full">Melhor Preço / Pizza</span>
+          <span class="tab-label-short">Preço / Pizza</span>
         </button>
       </div>
 
@@ -147,13 +161,17 @@
             </div>
           </div>
 
-          <!-- Linha 3: Canais e Comparabilidade -->
+          <!-- Linha 3: Canais, Lojas Abertas e Comparabilidade -->
           <div class="discovery-row discovery-row-options">
             <div class="chips-row channel-chips-row" role="group" aria-label="Canal de Atendimento" id="channel-chips">
               <button type="button" class="chip active" data-channel="ALL" aria-pressed="true">Todos os Canais</button>
               <button type="button" class="chip" data-channel="TAKE_AWAY" aria-pressed="false">Take Away</button>
               <button type="button" class="chip" data-channel="DELIVERY" aria-pressed="false">Entrega</button>
               <button type="button" class="chip" data-channel="DINE_IN" aria-pressed="false">No Restaurante</button>
+              <button type="button" class="chip chip-open-now" id="filter-open-now-promos" aria-pressed="false">
+                <span class="status-dot-small dot-open" aria-hidden="true"></span>
+                <span>Lojas Abertas Agora</span>
+              </button>
             </div>
 
             <div class="secondary-controls">
@@ -188,6 +206,77 @@
           <p class="empty-message">Não encontramos ofertas que correspondam aos filtros selecionados. Tenta ajustar o canal ou limpar a pesquisa.</p>
           <button type="button" class="btn-clear-empty" id="btn-clear-empty">Ver todas as promoções</button>
         </div>
+      </div>
+    </section>
+
+    <!-- Secção de Lojas Abertas Agora em Lisboa -->
+    <section id="stores-section" class="stores-app-section" aria-labelledby="stores-heading">
+      <div class="stores-section-header">
+        <div class="stores-header-badge">
+          <span class="status-indicator status-indicator-pulse" aria-hidden="true"></span>
+          <span id="stores-live-header-status">Horários Oficiais em Lisboa</span>
+        </div>
+        <h2 id="stores-heading" class="stores-section-title">Lojas Abertas em Lisboa</h2>
+        <p class="stores-section-subtitle">
+          Consulta em tempo real que pizzarias de cada marca estão abertas no concelho de Lisboa para saberes se consegues o teu pedido por entrega, take away ou sala.
+        </p>
+      </div>
+
+      <!-- Barra de Filtros de Lojas -->
+      <div class="stores-filters-card">
+        <!-- Pesquisa por Bairro / Rua / Nome -->
+        <div class="stores-search-wrap">
+          <svg class="search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="8.5" cy="8.5" r="5.5"></circle>
+            <line x1="12.5" y1="12.5" x2="17" y2="17"></line>
+          </svg>
+          <input type="search" id="stores-search-input" class="search-input" placeholder="Pesquisar por bairro ou rua (ex.: Areeiro, Benfica, Telheiras, Parque das Nações)..." autocomplete="off" aria-label="Pesquisar lojas em Lisboa">
+          <button type="button" id="btn-clear-stores-search" class="btn-clear-search" aria-label="Limpar pesquisa de lojas" style="display: none;">✕</button>
+        </div>
+
+        <!-- Filtro por Marca de Pizzaria -->
+        <div class="chips-row stores-brand-chips-row" role="group" aria-label="Filtrar por marca">
+          <button type="button" class="chip chip-store-brand active" data-store-brand="ALL" aria-pressed="true">Todas as Marcas (<span id="count-brand-all">33</span>)</button>
+          <button type="button" class="chip chip-store-brand chip-dominos" data-store-brand="DOMINOS" aria-pressed="false">Domino's (<span id="count-brand-dominos">8</span>)</button>
+          <button type="button" class="chip chip-store-brand chip-papajohns" data-store-brand="PAPA_JOHNS" aria-pressed="false">Papa John's (<span id="count-brand-papajohns">3</span>)</button>
+          <button type="button" class="chip chip-store-brand chip-pizzahut" data-store-brand="PIZZA_HUT" aria-pressed="false">Pizza Hut (<span id="count-brand-pizzahut">12</span>)</button>
+          <button type="button" class="chip chip-store-brand chip-telepizza" data-store-brand="TELEPIZZA" aria-pressed="false">Telepizza (<span id="count-brand-telepizza">10</span>)</button>
+        </div>
+
+        <!-- Filtros Rápidos de Estado e Serviço -->
+        <div class="stores-quick-filters-row">
+          <div class="chips-row stores-status-chips-row" role="group" aria-label="Estado de funcionamento">
+            <button type="button" class="chip chip-status active" data-store-status="ALL">Todas as Lojas</button>
+            <button type="button" class="chip chip-status chip-status-open" data-store-status="OPEN">
+              <span class="status-dot-small dot-open" aria-hidden="true"></span>
+              <span>Apenas Abertas Agora (<strong id="count-stores-open-now">--</strong>)</span>
+            </button>
+          </div>
+
+          <div class="chips-row stores-service-chips-row" role="group" aria-label="Filtrar por serviço">
+            <button type="button" class="chip chip-service active" data-store-service="ALL">Todos os Serviços</button>
+            <button type="button" class="chip chip-service" data-store-service="DELIVERY">🛵 Entrega</button>
+            <button type="button" class="chip chip-service" data-store-service="TAKE_AWAY">🛍️ Take Away</button>
+          </div>
+        </div>
+
+        <!-- Barra de Estado do Radar de Lojas -->
+        <div class="stores-results-statusbar" aria-live="polite">
+          <span class="stores-results-count" id="stores-results-count">A calcular horários...</span>
+          <span class="stores-clock-badge" id="lisbon-clock-badge">🕒 Hora de Lisboa: --:--</span>
+        </div>
+      </div>
+
+      <!-- Grelha de Lojas de Lisboa -->
+      <div class="stores-grid" id="stores-grid" role="region" aria-live="polite">
+        <!-- Renderizado dinamicamente via app.js -->
+      </div>
+
+      <!-- Estado Vazio / Sem Lojas -->
+      <div class="empty-state" id="stores-empty-state" style="display: none;" role="status">
+        <h3 class="empty-title">Nenhuma loja encontrada</h3>
+        <p class="empty-message">Não encontramos lojas no concelho de Lisboa para os filtros selecionados.</p>
+        <button type="button" class="btn-clear-empty" id="btn-clear-stores-empty">Ver todas as 33 lojas</button>
       </div>
     </section>
 

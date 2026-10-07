@@ -1668,6 +1668,437 @@ body {
 }
 
 /* ==========================================================================
+   Secção de Lojas Abertas Agora em Lisboa (Diretório & Live Status)
+   ========================================================================== */
+
+/* Etiquetas de Tab Responsivas */
+.tab-label-full {
+  display: inline;
+}
+.tab-label-short {
+  display: none;
+}
+
+/* Indicadores de Estado das Lojas */
+.status-dot-small {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-open {
+  background: #16A34A;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25);
+}
+.dot-closing-soon {
+  background: #EA580C;
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.25);
+}
+.dot-closed {
+  background: #DC2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+}
+
+@keyframes pulseGreen {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+.status-indicator-pulse {
+  animation: pulseGreen 2.2s infinite;
+}
+
+/* Mobile Switcher (Oculto em desktop) */
+.mobile-nav-switcher {
+  display: none;
+}
+
+/* Secção de Lojas */
+.stores-app-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding: 24px 24px 28px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.04), 0 6px 20px -4px rgba(28, 25, 23, 0.04);
+}
+
+.stores-section-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.stores-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  color: #166534;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+}
+
+.stores-section-title {
+  font-size: 1.5rem;
+  font-weight: 850;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.stores-section-subtitle {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  max-width: 640px;
+  line-height: 1.45;
+}
+
+/* Card de Filtros de Lojas */
+.stores-filters-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-subtle);
+}
+
+.stores-search-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.stores-brand-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 0;
+}
+
+.stores-quick-filters-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.stores-status-chips-row,
+.stores-service-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip-status-open {
+  background: #F0FDF4;
+  border-color: #BBF7D0;
+  color: #166534;
+  font-weight: 700;
+}
+.chip-status-open.active {
+  background: #166534 !important;
+  color: #FFFFFF !important;
+  border-color: #166534 !important;
+}
+
+.chip-open-now {
+  background: #F0FDF4;
+  border-color: #BBF7D0;
+  color: #166534;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chip-open-now.active {
+  background: #166534 !important;
+  color: #FFFFFF !important;
+  border-color: #166534 !important;
+}
+
+.stores-results-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.stores-clock-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-subtle);
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-subtle);
+}
+
+/* Grelha de Lojas */
+.stores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+/* Cartão de Loja */
+.store-card {
+  display: flex;
+  flex-direction: column;
+  background: #FDFAF6;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  gap: 12px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s var(--ease-tactile), box-shadow 0.15s var(--ease-tactile);
+}
+
+.store-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.store-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.store-brand-badge-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.store-brand-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  color: #FFFFFF;
+}
+
+.store-brand-DOMINOS {
+  background: #006491;
+}
+.store-brand-PAPA_JOHNS {
+  background: #007A3D;
+}
+.store-brand-PIZZA_HUT {
+  background: #C8102E;
+}
+.store-brand-TELEPIZZA {
+  background: #D91C24;
+}
+
+.store-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1.25;
+}
+
+.store-neighborhood {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+/* Badges de Estado Aberta / Fechada */
+.store-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 750;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status-badge-open {
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+}
+
+.status-badge-closing-soon {
+  background: #FFEDD5;
+  color: #C2410C;
+  border: 1px solid #FED7AA;
+}
+
+.status-badge-closed {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+/* Detalhes da Loja */
+.store-address-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+}
+
+.store-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-text-muted);
+}
+
+.store-services-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.store-service-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+}
+
+.store-schedule-box {
+  background: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.schedule-row-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.schedule-note {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+/* Rodapé do Cartão da Loja */
+.store-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.btn-store-phone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  background: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  transition: background-color 0.15s var(--ease-tactile);
+}
+.btn-store-phone:hover {
+  background: var(--color-surface-subtle);
+}
+
+.btn-store-order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  padding: 8px 14px;
+  font-size: 0.84rem;
+  font-weight: 750;
+  color: #FFFFFF;
+  background: var(--color-brand-primary);
+  border: none;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  transition: background-color 0.15s var(--ease-tactile);
+}
+.btn-store-order:hover {
+  background: var(--color-brand-primary-hover);
+}
+
+/* Live Store Pill no Promo Card */
+.promo-store-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 750;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  cursor: pointer;
+  width: fit-content;
+}
+.promo-store-live-open {
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+}
+.promo-store-live-closed {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+/* ==========================================================================
+   Mobile Responsive Fine-Tuning (Above the Fold Priority & Native App Feel)
+   Aplica-se EXCLUSIVAMENTE em ecrãs móveis (≤640px)
+   ========================================================================== */
+/* ==========================================================================
    Mobile Responsive Fine-Tuning (Above the Fold Priority & Native App Feel)
    Aplica-se EXCLUSIVAMENTE em ecrãs móveis (≤640px)
    ========================================================================== */
@@ -1679,12 +2110,12 @@ body {
 
   /* Barra de Navegação Superior Sticky */
   .site-header {
-    padding: max(8px, env(safe-area-inset-top, 0px)) 12px 8px;
-    background: rgba(246, 243, 238, 0.95);
+    padding: max(8px, env(safe-area-inset-top, 0px)) 12px 6px;
+    background: rgba(246, 243, 238, 0.96);
   }
   .brand-nav-logo {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
   }
   .brand-title {
     font-size: 1.05rem;
@@ -1708,38 +2139,97 @@ body {
     font-weight: 700;
   }
 
+  /* Barra de Alternância Rápida para Telemóvel (Mobile Switcher) */
+  .mobile-nav-switcher {
+    display: flex;
+    width: 100%;
+    background: #E5E0D4;
+    padding: 3px;
+    border-radius: var(--radius-pill);
+    gap: 3px;
+    margin-top: 6px;
+    border: 1px solid rgba(28, 25, 23, 0.08);
+  }
+  .mobile-nav-tab {
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 8px;
+    font-size: 0.82rem;
+    font-weight: 750;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .mobile-nav-tab.active {
+    background: #FFFFFF;
+    color: var(--color-text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+  .stores-live-count-badge {
+    background: #16A34A;
+    color: #FFFFFF;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+  }
+
   /* Layout Principal */
   .main-layout {
     padding: 8px 10px calc(24px + env(safe-area-inset-bottom, 0px));
-    gap: 10px;
+    gap: 12px;
   }
 
-  /* Hero Section: Compacto, sem redundâncias, foco nas promoções imediatas */
+  /* Hero Section: Compacto, harmonioso e com identidade visual equilibrada */
   .hero-section {
-    padding: 14px 14px 12px;
+    padding: 16px 14px 14px;
     border-radius: var(--radius-lg);
+    text-align: center;
   }
-  /* Oculta o logótipo gigante: já existe o logótipo na barra fixa 50px acima */
   .hero-badge-wrap {
-    display: none;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .hero-logo-halo {
+    width: 52px;
+    height: 52px;
+  }
+  .hero-logo-img {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-pill);
   }
   .hero-title {
-    font-size: 1.18rem;
+    font-size: 1.25rem;
     line-height: 1.25;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
     letter-spacing: -0.02em;
   }
   .hero-subtitle {
-    font-size: 0.8rem;
-    line-height: 1.35;
-    margin-bottom: 8px;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    margin-bottom: 10px;
     color: var(--color-text-muted);
   }
-  /* Oculta botões redundantes: no telemóvel as promoções estão logo abaixo */
   .hero-actions {
-    display: none;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
   }
-  /* Faixa de resumo compacta e perfeitamente centrada */
+  .btn-hero-primary,
+  .btn-hero-secondary {
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    border-radius: var(--radius-pill);
+  }
   .header-market-strip {
     display: flex;
     flex-wrap: wrap;
@@ -1752,18 +2242,31 @@ body {
     background: rgba(255, 255, 255, 0.85);
   }
 
-  /* Secção do Radar de Ofertas */
-  .radar-app-section {
-    padding: 10px 10px 12px;
+  /* Secção de Promoções e Secção de Lojas */
+  .radar-app-section,
+  .stores-app-section {
+    padding: 12px 10px 16px;
     border-radius: var(--radius-lg);
-    gap: 8px;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.6);
   }
-  /* Oculta cabeçalho repetitivo no telemóvel para dar primazia aos controlos e ofertas */
-  .radar-section-header {
-    display: none;
+  .radar-section-header,
+  .stores-section-header {
+    text-align: center;
+    gap: 4px;
+  }
+  .radar-section-title,
+  .stores-section-title {
+    font-size: 1.22rem;
+    letter-spacing: -0.02em;
+  }
+  .radar-section-subtitle,
+  .stores-section-subtitle {
+    font-size: 0.8rem;
+    line-height: 1.35;
   }
 
-  /* Segmented Control de Ordenação: 3 botões lado a lado sem corte ou scroll horizontal */
+  /* Segmented Control de Ordenação: 3 botões lado a lado com rótulos responsivos */
   .ranking-segmented-control {
     display: flex;
     width: 100%;
@@ -1789,14 +2292,22 @@ body {
     justify-content: center;
     border-radius: var(--radius-pill);
   }
+  .tab-label-full {
+    display: none;
+  }
+  .tab-label-short {
+    display: inline;
+  }
 
-  /* Barra de Descoberta & Filtros */
-  .discovery-card {
+  /* Barra de Descoberta & Filtros de Promoções */
+  .discovery-card,
+  .stores-filters-card {
     padding: 10px 10px 8px;
     gap: 8px;
     border-radius: var(--radius-lg);
   }
-  .search-input-wrap {
+  .search-input-wrap,
+  .stores-search-wrap {
     width: 100%;
   }
   .search-input {
@@ -1839,7 +2350,8 @@ body {
     white-space: nowrap;
   }
 
-  .discovery-row-brands {
+  .discovery-row-brands,
+  .stores-quick-filters-row {
     padding-top: 6px;
     border-top: 1px solid var(--color-border-subtle);
   }
@@ -1872,8 +2384,9 @@ body {
     transform: translateX(16px);
   }
 
-  /* Barra de resultados */
-  .results-statusbar {
+  /* Barras de resultados */
+  .results-statusbar,
+  .stores-results-statusbar {
     padding-top: 6px;
     border-top: 1px solid var(--color-border-subtle);
     font-size: 0.78rem;
@@ -1892,7 +2405,6 @@ body {
   .promo-card {
     border-radius: var(--radius-md);
   }
-  /* Proporção de imagem mais panorâmica para permitir ver mais conteúdo por ecrã */
   .card-media {
     aspect-ratio: 16 / 8.5;
     max-height: 160px;
@@ -1924,12 +2436,11 @@ body {
     padding: 3px 7px;
   }
 
-  /* Corpo do Cartão */
+  /* Corpo do Cartão Promocional */
   .card-body {
     padding: 10px 12px 10px;
     gap: 6px;
   }
-  /* Oculta o badge de canal no corpo do cartão (já está claramente visível na imagem acima) */
   .card-tags-row .badge-channel {
     display: none;
   }
@@ -1953,7 +2464,7 @@ body {
     padding: 1px 0;
   }
 
-  /* Bloco de Preços: Formato horizontal executivo */
+  /* Bloco de Preços */
   .pricing-block {
     display: flex;
     flex-direction: row;
@@ -2009,6 +2520,38 @@ body {
     border-radius: var(--radius-pill);
     font-size: 1rem;
     flex-shrink: 0;
+  }
+
+  /* Grelha e Cartões de Lojas no Telemóvel */
+  .stores-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .store-card {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .store-name {
+    font-size: 1rem;
+  }
+  .store-status-badge {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+  }
+  .store-schedule-box {
+    padding: 6px 8px;
+    font-size: 0.74rem;
+  }
+  .store-card-actions {
+    gap: 6px;
+  }
+  .btn-store-phone {
+    padding: 7px 10px;
+    font-size: 0.78rem;
+  }
+  .btn-store-order {
+    padding: 7px 12px;
+    font-size: 0.8rem;
   }
 
   /* Secção de Destaques / Como Funciona */

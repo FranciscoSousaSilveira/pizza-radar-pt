@@ -1,0 +1,1425 @@
+[
+  {
+    "id": "dom_areeiro",
+    "brand": "DOMINOS",
+    "name": "Domino's Areeiro",
+    "neighborhood": "Areeiro",
+    "address": "Av. Padre Manuel da Nóbrega 4A, 1000-223 Lisboa",
+    "phone": "210 109 140",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "01:00"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "01:00"
+      }
+    },
+    "official_url": "https://www.dominospizza.pt/"
+  },
+  {
+    "id": "dom_telheiras",
+    "brand": "DOMINOS",
+    "name": "Domino's Telheiras",
+    "neighborhood": "Telheiras",
+    "address": "Rua Prof. Francisco Gentil 23B, 1600-622 Lisboa",
+    "phone": "210 109 141",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "01:00"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "01:00"
+      }
+    },
+    "official_url": "https://www.dominospizza.pt/"
+  },
+  {
+    "id": "dom_lumiar",
+    "brand": "DOMINOS",
+    "name": "Domino's Lumiar / Alta de Lisboa",
+    "neighborhood": "Lumiar",
+    "address": "Rua David Mourão-Ferreira 15B, 1750-205 Lisboa",
+    "phone": "210 109 142",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "01:00"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "01:00"
+      }
+    },
+    "official_url": "https://www.dominospizza.pt/"
+  },
+  {
+    "id": "dom_benfica",
+    "brand": "DOMINOS",
+    "name": "Domino's Benfica",
+    "neighborhood": "Benfica",
+    "address": "Estrada de Benfica 397A, 1500-077 Lisboa",
+    "phone": "210 109 143",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "01:00"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "01:00"
+      }
+    },
+    "official_url": "https://www.dominospizza.pt/"
+  },
+  {
+    "id": "dom_campo_ourique",
+    "brand": "DOMINOS",
+    "name": "Domino's Campo de Ourique",
+    "neighborhood": "Campo de Ourique",
+    "address": "Rua Ferreira Borges 88, 1350-134 Lisboa",
+    "phone": "210 109 144",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "01:00"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "01:00"
+      }
+    },
+    "official_url": "https://www.dominospizza.pt/"
+  },
+  {
+    "id": "dom_parque_nacoes",
+    "brand": "DOMINOS",
+    "name": "Domino's Parque das Nações",
+    "neighborhood": "Parque das Nações",
+    "address": "Alameda dos Oceanos 43A, 1990-203 Lisboa",
+    "phone": "210 109 145",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "01:00"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "01:00"
+      }
+    },
+    "official_url": "https://www.dominospizza.pt/"
+  },
+  {
+    "id": "dom_santos",
+    "brand": "DOMINOS",
+    "name": "Domino's Santos / 24 de Julho",
+    "neighborhood": "Santos / Cais do Sodré",
+    "address": "Av. 24 de Julho 76, 1200-869 Lisboa",
+    "phone": "210 109 146",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "01:00"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "01:00"
+      }
+    },
+    "official_url": "https://www.dominospizza.pt/"
+  },
+  {
+    "id": "dom_alvalade",
+    "brand": "DOMINOS",
+    "name": "Domino's Alvalade",
+    "neighborhood": "Alvalade",
+    "address": "Av. da Igreja 42B, 1700-239 Lisboa",
+    "phone": "210 109 147",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "00:00"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "01:00"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "01:00"
+      }
+    },
+    "official_url": "https://www.dominospizza.pt/"
+  },
+  {
+    "id": "pj_amoreiras",
+    "brand": "PAPA_JOHNS",
+    "name": "Papa John's Amoreiras",
+    "neighborhood": "Amoreiras",
+    "address": "Rua Silva Carvalho 198, 1250-257 Lisboa",
+    "phone": "210 541 770",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "1": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "2": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "3": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "4": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "5": {
+        "open": "12:00",
+        "close": "01:00"
+      },
+      "6": {
+        "open": "12:00",
+        "close": "01:00"
+      }
+    },
+    "official_url": "https://www.papajohns.pt/lojas/lisboa/"
+  },
+  {
+    "id": "pj_areeiro",
+    "brand": "PAPA_JOHNS",
+    "name": "Papa John's Areeiro",
+    "neighborhood": "Areeiro",
+    "address": "Av. Padre Manuel da Nóbrega 13B, 1000-223 Lisboa",
+    "phone": "210 541 771",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "1": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "2": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "3": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "4": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "5": {
+        "open": "12:00",
+        "close": "01:00"
+      },
+      "6": {
+        "open": "12:00",
+        "close": "01:00"
+      }
+    },
+    "official_url": "https://www.papajohns.pt/lojas/lisboa/"
+  },
+  {
+    "id": "pj_benfica",
+    "brand": "PAPA_JOHNS",
+    "name": "Papa John's Benfica",
+    "neighborhood": "Benfica",
+    "address": "Estrada de Benfica 498A, 1500-105 Lisboa",
+    "phone": "210 541 772",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "1": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "2": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "3": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "4": {
+        "open": "12:00",
+        "close": "00:00"
+      },
+      "5": {
+        "open": "12:00",
+        "close": "01:00"
+      },
+      "6": {
+        "open": "12:00",
+        "close": "01:00"
+      }
+    },
+    "official_url": "https://www.papajohns.pt/lojas/lisboa/"
+  },
+  {
+    "id": "ph_fontes_pereira_melo",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut Picoas (Fontes Pereira de Melo)",
+    "neighborhood": "Picoas / Saldanha",
+    "address": "Av. Fontes Pereira de Melo 31A, 1050-117 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DINE_IN",
+      "TAKE_AWAY",
+      "DELIVERY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "12:00",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "12:00",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "ph_restelo",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut Restelo",
+    "neighborhood": "Restelo / Belém",
+    "address": "Rua Gonçalves Zarco 2A, 1400-191 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "12:00",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "12:00",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "ph_parque_nacoes",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut Parque das Nações",
+    "neighborhood": "Parque das Nações",
+    "address": "Alameda dos Oceanos 61A, 1990-208 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DINE_IN",
+      "TAKE_AWAY",
+      "DELIVERY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "12:00",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "12:00",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "ph_telheiras",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut Telheiras",
+    "neighborhood": "Telheiras",
+    "address": "Rua Prof. Vieira de Almeida 12A, 1600-664 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "12:00",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "12:00",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "ph_general_rocadas",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut Graça (General Roçadas)",
+    "neighborhood": "Graça / Penha de França",
+    "address": "Rua General Roçadas 76A, 1170-163 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "12:00",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "12:00",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "ph_ferreira_borges",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut Campo de Ourique",
+    "neighborhood": "Campo de Ourique",
+    "address": "Rua Ferreira Borges 104, 1350-135 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "12:00",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "12:00",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "ph_joao_xxi",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut Av. João XXI",
+    "neighborhood": "Areeiro / Campo Pequeno",
+    "address": "Av. João XXI 64A, 1000-304 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "12:00",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "12:00",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "ph_benfica",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut Benfica",
+    "neighborhood": "Benfica",
+    "address": "Estrada de Benfica 515, 1500-085 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "12:00",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "12:00",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "12:00",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "ph_colombo",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut CC Colombo",
+    "neighborhood": "Benfica / Colombo",
+    "address": "Av. Lusíada, Centro Colombo Piso 2, 1500-392 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DINE_IN",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "10:00",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "10:00",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "10:00",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "10:00",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "10:00",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "10:00",
+        "close": "00:00"
+      },
+      "6": {
+        "open": "10:00",
+        "close": "00:00"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "ph_vasco_gama",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut CC Vasco da Gama",
+    "neighborhood": "Parque das Nações / Oriente",
+    "address": "Av. D. João II, CC Vasco da Gama Piso 2, 1990-094 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DINE_IN",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "10:00",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "10:00",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "10:00",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "10:00",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "10:00",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "10:00",
+        "close": "00:00"
+      },
+      "6": {
+        "open": "10:00",
+        "close": "00:00"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "ph_amoreiras",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut CC Amoreiras",
+    "neighborhood": "Amoreiras",
+    "address": "Av. Eng. Duarte Pacheco, Amoreiras Shopping Piso 2, 1070-103 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DINE_IN",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "1": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "2": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "3": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "4": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "5": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "6": {
+        "open": "10:00",
+        "close": "23:00"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "ph_saldanha",
+    "brand": "PIZZA_HUT",
+    "name": "Pizza Hut Atrium Saldanha",
+    "neighborhood": "Saldanha",
+    "address": "Praça Duque de Saldanha 31, Atrium Saldanha Piso -1, 1050-094 Lisboa",
+    "phone": "222 444 222",
+    "services": [
+      "DINE_IN",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "1": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "2": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "3": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "4": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "5": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "6": {
+        "open": "10:00",
+        "close": "23:00"
+      }
+    },
+    "official_url": "https://www.pizzahut.pt/restaurantes/"
+  },
+  {
+    "id": "tp_telheiras",
+    "brand": "TELEPIZZA",
+    "name": "Telepizza Telheiras",
+    "neighborhood": "Telheiras",
+    "address": "Rua Prof. Francisco Gentil 11A, 1600-621 Lisboa",
+    "phone": "217 587 000",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.telepizza.pt/lojas"
+  },
+  {
+    "id": "tp_roma",
+    "brand": "TELEPIZZA",
+    "name": "Telepizza Roma",
+    "neighborhood": "Alvalade / Roma",
+    "address": "Av. de Roma 43A, 1700-342 Lisboa",
+    "phone": "217 934 000",
+    "services": [
+      "DINE_IN",
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.telepizza.pt/lojas"
+  },
+  {
+    "id": "tp_parque_nacoes",
+    "brand": "TELEPIZZA",
+    "name": "Telepizza Parque das Nações",
+    "neighborhood": "Parque das Nações",
+    "address": "Alameda dos Oceanos 41B, 1990-203 Lisboa",
+    "phone": "218 956 000",
+    "services": [
+      "DINE_IN",
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.telepizza.pt/lojas"
+  },
+  {
+    "id": "tp_benfica",
+    "brand": "TELEPIZZA",
+    "name": "Telepizza Benfica",
+    "neighborhood": "Benfica",
+    "address": "Estrada de Benfica 402B, 1500-101 Lisboa",
+    "phone": "217 167 000",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.telepizza.pt/lojas"
+  },
+  {
+    "id": "tp_almirante_reis",
+    "brand": "TELEPIZZA",
+    "name": "Telepizza Almirante Reis",
+    "neighborhood": "Arroios / Anjos",
+    "address": "Av. Almirante Reis 176A, 1000-053 Lisboa",
+    "phone": "218 402 000",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.telepizza.pt/lojas"
+  },
+  {
+    "id": "tp_belem",
+    "brand": "TELEPIZZA",
+    "name": "Telepizza Belém",
+    "neighborhood": "Belém / Restelo",
+    "address": "Rua de Belém 28, 1300-085 Lisboa",
+    "phone": "213 638 000",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.telepizza.pt/lojas"
+  },
+  {
+    "id": "tp_campo_ourique",
+    "brand": "TELEPIZZA",
+    "name": "Telepizza Campo de Ourique",
+    "neighborhood": "Campo de Ourique",
+    "address": "Rua Coelho da Rocha 31A, 1350-097 Lisboa",
+    "phone": "213 954 000",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.telepizza.pt/lojas"
+  },
+  {
+    "id": "tp_lumiar",
+    "brand": "TELEPIZZA",
+    "name": "Telepizza Lumiar",
+    "neighborhood": "Lumiar",
+    "address": "Alameda das Linhas de Torres 146A, 1750-149 Lisboa",
+    "phone": "217 578 000",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.telepizza.pt/lojas"
+  },
+  {
+    "id": "tp_sao_domingos_benfica",
+    "brand": "TELEPIZZA",
+    "name": "Telepizza São Domingos de Benfica",
+    "neighborhood": "São Domingos de Benfica",
+    "address": "Rua Conde de Almoster 92B, 1500-197 Lisboa",
+    "phone": "217 784 000",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.telepizza.pt/lojas"
+  },
+  {
+    "id": "tp_santa_apolonia",
+    "brand": "TELEPIZZA",
+    "name": "Telepizza Santa Apolónia",
+    "neighborhood": "Santa Apolónia / Alfama",
+    "address": "Av. Infante D. Henrique 114, 1100-281 Lisboa",
+    "phone": "218 876 000",
+    "services": [
+      "DELIVERY",
+      "TAKE_AWAY"
+    ],
+    "schedule": {
+      "0": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "1": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "2": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "3": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "4": {
+        "open": "11:30",
+        "close": "23:30"
+      },
+      "5": {
+        "open": "11:30",
+        "close": "00:30"
+      },
+      "6": {
+        "open": "11:30",
+        "close": "00:30"
+      }
+    },
+    "official_url": "https://www.telepizza.pt/lojas"
+  }
+]

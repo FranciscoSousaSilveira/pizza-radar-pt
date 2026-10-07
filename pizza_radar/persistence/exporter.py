@@ -202,4 +202,12 @@ def export_snapshot(
     dest.parent.mkdir(parents=True, exist_ok=True)
     with open(dest, "w", encoding="utf-8") as f:
         json.dump(snapshot, f, indent=2, ensure_ascii=False)
+
+    # Exporta igualmente o catálogo canónico de lojas de Lisboa para stores.json
+    try:
+        from pizza_radar.data.lisbon_stores import export_stores_json
+        export_stores_json(str(dest.parent / "stores.json"))
+    except Exception:
+        pass
+
     return snapshot
