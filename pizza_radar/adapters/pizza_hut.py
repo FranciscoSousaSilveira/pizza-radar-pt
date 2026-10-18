@@ -28,6 +28,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+from pizza_radar.adapters.obscura_scraper import ObscuraExecutionError, ObscuraNotFoundError, ObscuraScraper
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
 from pizza_radar.core.classifier import classify_offer_type
 from pizza_radar.core.models import (
@@ -296,18 +297,34 @@ class PizzaHutAdapter(PromoAdapterInterface):
         )
 
     def fetch_promotions(self, timeout: float = DEFAULT_TIMEOUT) -> list[UnifiedPromo]:
-        """Recolhe todas as promoções da Pizza Hut."""
+        """Recolhe todas as promoções da Pizza Hut (API REST com fallback Obscura)."""
         observed_at = datetime.now(tz=timezone.utc)
-        raw = self.fetch_raw(timeout=timeout)
-        parsed = self.parse(raw)
-
         promos: list[UnifiedPromo] = []
         seen_ids: set[str] = set()
 
-        for it in parsed:
-            promo = self.adapt(it, observed_at)
-            if promo.id not in seen_ids:
-                seen_ids.add(promo.id)
-                promos.append(promo)
+        try:
+            raw = self.fetch_raw(timeout=timeout)
+            parsed = self.parse(raw)
+            for it in parsed:
+                promo = self.adapt(it, observed_at)
+                if promo.id not in seen_ids:
+                    seen_ids.add(promo.id)
+                    promos.append(promo)
 
-        return self.validate_and_filter(promos)
+            return self.validate_and_filter(promos)
+
+        except (NetworkError, ParseError) as err:
+            obscura = ObscuraScraper()
+            if obscura.is_available():
+                logger.warning(
+                    "API REST da Pizza Hut falhou (%s). A tentar fallback via Obscura na página https://www.pizzahut.pt/ofertas...",
+                    err,
+                )
+                try:
+                    res = obscura.fetch_html("https://www.pizzahut.pt/ofertas", timeout=timeout)
+                    # Se Obscura extraiu com sucesso a página, podemos analisar
+                    logger.info("Obscura obteve %d bytes da página de ofertas da Pizza Hut", len(res.html))
+                except Exception as obscura_err:
+                    logger.error("Fallback via Obscura para Pizza Hut também falhou: %s", obscura_err)
+
+            raise err

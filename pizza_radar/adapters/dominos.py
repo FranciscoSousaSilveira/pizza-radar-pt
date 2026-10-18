@@ -31,6 +31,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+from pizza_radar.adapters.obscura_scraper import ObscuraExecutionError, ObscuraNotFoundError, ObscuraScraper
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
 from pizza_radar.core.classifier import classify_offer_type
 from pizza_radar.core.models import (
@@ -583,11 +584,28 @@ class DominosAdapter(PromoAdapterInterface):
 
             logger.warning(
                 "Endpoint ajax/order.php da Domino's bloqueado com HTTP 403 (%s). "
-                "A ativar fallback determinístico para a homepage oficial via Browserless Content API",
+                "A ativar fallback determinístico para a homepage oficial (Obscura / Browserless)",
                 exc,
             )
 
-            homepage_html = self.fetch_browserless_homepage(timeout=timeout)
+            # 1. Tentativa prioritária com o motor headless Obscura (ultra-leve ~30MB, V8, anti-deteção) se disponível
+            obscura = ObscuraScraper()
+            homepage_html: str | None = None
+            if obscura.is_available():
+                try:
+                    logger.info("Obscura detetado. A extrair homepage da Domino's via 'obscura fetch'...")
+                    result = obscura.fetch_html(_HOMEPAGE_URL, timeout=timeout)
+                    if "combo-id" in result.html:
+                        homepage_html = result.html
+                    else:
+                        logger.warning("Obscura obteve HTML da Domino's sem 'combo-id'. A avançar para Browserless.")
+                except Exception as obscura_err:
+                    logger.warning("Tentativa via Obscura falhou (%s). A tentar Browserless API.", obscura_err)
+
+            # 2. Fallback para Browserless Content API se Obscura não estiver disponível ou falhar
+            if homepage_html is None:
+                homepage_html = self.fetch_browserless_homepage(timeout=timeout)
+
             parsed_homepage = self.parse_homepage(homepage_html)
             for item in parsed_homepage:
                 for promo in self.adapt_homepage(item, observed_at):

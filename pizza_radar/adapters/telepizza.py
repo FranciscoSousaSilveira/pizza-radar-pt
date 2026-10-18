@@ -39,6 +39,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+from pizza_radar.adapters.obscura_scraper import ObscuraExecutionError, ObscuraNotFoundError, ObscuraScraper
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
 from pizza_radar.core.classifier import classify_offer_type
 from pizza_radar.core.models import (
@@ -775,32 +776,62 @@ class TelepizzaAdapter(PromoAdapterInterface):
     ) -> list[UnifiedPromo]:
         """Recolhe promoções oficiais da Telepizza através da Salesforce SCAPI."""
         observed_at = reference_time or datetime.now(tz=timezone.utc)
-        token = self.fetch_slas_token(timeout=timeout)
-        raw_scapi = self.fetch_scapi_promotions(token=token, timeout=timeout)
-        parsed = self.parse_scapi(raw_scapi, reference_time=observed_at)
-
-        # Verificação automática de diminuição de campanhas válidas
-        valid_campaign_ids = {it["id"] for it in parsed}
-        if len(valid_campaign_ids) < len(DEFAULT_PROMOTION_IDS):
-            logger.warning(
-                "Contagem de campanhas válidas da Telepizza diminuiu: %d de %d esperadas",
-                len(valid_campaign_ids),
-                len(DEFAULT_PROMOTION_IDS),
-            )
-
         promos: list[UnifiedPromo] = []
         seen_ids: set[str] = set()
 
-        for it in parsed:
-            adapted = self.adapt(it, observed_at)
-            items_list = adapted if isinstance(adapted, list) else [adapted]
-            for promo in items_list:
-                if promo.id not in seen_ids:
-                    seen_ids.add(promo.id)
-                    promos.append(promo)
+        try:
+            token = self.fetch_slas_token(timeout=timeout)
+            raw_scapi = self.fetch_scapi_promotions(token=token, timeout=timeout)
+            parsed = self.parse_scapi(raw_scapi, reference_time=observed_at)
 
-        self.coverage_level = "FEATURED"
-        self.coverage_note = (
-            "Telepizza Portugal — confirmar disponibilidade na loja/morada"
-        )
-        return self.validate_and_filter(promos)
+            # Verificação automática de diminuição de campanhas válidas
+            valid_campaign_ids = {it["id"] for it in parsed}
+            if len(valid_campaign_ids) < len(DEFAULT_PROMOTION_IDS):
+                logger.warning(
+                    "Contagem de campanhas válidas da Telepizza diminuiu: %d de %d esperadas",
+                    len(valid_campaign_ids),
+                    len(DEFAULT_PROMOTION_IDS),
+                )
+
+            for it in parsed:
+                adapted = self.adapt(it, observed_at)
+                items_list = adapted if isinstance(adapted, list) else [adapted]
+                for promo in items_list:
+                    if promo.id not in seen_ids:
+                        seen_ids.add(promo.id)
+                        promos.append(promo)
+
+            self.coverage_level = "FEATURED"
+            self.coverage_note = (
+                "Telepizza Portugal — confirmar disponibilidade na loja/morada"
+            )
+            return self.validate_and_filter(promos)
+
+        except (NetworkError, ParseError) as scapi_err:
+            # Fallback determinístico: se o endpoint da SCAPI falhar ou estiver indisponível,
+            # tenta extrair o HTML de https://www.telepizza.pt/promocoes através do Obscura
+            obscura = ObscuraScraper()
+            if obscura.is_available():
+                logger.warning(
+                    "SCAPI da Telepizza falhou (%s). A tentar fallback via Obscura na página %s...",
+                    scapi_err,
+                    _URL,
+                )
+                try:
+                    res = obscura.fetch_html(_URL, timeout=timeout)
+                    parsed_html = self.parse_html(res.html)
+                    for it in parsed_html:
+                        adapted = self.adapt(it, observed_at)
+                        items_list = adapted if isinstance(adapted, list) else [adapted]
+                        for promo in items_list:
+                            if promo.id not in seen_ids:
+                                seen_ids.add(promo.id)
+                                promos.append(promo)
+
+                    self.coverage_level = "FEATURED"
+                    self.coverage_note = "Página de promoções Telepizza (extração Obscura)"
+                    return self.validate_and_filter(promos)
+                except Exception as obscura_err:
+                    logger.error("Fallback via Obscura para Telepizza também falhou: %s", obscura_err)
+
+            raise scapi_err
