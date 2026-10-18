@@ -6,6 +6,8 @@
     "neighborhood": "Areeiro",
     "address": "Av. Padre Manuel da Nóbrega 4A, 1000-223 Lisboa",
     "phone": "210 109 140",
+    "latitude": 38.7422,
+    "longitude": -9.1332,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -49,6 +51,8 @@
     "neighborhood": "Telheiras",
     "address": "Rua Prof. Francisco Gentil 23B, 1600-622 Lisboa",
     "phone": "210 109 141",
+    "latitude": 38.7615,
+    "longitude": -9.1625,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -92,6 +96,8 @@
     "neighborhood": "Lumiar",
     "address": "Rua David Mourão-Ferreira 15B, 1750-205 Lisboa",
     "phone": "210 109 142",
+    "latitude": 38.7738,
+    "longitude": -9.1558,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -135,6 +141,8 @@
     "neighborhood": "Benfica",
     "address": "Estrada de Benfica 397A, 1500-077 Lisboa",
     "phone": "210 109 143",
+    "latitude": 38.7485,
+    "longitude": -9.195,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -178,6 +186,8 @@
     "neighborhood": "Campo de Ourique",
     "address": "Rua Ferreira Borges 88, 1350-134 Lisboa",
     "phone": "210 109 144",
+    "latitude": 38.718,
+    "longitude": -9.1625,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -221,6 +231,8 @@
     "neighborhood": "Parque das Nações",
     "address": "Alameda dos Oceanos 43A, 1990-203 Lisboa",
     "phone": "210 109 145",
+    "latitude": 38.7675,
+    "longitude": -9.0968,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -264,6 +276,8 @@
     "neighborhood": "Santos / Cais do Sodré",
     "address": "Av. 24 de Julho 76, 1200-869 Lisboa",
     "phone": "210 109 146",
+    "latitude": 38.7065,
+    "longitude": -9.153,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -307,6 +321,8 @@
     "neighborhood": "Alvalade",
     "address": "Av. da Igreja 42B, 1700-239 Lisboa",
     "phone": "210 109 147",
+    "latitude": 38.7525,
+    "longitude": -9.1435,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -350,6 +366,8 @@
     "neighborhood": "Amoreiras",
     "address": "Rua Silva Carvalho 198, 1250-257 Lisboa",
     "phone": "210 541 770",
+    "latitude": 38.723,
+    "longitude": -9.1605,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -393,6 +411,8 @@
     "neighborhood": "Areeiro",
     "address": "Av. Padre Manuel da Nóbrega 13B, 1000-223 Lisboa",
     "phone": "210 541 771",
+    "latitude": 38.7425,
+    "longitude": -9.133,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -436,6 +456,8 @@
     "neighborhood": "Benfica",
     "address": "Estrada de Benfica 498A, 1500-105 Lisboa",
     "phone": "210 541 772",
+    "latitude": 38.7505,
+    "longitude": -9.201,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -479,6 +501,8 @@
     "neighborhood": "Picoas / Saldanha",
     "address": "Av. Fontes Pereira de Melo 31A, 1050-117 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.7305,
+    "longitude": -9.1475,
     "services": [
       "DINE_IN",
       "TAKE_AWAY",
@@ -523,6 +547,8 @@
     "neighborhood": "Restelo / Belém",
     "address": "Rua Gonçalves Zarco 2A, 1400-191 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.7025,
+    "longitude": -9.214,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -566,6 +592,8 @@
     "neighborhood": "Parque das Nações",
     "address": "Alameda dos Oceanos 61A, 1990-208 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.7695,
+    "longitude": -9.096,
     "services": [
       "DINE_IN",
       "TAKE_AWAY",
@@ -610,6 +638,8 @@
     "neighborhood": "Telheiras",
     "address": "Rua Prof. Vieira de Almeida 12A, 1600-664 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.7625,
+    "longitude": -9.161,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -653,6 +683,8 @@
     "neighborhood": "Graça / Penha de França",
     "address": "Rua General Roçadas 76A, 1170-163 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.7245,
+    "longitude": -9.127,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -696,6 +728,8 @@
     "neighborhood": "Campo de Ourique",
     "address": "Rua Ferreira Borges 104, 1350-135 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.7175,
+    "longitude": -9.163,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -739,6 +773,8 @@
     "neighborhood": "Areeiro / Campo Pequeno",
     "address": "Av. João XXI 64A, 1000-304 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.7435,
+    "longitude": -9.1395,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -782,6 +818,8 @@
     "neighborhood": "Benfica",
     "address": "Estrada de Benfica 515, 1500-085 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.751,
+    "longitude": -9.202,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -825,6 +863,8 @@
     "neighborhood": "Benfica / Colombo",
     "address": "Av. Lusíada, Centro Colombo Piso 2, 1500-392 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.754,
+    "longitude": -9.1885,
     "services": [
       "DINE_IN",
       "TAKE_AWAY"
@@ -868,6 +908,8 @@
     "neighborhood": "Parque das Nações / Oriente",
     "address": "Av. D. João II, CC Vasco da Gama Piso 2, 1990-094 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.7678,
+    "longitude": -9.0975,
     "services": [
       "DINE_IN",
       "TAKE_AWAY"
@@ -911,6 +953,8 @@
     "neighborhood": "Amoreiras",
     "address": "Av. Eng. Duarte Pacheco, Amoreiras Shopping Piso 2, 1070-103 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.724,
+    "longitude": -9.162,
     "services": [
       "DINE_IN",
       "TAKE_AWAY"
@@ -954,6 +998,8 @@
     "neighborhood": "Saldanha",
     "address": "Praça Duque de Saldanha 31, Atrium Saldanha Piso -1, 1050-094 Lisboa",
     "phone": "222 444 222",
+    "latitude": 38.7345,
+    "longitude": -9.145,
     "services": [
       "DINE_IN",
       "TAKE_AWAY"
@@ -997,6 +1043,8 @@
     "neighborhood": "Telheiras",
     "address": "Rua Prof. Francisco Gentil 11A, 1600-621 Lisboa",
     "phone": "217 587 000",
+    "latitude": 38.7618,
+    "longitude": -9.162,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -1040,6 +1088,8 @@
     "neighborhood": "Alvalade / Roma",
     "address": "Av. de Roma 43A, 1700-342 Lisboa",
     "phone": "217 934 000",
+    "latitude": 38.748,
+    "longitude": -9.1415,
     "services": [
       "DINE_IN",
       "DELIVERY",
@@ -1084,6 +1134,8 @@
     "neighborhood": "Parque das Nações",
     "address": "Alameda dos Oceanos 41B, 1990-203 Lisboa",
     "phone": "218 956 000",
+    "latitude": 38.767,
+    "longitude": -9.0965,
     "services": [
       "DINE_IN",
       "DELIVERY",
@@ -1128,6 +1180,8 @@
     "neighborhood": "Benfica",
     "address": "Estrada de Benfica 402B, 1500-101 Lisboa",
     "phone": "217 167 000",
+    "latitude": 38.7488,
+    "longitude": -9.1955,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -1171,6 +1225,8 @@
     "neighborhood": "Arroios / Anjos",
     "address": "Av. Almirante Reis 176A, 1000-053 Lisboa",
     "phone": "218 402 000",
+    "latitude": 38.734,
+    "longitude": -9.1335,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -1214,6 +1270,8 @@
     "neighborhood": "Belém / Restelo",
     "address": "Rua de Belém 28, 1300-085 Lisboa",
     "phone": "213 638 000",
+    "latitude": 38.6975,
+    "longitude": -9.2055,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -1257,6 +1315,8 @@
     "neighborhood": "Campo de Ourique",
     "address": "Rua Coelho da Rocha 31A, 1350-097 Lisboa",
     "phone": "213 954 000",
+    "latitude": 38.7165,
+    "longitude": -9.1645,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -1300,6 +1360,8 @@
     "neighborhood": "Lumiar",
     "address": "Alameda das Linhas de Torres 146A, 1750-149 Lisboa",
     "phone": "217 578 000",
+    "latitude": 38.765,
+    "longitude": -9.1575,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -1343,6 +1405,8 @@
     "neighborhood": "São Domingos de Benfica",
     "address": "Rua Conde de Almoster 92B, 1500-197 Lisboa",
     "phone": "217 784 000",
+    "latitude": 38.7445,
+    "longitude": -9.1825,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"
@@ -1386,6 +1450,8 @@
     "neighborhood": "Santa Apolónia / Alfama",
     "address": "Av. Infante D. Henrique 114, 1100-281 Lisboa",
     "phone": "218 876 000",
+    "latitude": 38.7145,
+    "longitude": -9.1225,
     "services": [
       "DELIVERY",
       "TAKE_AWAY"

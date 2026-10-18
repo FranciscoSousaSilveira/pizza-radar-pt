@@ -1,0 +1,84 @@
+name: Daily Radar Pipeline & Alerts
+
+on:
+  schedule:
+    # Executa todos os dias às 11:30 UTC (almoço) e 18:30 UTC (jantar)
+    - cron: '30 11,18 * * *'
+  workflow_dispatch:
+    inputs:
+      notify_telegram:
+        description: 'Disparar alertas no Telegram com os destaques'
+        required: false
+        default: true
+        type: boolean
+      dry_run:
+        description: 'Executar em modo dry-run sem deploy'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  daily_radar:
+    name: Collect, Validate & Dispatch Pizza Radar
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run automated test suite
+        run: |
+          python -m unittest discover tests -v
+
+      - name: Run radar pipeline with Turso and Telegram alerts
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
+          BROWSERLESS_API_KEY: ${{ secrets.BROWSERLESS_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          mkdir -p web/data
+          # Executa recolha determinística, exporta snapshot JSON e dispara alertas Telegram
+          python -m pizza_radar.pipeline.cli \
+            --mode scheduled \
+            --snapshot-output ./web/data/promotions.json \
+            --notify-telegram
+
+      - name: Verify generated snapshot integrity
+        run: |
+          python -c "
+          import json
+          with open('web/data/promotions.json', encoding='utf-8') as f:
+              data = json.load(f)
+          assert 'groups' in data, 'Snapshot inválido: campo groups ausente'
+          assert 'stats' in data, 'Snapshot inválido: campo stats ausente'
+          print(f'Snapshot íntegro: {len(data[\"groups\"])} ofertas em Lisboa.')
+          "
+
+      - name: Upload daily snapshot artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-promotions-snapshot
+          path: web/data/promotions.json
+          retention-days: 7
+
+      - name: Deploy to Cloudflare Pages
+        if: ${{ success() && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true' && inputs.dry_run != true }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy web --project-name=pizza-radar-pt --branch=main

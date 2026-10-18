@@ -9,6 +9,7 @@ from typing import Any
 
 from pizza_radar.core.models import Brand, OfferType
 from pizza_radar.engine.identity import VisualPromoGroup, group_promos_for_visual_presentation
+from pizza_radar.engine.value_index import compute_value_metrics
 from pizza_radar.persistence.repository import PromotionRepository
 
 
@@ -42,6 +43,23 @@ def serialize_visual_group(group: VisualPromoGroup) -> dict[str, Any]:
         "days_of_week": [d.value for d in group.days_of_week],
         "location_scope": group.location_scope,
         "most_recent_observed_at": group.most_recent_observed_at,
+        "value_metrics": (
+            compute_value_metrics(
+                price_cents=group.min_price_cents,
+                pizza_size=group.pizza_size,
+                pizza_count=group.pizza_count,
+            ).to_dict()
+            if (
+                group.offer_type in (OfferType.PIZZA, OfferType.BUNDLE_WITH_PIZZA)
+                and compute_value_metrics(
+                    price_cents=group.min_price_cents,
+                    pizza_size=group.pizza_size,
+                    pizza_count=group.pizza_count,
+                )
+                is not None
+            )
+            else None
+        ),
         "variants": [
             {
                 "variant_id": v.variant_id,
@@ -62,6 +80,20 @@ def serialize_visual_group(group: VisualPromoGroup) -> dict[str, Any]:
                 "valid_from": v.valid_from,
                 "valid_until": v.valid_until,
                 "observed_at": v.observed_at,
+                "value_metrics": (
+                    compute_value_metrics(
+                        price_cents=v.price_cents,
+                        pizza_size=v.pizza_size,
+                        pizza_count=v.pizza_count,
+                    ).to_dict()
+                    if compute_value_metrics(
+                        price_cents=v.price_cents,
+                        pizza_size=v.pizza_size,
+                        pizza_count=v.pizza_count,
+                    )
+                    is not None
+                    else None
+                ),
             }
             for v in group.variants
         ],

@@ -31,6 +31,14 @@
     filterStoreService: 'ALL', // 'ALL', 'DELIVERY', 'TAKE_AWAY'
     storesSearchQuery: '',
     currentMobileView: 'promos', // 'promos' ou 'stores'
+    // Estado do Mapa Interativo & Geolocalização
+    userLocation: null, // { lat: number, lng: number }
+    selectedRadiusKm: 3,
+    nearMeActive: false,
+    leafletMap: null,
+    markersLayer: null,
+    userMarker: null,
+    radiusCircle: null,
   };
 
   // Explicações dos Rankings
@@ -46,6 +54,10 @@
     BEST_UNIT_PRICE: {
       title: 'Melhor Preço / Pizza',
       text: 'Calcula o custo por unidade inteira de pizza (estritamente para pizzas e menus comparáveis). Exclui categoricamente complementos e sobremesas.',
+    },
+    BEST_VALUE_INDEX: {
+      title: 'Melhor Custo / Benefício (Pizza Value Index)',
+      text: 'Calcula o preço real por 100 cm² de área de pizza baseado nos diâmetros padronizados em Portugal (Individual ~20cm, Média ~30cm, Grande/Familiar ~38cm).',
     },
     RECENTLY_OBSERVED: {
       title: 'Recém Observadas',
@@ -119,14 +131,24 @@
     countBrandTelepizza: document.getElementById('count-brand-telepizza'),
     navLinkPromos: document.getElementById('nav-link-promos'),
     navLinkStores: document.getElementById('nav-link-stores'),
+    // Elementos do Mapa e Geolocalização
+    storesMapCard: document.getElementById('stores-map-card'),
+    storesMap: document.getElementById('stores-map'),
+    btnNearMe: document.getElementById('btn-near-me'),
+    radiusFilterWrap: document.getElementById('radius-filter-wrap'),
+    selectRadius: document.getElementById('select-radius'),
+    btnClearGeo: document.getElementById('btn-clear-geo'),
+    geoStatusText: document.getElementById('geo-status-text'),
   };
 
   // Inicialização
   async function init() {
     setupEventListeners();
     setupStoresEventListeners();
+    setupMapEventListeners();
     await Promise.all([loadData(), loadStoresData()]);
     startLiveClock();
+    initStoresMap();
   }
 
   // Unifica grupos promocionais que partilham a mesma marca, título e preço em canais complementares
@@ -661,6 +683,24 @@
           return a.persistent_id.localeCompare(b.persistent_id);
         });
 
+      case 'BEST_VALUE_INDEX':
+        // Apenas ofertas de pizza com métricas de valor (preço por 100 cm²) calculadas
+        const valueOnly = list.filter((g) =>
+          (g.offer_type === 'PIZZA' || g.offer_type === 'BUNDLE_WITH_PIZZA') &&
+          g.value_metrics &&
+          g.value_metrics.price_per_100_cm2_cents !== null &&
+          g.value_metrics.price_per_100_cm2_cents !== undefined
+        );
+        return valueOnly.sort((a, b) => {
+          const vA = a.value_metrics.price_per_100_cm2_cents;
+          const vB = b.value_metrics.price_per_100_cm2_cents;
+          if (vA !== vB) return vA - vB;
+          const pA = a.min_price_cents || 9999999;
+          const pB = b.min_price_cents || 9999999;
+          if (pA !== pB) return pA - pB;
+          return a.persistent_id.localeCompare(b.persistent_id);
+        });
+
       case 'RECENTLY_OBSERVED':
         return list.sort((a, b) => {
           const tA = a.most_recent_observed_at ? new Date(a.most_recent_observed_at).getTime() : 0;
@@ -772,6 +812,20 @@
       `;
     }
 
+    // Pizza Value Index (Preço / 100 cm² e Doses Estimadas)
+    let valueMetricsHTML = '';
+    if (group.value_metrics && group.value_metrics.value_badge_label) {
+      const portionBadge = group.value_metrics.portion_badge_label
+        ? `<span class="badge-portions" title="Estimativa com base no diâmetro e ~450 cm² por pessoa">👥 ${escapeHTML(group.value_metrics.portion_badge_label)}</span>`
+        : '';
+      valueMetricsHTML = `
+        <div class="value-index-badge-wrap">
+          <span class="badge-value-index" title="Preço por 100 cm² de área útil de pizza">🔥 ${escapeHTML(group.value_metrics.value_badge_label)}</span>
+          ${portionBadge}
+        </div>
+      `;
+    }
+
     // Âmbito Geográfico de Lojas
     let storeScopeHTML = '';
     if (group.store_scope === 'SPECIFIC_STORES' && group.all_store_names && group.all_store_names.length > 0) {
@@ -875,6 +929,7 @@
               ${originalPriceHTML}
             </div>
             ${unitPriceBadgeHTML}
+            ${valueMetricsHTML}
           </div>
 
           <div class="card-meta">
@@ -1249,21 +1304,45 @@
       });
     }
 
-    // Ordenar: primeiro abertas (OPEN / CLOSING_SOON), depois fechadas, desempate por marca e nome
-    filtered.sort((a, b) => {
-      const stA = getStoreStatus(a, lisbonTime);
-      const stB = getStoreStatus(b, lisbonTime);
-      if (stA.isOpen !== stB.isOpen) {
-        return stA.isOpen ? -1 : 1;
+    // 5. Filtro por Proximidade / Geolocalização ("Perto de mim")
+    if (state.nearMeActive && state.userLocation) {
+      filtered = filtered.filter((s) => {
+        if (s.latitude && s.longitude) {
+          const d = calculateHaversineDistanceKm(state.userLocation.lat, state.userLocation.lng, s.latitude, s.longitude);
+          s.distanceKm = d;
+          return d <= state.selectedRadiusKm;
+        }
+        return false;
+      });
+      // Ordenar por distância quando modo "Perto de mim" estiver ativo
+      filtered.sort((a, b) => {
+        const dA = a.distanceKm !== undefined ? a.distanceKm : 999;
+        const dB = b.distanceKm !== undefined ? b.distanceKm : 999;
+        if (dA !== dB) return dA - dB;
+        return a.name.localeCompare(b.name);
+      });
+    } else {
+      // Limpar distância das lojas
+      for (const s of filtered) {
+        delete s.distanceKm;
       }
-      if (a.brand !== b.brand) {
-        return a.brand.localeCompare(b.brand);
-      }
-      return a.name.localeCompare(b.name);
-    });
+      // Ordenar: primeiro abertas (OPEN / CLOSING_SOON), depois fechadas, desempate por marca e nome
+      filtered.sort((a, b) => {
+        const stA = getStoreStatus(a, lisbonTime);
+        const stB = getStoreStatus(b, lisbonTime);
+        if (stA.isOpen !== stB.isOpen) {
+          return stA.isOpen ? -1 : 1;
+        }
+        if (a.brand !== b.brand) {
+          return a.brand.localeCompare(b.brand);
+        }
+        return a.name.localeCompare(b.name);
+      });
+    }
 
     renderStoresGrid(filtered, lisbonTime);
     updateStoresStatusBar(filtered.length);
+    updateMapMarkers(filtered, lisbonTime);
   }
 
   // Renderizar Grelha de Lojas
@@ -1305,10 +1384,14 @@
     }).join(' ');
 
     const phoneHTML = store.phone
-      ? `<a href="tel:${escapeHTML(store.phone.replace(/\s+/g, ''))}" class="store-phone-link" title="Ligar para ${escapeHTML(store.name)}">
+      ? `<a href="tel:${escapeHTML(store.phone.replace(/\\s+/g, ''))}" class="store-phone-link" title="Ligar para ${escapeHTML(store.name)}">
            <svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 4a1 1 0 011-1h3a1 1 0 011 1v2a1 1 0 01-1 1H6a11 11 0 005 5v-1a1 1 0 011-1h2a1 1 0 011 1v3a1 1 0 01-1 1h-1C7.82 17 3 12.18 3 7V4z"></path></svg>
            <span>${escapeHTML(store.phone)}</span>
          </a>`
+      : '';
+
+    const distanceBadgeHTML = store.distanceKm !== undefined
+      ? `<div class="store-distance-badge" style="font-size:0.75rem; font-weight:800; color:#1D4ED8; background:#EFF6FF; border:1px solid #DBEAFE; padding:2px 8px; border-radius:9999px; display:inline-flex; align-items:center; gap:3px;">📍 ${store.distanceKm.toFixed(1)} km</div>`
       : '';
 
     return `
@@ -1317,9 +1400,12 @@
           <div class="store-brand-badge store-brand-${escapeHTML(store.brand)}">
             ${escapeHTML(vendorLabel)}
           </div>
-          <div class="store-status-badge ${badgeClass}">
-            <span class="status-dot-small ${dotClass}" aria-hidden="true"></span>
-            <span>${escapeHTML(status.label)}</span>
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            ${distanceBadgeHTML}
+            <div class="store-status-badge ${badgeClass}">
+              <span class="status-dot-small ${dotClass}" aria-hidden="true"></span>
+              <span>${escapeHTML(status.label)}</span>
+            </div>
           </div>
         </header>
 
@@ -1346,7 +1432,9 @@
 
   function updateStoresStatusBar(count) {
     if (!elements.storesResultsCount) return;
-    if (count === 1) {
+    if (state.nearMeActive && state.userLocation) {
+      elements.storesResultsCount.textContent = `${count} lojas a menos de ${state.selectedRadiusKm} km em Lisboa`;
+    } else if (count === 1) {
       elements.storesResultsCount.textContent = '1 loja encontrada em Lisboa';
     } else {
       elements.storesResultsCount.textContent = `${count} lojas encontradas em Lisboa`;
@@ -1501,6 +1589,244 @@
         applyFiltersAndRender();
       }
     }, 60000);
+  }
+
+  // ==========================================================================
+  // Mapa Interativo com Leaflet.js e Raio de Proximidade ("Perto de Mim")
+  // ==========================================================================
+
+  // Fórmula de Haversine para cálculo de distância geodésica em km
+  function calculateHaversineDistanceKm(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Raio médio da Terra em km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  // Inicializar o Mapa Leaflet
+  function initStoresMap() {
+    if (!elements.storesMap || typeof L === 'undefined') return;
+
+    try {
+      // Coordenadas centrais de Lisboa (Marquês de Pombal / Saldanha)
+      state.leafletMap = L.map(elements.storesMap, {
+        center: [38.7250, -9.1450],
+        zoom: 12,
+        scrollWheelZoom: false,
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
+      }).addTo(state.leafletMap);
+
+      state.markersLayer = L.layerGroup().addTo(state.leafletMap);
+
+      // Renderizar marcadores iniciais caso as lojas já tenham sido carregadas
+      if (state.stores && state.stores.length > 0) {
+        updateMapMarkers(state.stores, getLisbonNow());
+      }
+    } catch (err) {
+      console.warn('Falha ao inicializar Leaflet map:', err);
+    }
+  }
+
+  // Atualizar marcadores no mapa
+  function updateMapMarkers(storesList, lisbonTime) {
+    if (!state.leafletMap || !state.markersLayer || typeof L === 'undefined') return;
+
+    state.markersLayer.clearLayers();
+
+    const brandLetters = {
+      DOMINOS: 'D',
+      PAPA_JOHNS: 'P',
+      PIZZA_HUT: 'H',
+      TELEPIZZA: 'T',
+    };
+
+    const targetStores = storesList && storesList.length > 0 ? storesList : state.stores;
+
+    for (const store of targetStores) {
+      if (!store.latitude || !store.longitude) continue;
+
+      const lat = store.latitude;
+      const lng = store.longitude;
+
+      const brandClass = `marker-${store.brand.toLowerCase()}`;
+      const letter = brandLetters[store.brand] || '🍕';
+      const status = getStoreStatus(store, lisbonTime);
+      const vendorLabel = VENDOR_LABELS[store.brand] || store.brand;
+
+      const markerIcon = L.divIcon({
+        className: 'custom-leaflet-marker-wrap',
+        html: `<div class="custom-brand-marker ${brandClass}" title="${escapeHTML(store.name)}">${letter}</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -18],
+      });
+
+      const distInfo = store.distanceKm !== undefined ? ` • <strong>${store.distanceKm.toFixed(1)} km</strong>` : '';
+
+      const popupContent = `
+        <div class="map-popup">
+          <div class="map-popup-header">
+            <span class="map-popup-brand store-brand-${escapeHTML(store.brand)}">${escapeHTML(vendorLabel)}</span>
+            <span style="font-size:0.75rem; color:${status.isOpen ? '#15803D' : '#991B1B'}; font-weight:750;">
+              ${status.isOpen ? 'Aberta' : 'Fechada'}
+            </span>
+          </div>
+          <h4 class="map-popup-title">${escapeHTML(store.name)}</h4>
+          <p class="map-popup-address">📍 ${escapeHTML(store.neighborhood)}${distInfo}<br>${escapeHTML(store.address)}</p>
+          <div class="map-popup-status">🕒 ${escapeHTML(status.label)}</div>
+          <div class="map-popup-actions">
+            ${store.phone ? `<a href="tel:${escapeHTML(store.phone.replace(/\\s+/g, ''))}" class="map-popup-btn map-popup-btn-phone">📞 Ligar</a>` : ''}
+            <a href="${escapeHTML(store.official_url)}" target="_blank" rel="noopener noreferrer" class="map-popup-btn map-popup-btn-primary">Pedir Online ↗</a>
+          </div>
+        </div>
+      `;
+
+      const marker = L.marker([lat, lng], { icon: markerIcon }).bindPopup(popupContent);
+      state.markersLayer.addLayer(marker);
+    }
+
+    // Se tivermos a localização do utilizador, re-adicionamos o marcador do utilizador e círculo
+    if (state.nearMeActive && state.userLocation) {
+      if (state.userMarker) state.userMarker.addTo(state.leafletMap);
+      if (state.radiusCircle) state.radiusCircle.addTo(state.leafletMap);
+    }
+  }
+
+  // Configurar ouvintes de eventos do mapa e geolocalização
+  function setupMapEventListeners() {
+    if (elements.btnNearMe) {
+      elements.btnNearMe.addEventListener('click', toggleNearMe);
+    }
+
+    if (elements.selectRadius) {
+      elements.selectRadius.addEventListener('change', (e) => {
+        state.selectedRadiusKm = parseFloat(e.target.value) || 3;
+        if (state.radiusCircle && state.userLocation) {
+          state.radiusCircle.setRadius(state.selectedRadiusKm * 1000);
+          if (state.leafletMap) {
+            state.leafletMap.fitBounds(state.radiusCircle.getBounds(), { padding: [20, 20] });
+          }
+        }
+        if (elements.geoStatusText && state.userLocation) {
+          elements.geoStatusText.textContent = `📍 Lojas a menos de ${state.selectedRadiusKm} km de ti`;
+        }
+        applyStoresFiltersAndRender();
+      });
+    }
+
+    if (elements.btnClearGeo) {
+      elements.btnClearGeo.addEventListener('click', clearNearMe);
+    }
+  }
+
+  // Alternar modo "Perto de mim"
+  function toggleNearMe() {
+    if (state.nearMeActive) {
+      clearNearMe();
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      if (elements.geoStatusText) {
+        elements.geoStatusText.textContent = 'Geolocalização não suportada pelo navegador.';
+      }
+      return;
+    }
+
+    if (elements.geoStatusText) {
+      elements.geoStatusText.textContent = 'A obter localização em Lisboa...';
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        state.userLocation = { lat, lng };
+        state.nearMeActive = true;
+
+        if (elements.btnNearMe) {
+          elements.btnNearMe.classList.add('active');
+        }
+        if (elements.radiusFilterWrap) {
+          elements.radiusFilterWrap.style.display = 'inline-flex';
+        }
+        if (elements.geoStatusText) {
+          elements.geoStatusText.textContent = `📍 Lojas a menos de ${state.selectedRadiusKm} km de ti`;
+        }
+
+        // Adicionar marcador do utilizador no Leaflet
+        if (state.leafletMap && typeof L !== 'undefined') {
+          if (state.userMarker) state.leafletMap.removeLayer(state.userMarker);
+          if (state.radiusCircle) state.radiusCircle.removeLayer(state.radiusCircle);
+
+          const userIcon = L.divIcon({
+            className: 'custom-leaflet-user-wrap',
+            html: '<div class="custom-user-marker" title="A tua localização"></div>',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9],
+          });
+
+          state.userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(state.leafletMap)
+            .bindPopup('<strong>📍 A tua localização atual</strong>');
+
+          state.radiusCircle = L.circle([lat, lng], {
+            radius: state.selectedRadiusKm * 1000,
+            color: '#2563EB',
+            fillColor: '#3B82F6',
+            fillOpacity: 0.12,
+            weight: 2,
+            dashArray: '4, 4',
+          }).addTo(state.leafletMap);
+
+          state.leafletMap.fitBounds(state.radiusCircle.getBounds(), { padding: [25, 25] });
+        }
+
+        applyStoresFiltersAndRender();
+      },
+      (err) => {
+        console.warn('Erro de geolocalização:', err);
+        state.nearMeActive = false;
+        if (elements.btnNearMe) elements.btnNearMe.classList.remove('active');
+        if (elements.radiusFilterWrap) elements.radiusFilterWrap.style.display = 'none';
+        if (elements.geoStatusText) {
+          elements.geoStatusText.textContent = 'Localização indisponível. Pesquisa por bairro (ex.: Areeiro, Telheiras).';
+        }
+      },
+      { timeout: 10000, enableHighAccuracy: true, maximumAge: 60000 }
+    );
+  }
+
+  // Limpar modo "Perto de mim"
+  function clearNearMe() {
+    state.nearMeActive = false;
+    state.userLocation = null;
+
+    if (elements.btnNearMe) elements.btnNearMe.classList.remove('active');
+    if (elements.radiusFilterWrap) elements.radiusFilterWrap.style.display = 'none';
+    if (elements.geoStatusText) elements.geoStatusText.textContent = '';
+
+    if (state.leafletMap && typeof L !== 'undefined') {
+      if (state.userMarker) {
+        state.leafletMap.removeLayer(state.userMarker);
+        state.userMarker = null;
+      }
+      if (state.radiusCircle) {
+        state.leafletMap.removeLayer(state.radiusCircle);
+        state.radiusCircle = null;
+      }
+      state.leafletMap.setView([38.7250, -9.1450], 12);
+    }
+
+    applyStoresFiltersAndRender();
   }
 
   // Arranque

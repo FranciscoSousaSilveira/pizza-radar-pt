@@ -76,7 +76,22 @@
           "offer_type": "PIZZA"
         }
       ],
-      "offer_type": "PIZZA"
+      "offer_type": "PIZZA",
+      "value_metrics": {
+        "pizza_size": "MEDIUM",
+        "pizza_count": 1,
+        "single_diameter_cm": 30.0,
+        "single_area_cm2": 706.9,
+        "total_area_cm2": 706.9,
+        "price_cents": 1095,
+        "price_per_100_cm2_cents": 155,
+        "price_per_100_cm2_euros": 1.55,
+        "estimated_portions": 2,
+        "price_per_portion_cents": 548,
+        "price_per_portion_euros": 5.48,
+        "value_badge_label": "1,55 € / 100 cm²",
+        "portion_badge_label": "Ideal para 2 pessoas"
+      }
     },
     {
       "persistent_id": "pid_dominos_2420_take_away",
@@ -136,7 +151,22 @@
           "offer_type": "PIZZA"
         }
       ],
-      "offer_type": "PIZZA"
+      "offer_type": "PIZZA",
+      "value_metrics": {
+        "pizza_size": "MEDIUM",
+        "pizza_count": 1,
+        "single_diameter_cm": 30.0,
+        "single_area_cm2": 706.9,
+        "total_area_cm2": 706.9,
+        "price_cents": 995,
+        "price_per_100_cm2_cents": 141,
+        "price_per_100_cm2_euros": 1.41,
+        "estimated_portions": 2,
+        "price_per_portion_cents": 498,
+        "price_per_portion_euros": 4.98,
+        "value_badge_label": "1,41 € / 100 cm²",
+        "portion_badge_label": "Ideal para 2 pessoas"
+      }
     },
     {
       "persistent_id": "pid_dominos_2434_delivery",
@@ -378,7 +408,22 @@
           "offer_type": "BUNDLE_WITH_PIZZA"
         }
       ],
-      "offer_type": "BUNDLE_WITH_PIZZA"
+      "offer_type": "BUNDLE_WITH_PIZZA",
+      "value_metrics": {
+        "pizza_size": "LARGE",
+        "pizza_count": 2,
+        "single_diameter_cm": 35.0,
+        "single_area_cm2": 962.1,
+        "total_area_cm2": 1924.2,
+        "price_cents": 2700,
+        "price_per_100_cm2_cents": 140,
+        "price_per_100_cm2_euros": 1.4,
+        "estimated_portions": 4,
+        "price_per_portion_cents": 675,
+        "price_per_portion_euros": 6.75,
+        "value_badge_label": "1,40 € / 100 cm²",
+        "portion_badge_label": "Ideal para 4 pessoas"
+      }
     },
     {
       "persistent_id": "pid_papa_johns_207_take_away",
@@ -606,7 +651,22 @@
           "offer_type": "BUNDLE_WITH_PIZZA"
         }
       ],
-      "offer_type": "BUNDLE_WITH_PIZZA"
+      "offer_type": "BUNDLE_WITH_PIZZA",
+      "value_metrics": {
+        "pizza_size": "INDIVIDUAL",
+        "pizza_count": 1,
+        "single_diameter_cm": 20.0,
+        "single_area_cm2": 314.2,
+        "total_area_cm2": 314.2,
+        "price_cents": 1099,
+        "price_per_100_cm2_cents": 350,
+        "price_per_100_cm2_euros": 3.5,
+        "estimated_portions": 1,
+        "price_per_portion_cents": 1099,
+        "price_per_portion_euros": 10.99,
+        "value_badge_label": "3,50 € / 100 cm²",
+        "portion_badge_label": "Ideal para 1 pessoa"
+      }
     },
     {
       "persistent_id": "pid_papa_johns_222_take_away",
@@ -682,7 +742,22 @@
           "offer_type": "BUNDLE_WITH_PIZZA"
         }
       ],
-      "offer_type": "BUNDLE_WITH_PIZZA"
+      "offer_type": "BUNDLE_WITH_PIZZA",
+      "value_metrics": {
+        "pizza_size": "INDIVIDUAL",
+        "pizza_count": 1,
+        "single_diameter_cm": 20.0,
+        "single_area_cm2": 314.2,
+        "total_area_cm2": 314.2,
+        "price_cents": 699,
+        "price_per_100_cm2_cents": 222,
+        "price_per_100_cm2_euros": 2.22,
+        "estimated_portions": 1,
+        "price_per_portion_cents": 699,
+        "price_per_portion_euros": 6.99,
+        "value_badge_label": "2,22 € / 100 cm²",
+        "portion_badge_label": "Ideal para 1 pessoa"
+      }
     },
     {
       "persistent_id": "pid_papa_johns_232_delivery",
@@ -834,7 +909,22 @@
           "offer_type": "PIZZA"
         }
       ],
-      "offer_type": "PIZZA"
+      "offer_type": "PIZZA",
+      "value_metrics": {
+        "pizza_size": "MEDIUM",
+        "pizza_count": 2,
+        "single_diameter_cm": 30.0,
+        "single_area_cm2": 706.9,
+        "total_area_cm2": 1413.7,
+        "price_cents": 2098,
+        "price_per_100_cm2_cents": 148,
+        "price_per_100_cm2_euros": 1.48,
+        "estimated_portions": 3,
+        "price_per_portion_cents": 699,
+        "price_per_portion_euros": 6.99,
+        "value_badge_label": "1,48 € / 100 cm²",
+        "portion_badge_label": "Ideal para 3 pessoas"
+      }
     },
     {
       "persistent_id": "pid_pizza_hut_14626_take_away",
@@ -1042,7 +1132,22 @@
           "offer_type": "PIZZA"
         }
       ],
-      "offer_type": "PIZZA"
+      "offer_type": "PIZZA",
+      "value_metrics": {
+        "pizza_size": "MEDIUM",
+        "pizza_count": 1,
+        "single_diameter_cm": 30.0,
+        "single_area_cm2": 706.9,
+        "total_area_cm2": 706.9,
+        "price_cents": 1000,
+        "price_per_100_cm2_cents": 141,
+        "price_per_100_cm2_euros": 1.41,
+        "estimated_portions": 2,
+        "price_per_portion_cents": 500,
+        "price_per_portion_euros": 5.0,
+        "value_badge_label": "1,41 € / 100 cm²",
+        "portion_badge_label": "Ideal para 2 pessoas"
+      }
     },
     {
       "persistent_id": "pid_telepizza_2admmk_take_away",
@@ -1094,7 +1199,22 @@
           "offer_type": "PIZZA"
         }
       ],
-      "offer_type": "PIZZA"
+      "offer_type": "PIZZA",
+      "value_metrics": {
+        "pizza_size": "MEDIUM",
+        "pizza_count": 1,
+        "single_diameter_cm": 30.0,
+        "single_area_cm2": 706.9,
+        "total_area_cm2": 706.9,
+        "price_cents": 1000,
+        "price_per_100_cm2_cents": 141,
+        "price_per_100_cm2_euros": 1.41,
+        "estimated_portions": 2,
+        "price_per_portion_cents": 500,
+        "price_per_portion_euros": 5.0,
+        "value_badge_label": "1,41 € / 100 cm²",
+        "portion_badge_label": "Ideal para 2 pessoas"
+      }
     },
     {
       "persistent_id": "pid_telepizza_2x1_nc_delivery",
@@ -1250,7 +1370,22 @@
           "offer_type": "PIZZA"
         }
       ],
-      "offer_type": "PIZZA"
+      "offer_type": "PIZZA",
+      "value_metrics": {
+        "pizza_size": "MEDIUM",
+        "pizza_count": 1,
+        "single_diameter_cm": 30.0,
+        "single_area_cm2": 706.9,
+        "total_area_cm2": 706.9,
+        "price_cents": 595,
+        "price_per_100_cm2_cents": 84,
+        "price_per_100_cm2_euros": 0.84,
+        "estimated_portions": 2,
+        "price_per_portion_cents": 298,
+        "price_per_portion_euros": 2.98,
+        "value_badge_label": "0,84 € / 100 cm²",
+        "portion_badge_label": "Ideal para 2 pessoas"
+      }
     }
   ],
   "data_mode": "demo",

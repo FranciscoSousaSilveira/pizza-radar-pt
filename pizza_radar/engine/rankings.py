@@ -30,6 +30,7 @@ class RankingCriteria(str, Enum):
     HIGHEST_DISCOUNT = "HIGHEST_DISCOUNT"
     LOWEST_ABSOLUTE_PRICE = "LOWEST_ABSOLUTE_PRICE"
     RECENTLY_OBSERVED = "RECENTLY_OBSERVED"
+    BEST_VALUE_INDEX = "BEST_VALUE_INDEX"
 
 
 @dataclass(slots=True)
@@ -262,6 +263,70 @@ def rank_by_recently_observed(items: list[UnifiedPromo | VisualPromoGroup]) -> l
                 item=item,
                 criteria=RankingCriteria.RECENTLY_OBSERVED,
                 score=int(dt.timestamp()),
+                explanation=expl,
+            )
+        )
+    return ranked
+
+
+def rank_by_value_index(items: list[UnifiedPromo | VisualPromoGroup]) -> list[RankedItem]:
+    """Ordena ofertas pelo melhor custo/benefício (menor preço por 100 cm² de pizza).
+
+    Utiliza o Pizza Value Index para normalizar tamanhos (Individual, Média, Grande, Familiar).
+    Exclui categoricamente produtos sem tamanho comprovado ou ofertas não-pizza.
+    """
+    from pizza_radar.engine.value_index import compute_value_metrics
+
+    eligible: list[tuple[int, UnifiedPromo | VisualPromoGroup, str]] = []
+
+    for item in items:
+        # Apenas ofertas classificadas como PIZZA ou BUNDLE_WITH_PIZZA
+        off_type = item.offer_type
+        if off_type not in (OfferType.PIZZA, OfferType.BUNDLE_WITH_PIZZA):
+            continue
+
+        if isinstance(item, UnifiedPromo):
+            metrics = compute_value_metrics(
+                price_cents=item.price_cents,
+                pizza_size=item.pizza_size,
+                pizza_count=item.pizza_count,
+            )
+            if metrics is not None:
+                expl = f"{metrics.value_badge_label} • {metrics.portion_badge_label}"
+                eligible.append((metrics.price_per_100_cm2_cents, item, expl))
+        elif isinstance(item, VisualPromoGroup):
+            # Procura a melhor variante comparável do grupo
+            best_variant_metrics = None
+            for v in item.variants:
+                m = compute_value_metrics(
+                    price_cents=v.price_cents,
+                    pizza_size=v.pizza_size,
+                    pizza_count=v.pizza_count,
+                )
+                if m is not None:
+                    if best_variant_metrics is None or m.price_per_100_cm2_cents < best_variant_metrics.price_per_100_cm2_cents:
+                        best_variant_metrics = m
+
+            if best_variant_metrics is not None:
+                expl = f"{best_variant_metrics.value_badge_label} • {best_variant_metrics.portion_badge_label}"
+                eligible.append((best_variant_metrics.price_per_100_cm2_cents, item, expl))
+
+    def sort_key(entry: tuple[int, Any, str]) -> tuple[int, int, str]:
+        cents_per_100, it, _ = entry
+        total_c = it.price_cents if isinstance(it, UnifiedPromo) else (it.min_price_cents or 0)
+        pid = it.id if isinstance(it, UnifiedPromo) else it.persistent_id
+        return (cents_per_100, total_c or 0, pid)
+
+    sorted_eligible = sorted(eligible, key=sort_key)
+
+    ranked: list[RankedItem] = []
+    for idx, (score, item, expl) in enumerate(sorted_eligible, start=1):
+        ranked.append(
+            RankedItem(
+                rank=idx,
+                item=item,
+                criteria=RankingCriteria.BEST_VALUE_INDEX,
+                score=score,
                 explanation=expl,
             )
         )

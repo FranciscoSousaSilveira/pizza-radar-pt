@@ -61,6 +61,8 @@ class LisbonStore:
     services: tuple[DispatchMethod, ...]
     schedule: dict[str, DailySchedule]  # "0" (Dom) até "6" (Sáb)
     official_url: str
+    latitude: float = 38.7223
+    longitude: float = -9.1393
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -70,6 +72,8 @@ class LisbonStore:
             "neighborhood": self.neighborhood,
             "address": self.address,
             "phone": self.phone,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
             "services": [s.value for s in self.services],
             "schedule": {
                 k: {"open": v.open, "close": v.close}
@@ -592,9 +596,57 @@ def get_store_status_at(store: LisbonStore, dt: datetime) -> dict[str, Any]:
         }
 
 
+STORE_COORDINATES: dict[str, tuple[float, float]] = {
+    # Domino's Pizza (8)
+    "dom_areeiro": (38.7422, -9.1332),
+    "dom_telheiras": (38.7615, -9.1625),
+    "dom_lumiar": (38.7738, -9.1558),
+    "dom_benfica": (38.7485, -9.1950),
+    "dom_campo_ourique": (38.7180, -9.1625),
+    "dom_parque_nacoes": (38.7675, -9.0968),
+    "dom_santos": (38.7065, -9.1530),
+    "dom_alvalade": (38.7525, -9.1435),
+    # Papa John's (3)
+    "pj_amoreiras": (38.7230, -9.1605),
+    "pj_areeiro": (38.7425, -9.1330),
+    "pj_benfica": (38.7505, -9.2010),
+    # Pizza Hut (12)
+    "ph_fontes_pereira_melo": (38.7305, -9.1475),
+    "ph_restelo": (38.7025, -9.2140),
+    "ph_parque_nacoes": (38.7695, -9.0960),
+    "ph_telheiras": (38.7625, -9.1610),
+    "ph_general_rocadas": (38.7245, -9.1270),
+    "ph_ferreira_borges": (38.7175, -9.1630),
+    "ph_joao_xxi": (38.7435, -9.1395),
+    "ph_benfica": (38.7510, -9.2020),
+    "ph_colombo": (38.7540, -9.1885),
+    "ph_vasco_gama": (38.7678, -9.0975),
+    "ph_amoreiras": (38.7240, -9.1620),
+    "ph_saldanha": (38.7345, -9.1450),
+    # Telepizza (10)
+    "tp_telheiras": (38.7618, -9.1620),
+    "tp_roma": (38.7480, -9.1415),
+    "tp_parque_nacoes": (38.7670, -9.0965),
+    "tp_benfica": (38.7488, -9.1955),
+    "tp_almirante_reis": (38.7340, -9.1335),
+    "tp_belem": (38.6975, -9.2055),
+    "tp_campo_ourique": (38.7165, -9.1645),
+    "tp_lumiar": (38.7650, -9.1575),
+    "tp_sao_domingos_benfica": (38.7445, -9.1825),
+    "tp_santa_apolonia": (38.7145, -9.1225),
+}
+
+
 def export_stores_json(output_path: str) -> list[dict[str, Any]]:
-    """Exporta o catálogo canónico de lojas de Lisboa para ficheiro JSON."""
-    data = [s.to_dict() for s in LISBON_STORES_CATALOG]
+    """Exporta o catálogo canónico de lojas de Lisboa para ficheiro JSON com coordenadas georreferenciadas."""
+    data = []
+    for s in LISBON_STORES_CATALOG:
+        d = s.to_dict()
+        if s.id in STORE_COORDINATES:
+            lat, lon = STORE_COORDINATES[s.id]
+            d["latitude"] = lat
+            d["longitude"] = lon
+        data.append(d)
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     return data

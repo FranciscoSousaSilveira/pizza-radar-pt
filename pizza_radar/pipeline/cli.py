@@ -117,6 +117,11 @@ def main(argv: list[str] | None = None) -> int:
         default="Lisboa",
         help="Concelho de cobertura (padrão: Lisboa).",
     )
+    parser.add_argument(
+        "--notify-telegram",
+        action="store_true",
+        help="Dispara alerta com os destaques das promoções para o Telegram Bot configurado.",
+    )
     args = parser.parse_args(argv)
 
     repo, data_mode = build_repository(args)
@@ -152,6 +157,14 @@ def main(argv: list[str] | None = None) -> int:
     logger.info("Total de promoções ativas na base de dados: %d", result.total_active_promotions)
     if result.snapshot_exported:
         logger.info("Snapshot exportado para: %s (data_mode=%s)", result.snapshot_path, data_mode)
+
+    # Disparo de notificações via Telegram se solicitado
+    if args.notify_telegram and result.success:
+        from pizza_radar.notifications.telegram_bot import dispatch_daily_highlights
+        active_promos = repo.get_active_promotions(location_scope=args.location_scope)
+        logger.info("A disparar destaques diários para o Telegram...")
+        dispatch_res = dispatch_daily_highlights(active_promos)
+        logger.info("Telegram dispatch: mode=%s, success=%s", dispatch_res.mode, dispatch_res.success)
 
     return 0 if result.success else 1
 

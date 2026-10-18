@@ -9,6 +9,8 @@
   <title>Pizza Radar PT — Promoções de Pizza em Lisboa</title>
   <meta name="description" content="Comparador independente de promoções oficiais de pizza no concelho de Lisboa. Compara preços reais e custos unitários por pizza de Domino's, Papa John's, Pizza Hut e Telepizza.">
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -119,6 +121,11 @@
         <button type="button" class="ranking-tab" role="tab" id="tab-unit-price" aria-selected="false" aria-controls="promos-grid" data-ranking="BEST_UNIT_PRICE">
           <span class="tab-label-full">Melhor Preço / Pizza</span>
           <span class="tab-label-short">Preço / Pizza</span>
+        </button>
+
+        <button type="button" class="ranking-tab" role="tab" id="tab-value-index" aria-selected="false" aria-controls="promos-grid" data-ranking="BEST_VALUE_INDEX">
+          <span class="tab-label-full">Melhor Custo / Benefício</span>
+          <span class="tab-label-short">Custo/Benefício</span>
         </button>
       </div>
 
@@ -265,6 +272,31 @@
           <span class="stores-results-count" id="stores-results-count">A calcular horários...</span>
           <span class="stores-clock-badge" id="lisbon-clock-badge">🕒 Hora de Lisboa: --:--</span>
         </div>
+      </div>
+
+      <!-- Mapa Interativo de Lojas e Raio de Entrega -->
+      <div class="stores-map-card" id="stores-map-card">
+        <div class="map-controls-bar">
+          <div class="map-controls-left">
+            <button type="button" class="btn-near-me" id="btn-near-me" aria-label="Lojas e promoções perto de mim">
+              <span class="near-me-icon" aria-hidden="true">📍</span>
+              <span>Perto de Mim</span>
+            </button>
+            <div class="radius-filter-wrap" id="radius-filter-wrap" style="display: none;">
+              <label for="select-radius" class="radius-label">Raio:</label>
+              <select id="select-radius" class="select-radius" aria-label="Raio de proximidade em quilómetros">
+                <option value="1">1 km</option>
+                <option value="2">2 km</option>
+                <option value="3" selected>3 km</option>
+                <option value="5">5 km</option>
+                <option value="10">10 km</option>
+              </select>
+              <button type="button" class="btn-clear-geo" id="btn-clear-geo" title="Remover filtro de proximidade" aria-label="Remover localização">✕</button>
+            </div>
+          </div>
+          <span class="geo-status-text" id="geo-status-text" aria-live="polite"></span>
+        </div>
+        <div id="stores-map" class="stores-map" role="region" aria-label="Mapa interativo de pizzarias no concelho de Lisboa"></div>
       </div>
 
       <!-- Grelha de Lojas de Lisboa -->
