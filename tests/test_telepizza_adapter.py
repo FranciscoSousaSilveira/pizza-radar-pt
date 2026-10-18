@@ -68,7 +68,7 @@ class TestTelepizzaAdapter(unittest.TestCase):
 
     def test_parse_scapi_fixture(self) -> None:
         """Extrai todas as 20 campanhas oficiais do payload SCAPI."""
-        parsed = self.adapter.parse_scapi(self.scapi_data)
+        parsed = self.adapter.parse_scapi(self.scapi_data, reference_time=_observed_at())
         self.assertEqual(len(parsed), 20)
 
         # 2x1 Médias e Familiares
@@ -84,7 +84,7 @@ class TestTelepizzaAdapter(unittest.TestCase):
         self.assertEqual(p_menu["price_cents"], 595)
         self.assertEqual(p_menu["channels"], ["takeaway"])
         self.assertEqual(p_menu["valid_from"], "2026-08-18T23:00Z")
-        self.assertEqual(p_menu["valid_until"], "2026-10-19T22:45Z")
+        self.assertEqual(p_menu["valid_until"], "2027-10-19T22:45Z")
 
         # 55_NC - -55% em 3 Pizzas Médias
         p_55 = next(p for p in parsed if p["id"] == "55_NC")
@@ -93,7 +93,7 @@ class TestTelepizzaAdapter(unittest.TestCase):
 
     def test_adapt_scapi_all_promotions_and_classification(self) -> None:
         """Converte todas as campanhas SCAPI em UnifiedPromo e valida tipagem e classificação."""
-        parsed = self.adapter.parse_scapi(self.scapi_data)
+        parsed = self.adapter.parse_scapi(self.scapi_data, reference_time=_observed_at())
         all_promos = []
         for it in parsed:
             adapted = self.adapter.adapt(it, _observed_at())

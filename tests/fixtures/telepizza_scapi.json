@@ -19,7 +19,7 @@
     {
       "calloutMsg": "Meu Menu com Pizza Individual Descomplicadas + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Loja e Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao Stock Existente.",
       "details": "Meu Menu com Pizza Individual Descomplicadas + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Loja e Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao Stock Existente.",
-      "endDate": "2026-10-19T22:45Z",
+      "endDate": "2027-10-19T22:45Z",
       "id": "MMINDTSTK",
       "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw884d22c0/meumenu-5,95tk-double.png",
       "name": "Meu Menu Individual por 5,95€",
@@ -41,7 +41,7 @@
     {
       "calloutMsg": "Meu Menu com Pizza Individual Descomplicadas + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
       "details": "Meu Menu com Pizza Individual Descomplicadas + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
-      "endDate": "2026-10-18T23:00Z",
+      "endDate": "2027-10-18T23:00Z",
       "id": "MMINDDSTK",
       "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw151b2524/meumenu-8,95dom-double.png",
       "name": "Meu Menu Individual por 8,95€",
@@ -63,7 +63,7 @@
     {
       "calloutMsg": "Meu Menu com Smash Burger de Vaca ou Burger de Frango + Batatas + Bebida 33cl + Voucher* 5€ Staples. Preço exclusivo para Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
       "details": "Meu Menu com Smash Burger de Vaca ou Burger de Frango + Batatas + Bebida 33cl + Voucher* 5€ Staples. Preço exclusivo para Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
-      "endDate": "2026-10-19T22:45Z",
+      "endDate": "2027-10-19T22:45Z",
       "id": "MMBRGTSTK",
       "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw8e191c0a/meumenuburger-8,95tk-single.png",
       "name": "Meu Menu Burger por 8,95€",
@@ -84,7 +84,7 @@
     {
       "calloutMsg": "Meu Menu com Pizza Media Descomplicada + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Loja e Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
       "details": "Meu Menu com Pizza Media Descomplicada + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Loja e Takeaway. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
-      "endDate": "2026-10-19T22:45Z",
+      "endDate": "2027-10-19T22:45Z",
       "id": "MMMEDTSTK",
       "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw014c0aa0/meumenu-9,95tk-single.png",
       "name": "Meu Menu Média por 9,95€",
@@ -106,7 +106,7 @@
     {
       "calloutMsg": "Meu Menu com Pizza Média Descomplicada + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
       "details": "Meu Menu com Pizza Média Descomplicada + Bebida 33cl + Voucher* 5€ Staples.  Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
-      "endDate": "2026-10-19T22:45Z",
+      "endDate": "2027-10-19T22:45Z",
       "id": "MMMEDDSTK",
       "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwf641627f/meumenu-10,95dom-single.png",
       "name": "Meu Menu Média por 10,95€",
@@ -128,7 +128,7 @@
     {
       "calloutMsg": "Meu Menu com Smash Burger de Vaca ou Burger de Frango + Batatas + Bebida 33cl + Voucher* 5€ Staples. Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
       "details": "Meu Menu com Smash Burger de Vaca ou Burger de Frango + Batatas + Bebida 33cl + Voucher* 5€ Staples. Preço exclusivo para Domicilio. Não acumulável com outras promoções ou menus. *Limitado ao stock existente.",
-      "endDate": "2026-10-19T22:45Z",
+      "endDate": "2027-10-19T22:45Z",
       "id": "MMBRGDSTK",
       "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dw8b920716/meumenuburger-11,95dom-single.png",
       "name": "Meu Menu Burger por 11,95€",
@@ -316,7 +316,7 @@
     {
       "calloutMsg": "2 bebidas 33cl por 3,60€ (exclui cerveja).  Não acumulável com outras promoções e limitado ao stock existente e às lojas aderentes.",
       "details": "2 bebidas 33cl por 3,60€ (exclui cerveja).  Não acumulável com outras promoções e limitado ao stock existente e às lojas aderentes.",
-      "endDate": "2026-10-18T22:45Z",
+      "endDate": "2027-10-18T22:45Z",
       "id": "2BEB33K",
       "image": "https://staticpt.telepizza.com/static/on/demandware.static/-/Sites/default/dwcc73aebc/x2bebidas33cl-bts.png",
       "name": "2 bebidas 33cl por 3,60€",
