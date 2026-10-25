@@ -757,7 +757,7 @@ class TelepizzaAdapter(PromoAdapterInterface):
                     pizza_size=PizzaSize.UNKNOWN,
                     included_items=[],
                     image_url=image_url,
-                    source_url=f"{_URL}#offerDetails_{item['id']}" if item.get("id") else _URL,
+                    source_url=("https://www.telepizza.pt/menus" if any(w in title.lower() for w in ["menu", "almoço", "almoco"]) else ("https://www.telepizza.pt/comida-ao-domicilio/entrada" if any(w in title.lower() for w in ["pizzolino", "bucket", "entrada", "bebida"]) else _URL)),
                     location_scope="Lisboa",
                     offer_type=offer_type,
                     valid_from=item.get("valid_from"),

@@ -997,17 +997,16 @@
     if (!group) return '#';
     let url = group.source_url || '#';
 
-    // Telepizza: navegar diretamente para a âncora do cartão/modal #offerDetails_{id}
+    // Telepizza: encaminhar com precisao para a seccao oficial da oferta sem hashes quebrados
     if (group.vendor === 'TELEPIZZA') {
-      if (!url.includes('#offerDetails_') && Array.isArray(group.variants) && group.variants.length > 0) {
-        const vId = group.variants[0].variant_id || '';
-        const match = vId.match(/^tp_(.+?)_(delivery|takeaway)$/);
-        const promoId = match ? match[1] : '';
-        if (promoId) {
-          return `https://www.telepizza.pt/promocoes#offerDetails_${encodeURIComponent(promoId)}`;
-        }
+      const lower = (group.title || '').toLowerCase();
+      if (lower.includes('menu') || lower.includes('almoço') || lower.includes('almoco')) {
+        return 'https://www.telepizza.pt/menus';
       }
-      return url.includes('promocoes') ? url : 'https://www.telepizza.pt/promocoes';
+      if (lower.includes('pizzolino') || lower.includes('entrada') || lower.includes('bucket') || lower.includes('bebida')) {
+        return 'https://www.telepizza.pt/comida-ao-domicilio/entrada';
+      }
+      return 'https://www.telepizza.pt/promocoes';
     }
 
     // Domino's: encaminhar diretamente para o carrossel de promoções #content-for-scroll
