@@ -13,20 +13,20 @@
   --color-canvas: #EFEBE4;
   --color-canvas-alt: #E6E1D7;
   --color-surface: #FFFFFF;
-  --color-surface-subtle: #F8F5EE;
-  --color-border: #E0DAD0;
+  --color-surface-subtle: #F1F5F9;
+  --color-border: #E2E8F0;
   --color-border-subtle: #EBE5DB;
   --color-border-focus: #1C1917;
 
   /* Tipografia & Hierarquia de Texto */
-  --color-text-primary: #1C1917;
-  --color-text-body: #44403C;
+  --color-text-primary: #0F172A;
+  --color-text-body: #334155;
   --color-text-muted: #78716C;
   --color-text-light: #A8A29E;
   --color-text-inverted: #FFFFFF;
 
   /* Acentos Culinários (Terracota & Ervas Frescas) */
-  --color-accent-radar: #C2410C;
+  --color-accent-radar: #E11D48;
   --color-accent-amber: #D97706;
   --color-accent-green: #15803D;
   --color-accent-green-bg: #F0FDF4;
@@ -79,7 +79,7 @@
 body {
   font-family: var(--font-family);
   background-color: var(--color-canvas);
-  background-image: 
+  background-image:
     /* 1. Halo luminoso de forno a lenha no topo (Warm Lisbon oven ambient glow) */
     radial-gradient(ellipse 90% 560px at 50% -40px, rgba(194, 65, 12, 0.12) 0%, rgba(217, 119, 6, 0.05) 45%, transparent 75%),
     /* 2. Feixe focal suave de radar */
@@ -3036,5 +3036,306 @@ body {
     font-size: 0.65rem;
     letter-spacing: 0.02em;
     font-weight: 700;
+  }
+}
+
+
+/* ==========================================================================
+   Hero Redesign & Interactive Spotlight Card
+   ========================================================================== */
+
+.ambient-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-section {
+  position: relative;
+  z-index: 2;
+  padding: 48px 0 28px;
+}
+
+.hero-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 36px;
+  align-items: center;
+}
+
+.hero-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(225, 29, 72, 0.08);
+  border: 1px solid rgba(225, 29, 72, 0.22);
+  border-radius: var(--radius-pill);
+  color: #BE123C;
+  font-size: 0.76rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+}
+
+.tag-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #E11D48;
+  box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7);
+  animation: pulseDot 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(225, 29, 72, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+}
+
+.hero-title {
+  font-size: clamp(2.1rem, 4.2vw, 3.4rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #0F172A;
+  margin-bottom: 14px;
+}
+
+.hero-highlight {
+  background: linear-gradient(135deg, #E11D48 0%, #EA580C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.hero-subtitle {
+  font-size: 1.02rem;
+  line-height: 1.55;
+  color: #475569;
+  max-width: 58ch;
+  margin-bottom: 22px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.btn-hero-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.btn-hero-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(225, 29, 72, 0.45);
+}
+
+.btn-hero-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #CBD5E1;
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.btn-hero-secondary:hover {
+  background: #FFFFFF;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+.header-market-strip {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+/* Spotlight Card: Pechincha do Dia */
+.hero-spotlight-wrap {
+  width: 100%;
+}
+
+.hero-spotlight-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 8px 30px -4px rgba(225, 29, 72, 0.08), 0 20px 40px -10px rgba(15, 23, 42, 0.06);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-spotlight-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #E11D48, #F59E0B);
+}
+
+.hero-spotlight-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 36px -4px rgba(225, 29, 72, 0.14), 0 24px 48px -8px rgba(15, 23, 42, 0.08);
+}
+
+.spotlight-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.spotlight-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FEF2F2;
+  color: #B91C1C;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.spotlight-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #DC2626;
+}
+
+.spotlight-brand-pill {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748B;
+  letter-spacing: 0.03em;
+}
+
+.spotlight-deal-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 8px 0;
+  line-height: 1.25;
+}
+
+.spotlight-deal-desc {
+  font-size: 0.88rem;
+  color: #64748B;
+  line-height: 1.45;
+  margin: 0 0 18px 0;
+}
+
+.spotlight-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.spotlight-price-box {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.spotlight-price {
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: #E11D48;
+  letter-spacing: -0.02em;
+}
+
+.spotlight-unit {
+  font-size: 0.82rem;
+  color: #64748B;
+  font-weight: 600;
+}
+
+.btn-spotlight-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: #0F172A;
+  color: #FFFFFF;
+  border-radius: var(--radius-pill);
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.btn-spotlight-cta:hover {
+  background: #E11D48;
+  transform: translateX(2px);
+}
+
+@media (max-width: 900px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    text-align: center;
+  }
+  .hero-headline-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .hero-actions {
+    justify-content: center;
+  }
+  .header-market-strip {
+    justify-content: center;
+  }
+  .hero-spotlight-card {
+    text-align: left;
+    max-width: 480px;
+    margin: 0 auto;
   }
 }

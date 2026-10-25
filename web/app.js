@@ -605,6 +605,49 @@
   }
 
   // Aplicar Filtros e Ordenação
+
+  // Atualiza o Cartão Spotlight no Hero com a melhor pechincha ativa
+  function updateHeroSpotlight(groups) {
+    if (!groups || groups.length === 0) return;
+    const spotlightCard = document.getElementById('hero-spotlight-card');
+    if (!spotlightCard) return;
+
+    // Procura a oferta com melhor desconto relativo ou melhor preço unitário
+    const bestOffer = groups.find(g => g.max_discount_percentage >= 40 && g.min_price_cents > 0) || groups[0];
+    if (!bestOffer) return;
+
+    const brandEl = document.getElementById('spotlight-brand');
+    const titleEl = document.getElementById('spotlight-title');
+    const descEl = document.getElementById('spotlight-desc');
+    const priceEl = document.getElementById('spotlight-price');
+    const ctaEl = document.getElementById('spotlight-cta');
+
+    if (brandEl) brandEl.textContent = bestOffer.vendor;
+    if (titleEl) titleEl.textContent = bestOffer.title;
+    if (descEl) descEl.textContent = bestOffer.description || 'Desconto oficial confirmado pelas pizzarias de Lisboa.';
+
+    if (priceEl) {
+      if (bestOffer.is_comparable_for_unit_price && bestOffer.min_price_per_pizza_euros) {
+        priceEl.textContent = formatEuros(bestOffer.min_price_per_pizza_euros);
+      } else if (bestOffer.min_price_euros) {
+        priceEl.textContent = formatEuros(bestOffer.min_price_euros);
+      } else {
+        priceEl.textContent = bestOffer.display_price_label || 'Em promoção';
+      }
+    }
+
+    if (ctaEl) {
+      const sourceUrl = resolveDirectPromoUrl(bestOffer);
+      if (sourceUrl && sourceUrl !== '#') {
+        ctaEl.href = sourceUrl;
+        ctaEl.target = '_blank';
+        ctaEl.rel = 'noopener noreferrer';
+      } else {
+        ctaEl.href = '#promos-grid';
+      }
+    }
+  }
+
   function applyFiltersAndRender() {
     let filtered = [...state.allGroups];
 
