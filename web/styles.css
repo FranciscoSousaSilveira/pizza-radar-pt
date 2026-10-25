@@ -3038,3 +3038,27 @@ body {
     font-weight: 700;
   }
 }
+
+
+/* ==========================================================================
+   Canvas de Fundo Reativo (Fatias de Pizza Flutuantes)
+   ========================================================================== */
+.ambient-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.site-header,
+.main-layout,
+.hero-section,
+.radar-app-section,
+.stores-section,
+.site-footer {
+  position: relative;
+  z-index: 1;
+}

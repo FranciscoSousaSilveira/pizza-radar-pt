@@ -19,9 +19,11 @@
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
   <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
   <script src="assets/vendor/leaflet/leaflet.js"></script>
-  <link rel="stylesheet" href="styles.css?v=2.5">
+  <link rel="stylesheet" href="styles.css?v=2.6">
 </head>
 <body>
+  <!-- Fundo Reativo de Fatias de Pizza -->
+  <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
   <a href="#main-content" class="skip-link">Saltar para o conteúdo principal</a>
 
   <!-- Banner de Modo de Dados -->
@@ -416,6 +418,7 @@
     </button>
   </nav>
 
-  <script src="app.js?v=2.5" defer></script>
+  <script src="ambient.js?v=2.6" defer></script>
+  <script src="app.js?v=2.6" defer></script>
 </body>
 </html>
