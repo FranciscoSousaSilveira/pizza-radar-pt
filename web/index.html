@@ -19,7 +19,8 @@
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
   <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
   <script src="assets/vendor/leaflet/leaflet.js"></script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2.1">
+  <script src="app.js?v=2.1" defer></script>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Saltar para o conteúdo principal</a>
@@ -210,7 +211,7 @@
       </div>
 
       <!-- Grelha de Cartões Promocionais -->
-      <div class="cards-section" aria-label="Lista de promoções">
+      <section class="cards-section" aria-label="Lista de promoções">
         <div class="promos-grid" id="promos-grid" role="region" aria-live="polite">
           <!-- Cartões gerados dinamicamente via app.js -->
         </div>
@@ -221,7 +222,7 @@
           <p class="empty-message">Não encontramos ofertas que correspondam aos filtros selecionados. Tenta ajustar o canal ou limpar a pesquisa.</p>
           <button type="button" class="btn-clear-empty" id="btn-clear-empty">Ver todas as promoções</button>
         </div>
-      </div>
+      </section>
     </section>
 
     <!-- Secção de Lojas Abertas Agora em Lisboa -->
@@ -352,7 +353,7 @@
         <div class="feature-card">
           <div class="feature-icon-box">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1 2-2V8a2 2 0 0 1 2-2h6"></path>
               <polyline points="15 3 21 3 21 9"></polyline>
               <line x1="10" y1="14" x2="21" y2="3"></line>
             </svg>
@@ -396,6 +397,6 @@
     ↑
   </button>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2.1" defer></script>
 </body>
 </html>

@@ -1,11 +1,7 @@
 /* ==========================================================================
    Pizza Radar Lisboa — Design System & Folha de Estilos
-   Direção: Food App de Descoberta Gastronómica.
+   Direção: Food App de Descoberta Gastronómica com estilo Uber Eats / Skyscanner.
    Polimento: Baseado nas regras rigorosas de better-typography e better-ui.
-   - better-typography: text-wrap balance/pretty, tabular-nums, line-height por função,
-     inputs a 16px em mobile, medida máxima de 65ch, suavização de tipos na raiz.
-   - better-ui: escala tátil de 0.96 no clique, sombras em camadas translúcidas,
-     raios concêntricos, contorno de 1px em imagens, transições estritas por propriedade.
    ========================================================================== */
 
 :root {
@@ -32,7 +28,7 @@
   --color-accent-green-bg: #F0FDF4;
   --color-accent-green-text: #166534;
 
-  /* Marcas Oficiais */
+  /* Marcas Oficiais - Cores Oficiais e Vivas */
   --brand-dominos: #006491;
   --brand-dominos-hover: #004d70;
   --brand-papajohns: #007A3D;
@@ -48,10 +44,9 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  --radius-xl: 24px;
   --radius-pill: 9999px;
 
-  /* Sombras e Transições */
+  /* Sombras e Transições - mais profundidade e suaves */
   --shadow-soft: 0 4px 12px rgba(28, 25, 23, 0.05);
   --shadow-hover: 0 6px 16px rgba(28, 25, 23, 0.08);
   --transition-fast: 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -61,10 +56,12 @@
   --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.06), 0 8px 24px -4px rgba(28, 25, 23, 0.06);
   --shadow-hover: 0 6px 14px -2px rgba(28, 25, 23, 0.09), 0 20px 32px -6px rgba(28, 25, 23, 0.12);
   --shadow-badge: 0 1px 4px rgba(0, 0, 0, 0.18);
+  --shadow-card-prominent: 0 4px 20px -4px rgba(28, 25, 23, 0.08), 0 2px 8px -2px rgba(28, 25, 23, 0.05);
 
   /* better-ui: Curva tátil exata e duração estrita */
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --ease-tactile: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --transition-fast: 0.15s cubic-bezier(0.2, 0, 0, 1);
 }
 
@@ -2975,4 +2972,6 @@ body {
      r i g h t :   0 ; 
      b a c k g r o u n d :   l i n e a r - g r a d i e n t ( t o   l e f t ,   v a r ( - - c o l o r - s u r f a c e )   0 % ,   t r a n s p a r e n t   1 0 0 % ) ; 
  }  
+  
+ / *   M o b i l e   B o t t o m   N a v i g a t i o n   B a r   * / @ m e d i a   ( m a x - w i d t h :   7 6 8 p x )   {   . b o t t o m - n a v - b a r   {   p o s i t i o n :   f i x e d ;   b o t t o m :   0 ;   l e f t :   0 ;   r i g h t :   0 ;   z - i n d e x :   1 0 0 0 ;   b a c k g r o u n d :   r g b a ( 2 3 9 ,   2 3 5 ,   2 2 8 ,   0 . 9 8 ) ;   b a c k d r o p - f i l t e r :   b l u r ( 1 2 p x ) ;   - w e b k i t - b a c k d r o p - f i l t e r :   b l u r ( 1 2 p x ) ;   b o r d e r - t o p :   1 p x   s o l i d   v a r ( - - c o l o r - b o r d e r - s u b t l e ) ;   p a d d i n g :   8 p x   1 2 p x ;   d i s p l a y :   f l e x ;   j u s t i f y - c o n t e n t :   s p a c e - a r o u n d ;   a l i g n - i t e m s :   c e n t e r ;   h e i g h t :   6 4 p x ;   b o x - s h a d o w :   0   - 4 p x   2 0 p x   r g b a ( 0 ,   0 ,   0 ,   0 . 0 8 ) ;   t r a n s i t i o n :   b o t t o m   0 . 2 s   v a r ( - - e a s e - t a c t i l e ) ;   }   . b o t t o m - n a v - b a r . h i d d e n   {   b o t t o m :   - 6 4 p x ;   }   . b o t t o m - n a v - b t n   {   d i s p l a y :   f l e x ;   f l e x - d i r e c t i o n :   c o l u m n ;   a l i g n - i t e m s :   c e n t e r ;   j u s t i f y - c o n t e n t :   c e n t e r ;   w i d t h :   2 0 % ;   c o l o r :   v a r ( - - c o l o r - t e x t - m u t e d ) ;   t e x t - d e c o r a t i o n :   n o n e ;   f o n t - s i z e :   0 . 7 2 r e m ;   f o n t - w e i g h t :   6 0 0 ;   p a d d i n g :   4 p x   0 ;   b o r d e r - r a d i u s :   v a r ( - - r a d i u s - p i l l ) ;   t r a n s i t i o n :   c o l o r   0 . 1 5 s   v a r ( - - e a s e - t a c t i l e ) ,   b a c k g r o u n d - c o l o r   0 . 1 5 s ;   c u r s o r :   p o i n t e r ;   }   . b o t t o m - n a v - b t n : h o v e r   {   c o l o r :   v a r ( - - c o l o r - t e x t - p r i m a r y ) ;   b a c k g r o u n d :   v a r ( - - c o l o r - s u r f a c e - s u b t l e ) ;   }   . b o t t o m - n a v - b t n . a c t i v e   {   c o l o r :   v a r ( - - c o l o r - t e x t - i n v e r t e d ) ;   b a c k g r o u n d :   v a r ( - - c o l o r - a c c e n t - r a d a r ) ;   }   . b o t t o m - n a v - i c o n   {   f o n t - s i z e :   1 . 5 r e m ;   m a r g i n - b o t t o m :   2 p x ;   d i s p l a y :   b l o c k ;   }   . b o t t o m - n a v - l a b e l   {   f o n t - s i z e :   0 . 6 2 r e m ;   t e x t - t r a n s f o r m :   u p p e r c a s e ;   l e t t e r - s p a c i n g :   0 . 0 5 e m ;   }   }  
  
