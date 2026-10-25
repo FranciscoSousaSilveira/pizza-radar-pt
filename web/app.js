@@ -605,8 +605,6 @@
   }
 
   // Aplicar Filtros e Ordenação
-
-
   function applyFiltersAndRender() {
     let filtered = [...state.allGroups];
 

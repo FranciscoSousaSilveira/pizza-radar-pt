@@ -19,12 +19,9 @@
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
   <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
   <script src="assets/vendor/leaflet/leaflet.js"></script>
-  <link rel="stylesheet" href="styles.css?v=2.4">
+  <link rel="stylesheet" href="styles.css?v=2.5">
 </head>
 <body>
-  <!-- Fundo Reativo e Interativo -->
-  <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
-
   <a href="#main-content" class="skip-link">Saltar para o conteúdo principal</a>
 
   <!-- Banner de Modo de Dados -->
@@ -101,11 +98,11 @@
 
         <!-- Resumo Rápido de Mercado -->
         <div class="header-market-strip" aria-label="Resumo do mercado de pizzas">
-          <span class="market-metric"><strong id="stat-total-promos">120+</strong> ofertas ativas</span>
+          <span class="market-metric"><strong id="stat-total-promos">20</strong> ofertas ativas</span>
           <span class="market-sep" aria-hidden="true">•</span>
           <span class="market-metric">Pizzas desde <strong id="stat-min-price">5,95 €</strong></span>
           <span class="market-sep" aria-hidden="true">•</span>
-          <span class="market-metric">Menor por pizza: <strong id="stat-unit-price">4,48 € / pizza</strong></span>
+          <span class="market-metric">Menor por pizza: <strong id="stat-unit-price">5,95 € / pizza</strong></span>
           <span class="market-sep" aria-hidden="true">•</span>
           <span class="market-metric" id="stat-location">Lisboa</span>
         </div>
@@ -419,7 +416,6 @@
     </button>
   </nav>
 
-  <script src="ambient.js?v=2.4" defer></script>
-  <script src="app.js?v=2.4" defer></script>
+  <script src="app.js?v=2.5" defer></script>
 </body>
 </html>
