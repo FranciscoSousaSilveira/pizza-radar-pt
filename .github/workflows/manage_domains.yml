@@ -1,0 +1,46 @@
+name: Configure Cloudflare Pages Custom Domains
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Ação a executar'
+        required: true
+        default: 'list_and_add'
+        type: choice
+        options:
+          - list_and_add
+          - list_only
+
+jobs:
+  configure-domains:
+    name: Configure Custom Domains
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query and Configure Domains on Cloudflare Pages
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACTION: ${{ inputs.action }}
+        run: |
+          echo "=== 1. Verificar domínios atuais no Cloudflare Pages ==="
+          CURRENT=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/pizza-radar-pt/domains" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json")
+          echo "$CURRENT" | jq .
+
+          if [ "$ACTION" = "list_and_add" ]; then
+            echo "=== 2. Adicionar pizza-radar.pt ao Cloudflare Pages ==="
+            ADD_ROOT=$(curl -s -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/pizza-radar-pt/domains" \
+              -H "Authorization: Bearer ${CF_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              --data '{"name":"pizza-radar.pt"}')
+            echo "$ADD_ROOT" | jq .
+
+            echo "=== 3. Adicionar www.pizza-radar.pt ao Cloudflare Pages ==="
+            ADD_WWW=$(curl -s -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/pizza-radar-pt/domains" \
+              -H "Authorization: Bearer ${CF_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              --data '{"name":"www.pizza-radar.pt"}')
+            echo "$ADD_WWW" | jq .
+          fi
