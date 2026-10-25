@@ -475,6 +475,27 @@
       }, { passive: true });
     }
 
+        // Barra Flutuante de Navegação Mobile
+    const bnavTop = document.getElementById('bnav-top');
+    if (bnavTop) {
+      bnavTop.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+    const bnavBtns = document.querySelectorAll('.bottom-nav-btn');
+    bnavBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        bnavBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (btn.id === 'bnav-stores' && elements.btnViewStores) {
+          elements.btnViewStores.click();
+        } else if (btn.id === 'bnav-deals' && elements.btnViewPromos) {
+          elements.btnViewPromos.click();
+        }
+      });
+    });
+
     // Delegação de Eventos nos Cartões (Partilha e Expansão de Descrição)
     if (elements.promosGrid) {
       elements.promosGrid.addEventListener('click', async (e) => {

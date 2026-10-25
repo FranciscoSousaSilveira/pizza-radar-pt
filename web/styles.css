@@ -1017,20 +1017,20 @@ body {
 
 /* Cartão Individual */
 .promo-card {
-  background: #FDFAF6;
-  border: 1px solid var(--color-border);
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 232, 240, 0.95);
   border-radius: var(--radius-xl);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-card);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 2px 8px -2px rgba(28, 25, 23, 0.04), 0 10px 24px -4px rgba(28, 25, 23, 0.06);
+  transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.25s ease;
 }
 
 .promo-card:hover {
   transform: translateY(-6px);
-  box-shadow: var(--shadow-hover);
-  border-color: #CBD5E1;
+  box-shadow: 0 12px 28px -4px rgba(28, 25, 23, 0.12), 0 20px 36px -8px rgba(28, 25, 23, 0.08);
+  border-color: rgba(203, 213, 225, 0.95);
 }
 
 /* Topo do Cartão: Imagem ou Banner de Marca (16:9 Estrito) */
@@ -2955,5 +2955,86 @@ body {
   }
   .price-value {
     font-size: 1.25rem;
+  }
+}
+
+
+/* ==========================================================================
+   UI Overhaul: Scroll Shadow & Mobile Bottom Navigation Bar
+   ========================================================================== */
+
+.scroll-shadow-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.scroll-shadow-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 32px;
+  background: linear-gradient(to right, transparent, var(--color-surface, #EFEBE4));
+  pointer-events: none;
+  z-index: 5;
+}
+
+.bottom-nav-bar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-bottom: 74px !important;
+  }
+  .bottom-nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: rgba(253, 250, 246, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(226, 232, 240, 0.9);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.07);
+    padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+  .bottom-nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 5px 8px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    min-width: 58px;
+  }
+  .bottom-nav-btn:hover, .bottom-nav-btn.active {
+    color: var(--brand-telepizza, #E31B23);
+    background: rgba(227, 27, 35, 0.08);
+  }
+  .bottom-nav-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+  .bottom-nav-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.02em;
+    font-weight: 700;
   }
 }

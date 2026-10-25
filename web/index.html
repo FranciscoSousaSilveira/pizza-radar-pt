@@ -19,7 +19,7 @@
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
   <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
   <script src="assets/vendor/leaflet/leaflet.js"></script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2.2">
 </head>
 <body>
   <a href="#main-content" class="skip-link">Saltar para o conteúdo principal</a>
@@ -396,6 +396,26 @@
     ↑
   </button>
 
-  <script src="app.js"></script>
+    <!-- Barra Flutuante de Navegação Mobile (Bottom Bar) -->
+  <nav class="bottom-nav-bar" id="mobile-bottom-nav" aria-label="Navegação móvel rápida">
+    <a href="#radar-section" class="bottom-nav-btn active" id="bnav-deals">
+      <span class="bottom-nav-icon">🔥</span>
+      <span class="bottom-nav-label">Ofertas</span>
+    </a>
+    <a href="#vendor-chips" class="bottom-nav-btn" id="bnav-brands">
+      <span class="bottom-nav-icon">🏷️</span>
+      <span class="bottom-nav-label">Marcas</span>
+    </a>
+    <a href="#stores-section" class="bottom-nav-btn" id="bnav-stores">
+      <span class="bottom-nav-icon">🗺️</span>
+      <span class="bottom-nav-label">Lojas</span>
+    </a>
+    <button type="button" class="bottom-nav-btn" id="bnav-top" aria-label="Voltar ao Topo">
+      <span class="bottom-nav-icon">⬆️</span>
+      <span class="bottom-nav-label">Topo</span>
+    </button>
+  </nav>
+
+  <script src="app.js?v=2.2" defer></script>
 </body>
 </html>
