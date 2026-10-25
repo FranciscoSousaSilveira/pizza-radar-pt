@@ -1,12 +1,11 @@
 /**
- * Pizza Radar PT — Motor de Fundo Interativo & Reativo
- * Cria partículas ambientais culinárias, brilho dinâmico do cursor e ondas radar sonares ao clicar.
+ * Pizza Radar PT — Fundo Reativo de Fatias de Pizza
+ * Fatias de pizza em miniatura flutuantes com repulsão ao rato e ondas sonares de radar ao clicar.
  * 60 FPS, acelerado por hardware, sem dependências, desativa com prefers-reduced-motion.
  */
 (function() {
   'use strict';
 
-  // Respeita utilizadores com preferência de movimento reduzido
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     return;
   }
@@ -20,7 +19,6 @@
   let height = 0;
   let dpr = 1;
 
-  // Estado do cursor
   const mouse = {
     x: -1000,
     y: -1000,
@@ -29,46 +27,26 @@
     isHovered: false
   };
 
-  // Ondas radar ativas geradas por cliques
   const ripples = [];
-
-  // Partículas de faísca / sabor emitidas no clique
   const sparks = [];
+  const slices = [];
+  const SLICE_COUNT = 30;
 
-  // Partículas flutuantes de fundo
-  const particles = [];
-  const PARTICLE_COUNT = 32;
-
-  const COLORS = {
-    crust: 'rgba(234, 88, 12, ',       // Laranja quente
-    tomato: 'rgba(225, 29, 72, ',      // Vermelho vivo
-    basil: 'rgba(22, 163, 74, ',       // Verde manjericão
-    cheese: 'rgba(245, 158, 11, ',     // Dourado mozzarella
-    radar: 'rgba(225, 29, 72, '        // Vermelho radar
-  };
-
-  const SHAPES = ['circle', 'ring', 'slice', 'star'];
-
-  class Particle {
+  class PizzaSlice {
     constructor() {
       this.reset(true);
     }
 
     reset(initial = false) {
       this.x = Math.random() * width;
-      this.y = initial ? Math.random() * height : height + 20;
-      this.size = 3 + Math.random() * 6;
-      this.vx = (Math.random() - 0.5) * 0.4;
-      this.vy = -(0.2 + Math.random() * 0.35); // Flutuação suave para cima
-      this.shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
-
-      const keys = Object.keys(COLORS);
-      this.colorBase = COLORS[keys[Math.floor(Math.random() * keys.length)]];
-      this.alpha = 0.12 + Math.random() * 0.18;
+      this.y = initial ? Math.random() * height : height + 25;
+      this.size = 10 + Math.random() * 8; // Tamanho ideal de miniatura
+      this.vx = (Math.random() - 0.5) * 0.35;
+      this.vy = -(0.2 + Math.random() * 0.4); // Flutuação suave para cima
+      this.alpha = 0.22 + Math.random() * 0.22;
       this.rotation = Math.random() * Math.PI * 2;
-      this.vRot = (Math.random() - 0.5) * 0.015;
+      this.vRot = (Math.random() - 0.5) * 0.015; // Rotação lenta e orgânica
 
-      // Deslocamento por repulsão do rato
       this.repelX = 0;
       this.repelY = 0;
     }
@@ -78,26 +56,25 @@
       this.y += this.vy;
       this.rotation += this.vRot;
 
-      // Interação reativa com a posição do rato (repulsão fluida estilo líquido)
+      // Interação reativa com a proximidade do cursor (repulsão fluida)
       const dx = this.x - mouse.x;
       const dy = this.y - mouse.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const maxDist = 130;
+      const maxDist = 140;
 
       if (dist < maxDist && dist > 1) {
-        const force = (1 - dist / maxDist) * 3.5;
+        const force = (1 - dist / maxDist) * 3.8;
         this.repelX += (dx / dist) * force;
         this.repelY += (dy / dist) * force;
+        this.rotation += (dx > 0 ? 0.03 : -0.03); // Pequeno rodopio ao ser empurrada
       }
 
-      // Aplica repulsão com amortecimento suave
       this.x += this.repelX;
       this.y += this.repelY;
       this.repelX *= 0.88;
       this.repelY *= 0.88;
 
-      // Reposiciona quando sai do ecrã
-      if (this.y < -30 || this.x < -40 || this.x > width + 40) {
+      if (this.y < -35 || this.x < -40 || this.x > width + 40) {
         this.reset();
       }
     }
@@ -106,30 +83,39 @@
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.rotation);
-      ctx.fillStyle = this.colorBase + this.alpha + ')';
-      ctx.strokeStyle = this.colorBase + (this.alpha * 1.2) + ')';
-      ctx.lineWidth = 1.2;
 
-      if (this.shape === 'circle') {
+      const w = this.size;
+      const h = this.size * 1.45;
+
+      // 1. Corpo da fatia (queijo dourado com arco curvo)
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.5);
+      ctx.lineTo(-w, -h * 0.5);
+      ctx.quadraticCurveTo(0, -h * 0.62, w, -h * 0.5);
+      ctx.lineTo(0, h * 0.5);
+      ctx.closePath();
+      ctx.fillStyle = `rgba(245, 158, 11, ${this.alpha})`;
+      ctx.fill();
+
+      // 2. Côdea cozida no topo
+      ctx.beginPath();
+      ctx.moveTo(-w * 1.05, -h * 0.5);
+      ctx.quadraticCurveTo(0, -h * 0.66, w * 1.05, -h * 0.5);
+      ctx.lineWidth = Math.max(2, this.size * 0.26);
+      ctx.strokeStyle = `rgba(217, 119, 6, ${this.alpha * 1.15})`;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // 3. Rodelas de Pepperoni
+      const pepR = Math.max(1.8, this.size * 0.2);
+      ctx.fillStyle = `rgba(225, 29, 72, ${this.alpha * 1.2})`;
+      ctx.beginPath();
+      ctx.arc(-w * 0.28, -h * 0.15, pepR, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (this.size > 12) {
         ctx.beginPath();
-        ctx.arc(0, 0, this.size, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (this.shape === 'ring') {
-        ctx.beginPath();
-        ctx.arc(0, 0, this.size * 1.2, 0, Math.PI * 2);
-        ctx.stroke();
-      } else if (this.shape === 'slice') {
-        // Pequena fatia triangular estilizada
-        ctx.beginPath();
-        ctx.moveTo(0, -this.size * 1.3);
-        ctx.lineTo(this.size, this.size);
-        ctx.lineTo(-this.size, this.size);
-        ctx.closePath();
-        ctx.fill();
-      } else if (this.shape === 'star') {
-        // Ponto de brilho / estrela
-        ctx.beginPath();
-        ctx.arc(0, 0, this.size * 0.7, 0, Math.PI * 2);
+        ctx.arc(w * 0.22, h * 0.1, pepR * 0.85, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -137,7 +123,7 @@
     }
   }
 
-  // Ondas radar pulsantes no clique
+  // Ondas radar pulsantes ao clicar
   class RadarRipple {
     constructor(x, y) {
       this.x = x;
@@ -162,7 +148,6 @@
       ctx.lineWidth = 1.8;
       ctx.stroke();
 
-      // Eco de segunda onda interior
       if (this.radius > 25) {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius * 0.65, 0, Math.PI * 2);
@@ -174,17 +159,17 @@
     }
   }
 
-  // Faíscas efervescentes no clique
+  // Faíscas suaves ao clicar
   class Spark {
     constructor(x, y) {
       this.x = x;
       this.y = y;
       const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 5;
+      const speed = 2 + Math.random() * 4;
       this.vx = Math.cos(angle) * speed;
       this.vy = Math.sin(angle) * speed;
-      this.radius = 2 + Math.random() * 3;
-      this.alpha = 0.85;
+      this.radius = 2 + Math.random() * 2.5;
+      this.alpha = 0.8;
       this.color = Math.random() > 0.4 ? 'rgba(225, 29, 72,' : 'rgba(245, 158, 11,';
     }
 
@@ -218,27 +203,25 @@
     ctx.scale(dpr, dpr);
   }
 
-  function initParticles() {
-    particles.length = 0;
-    const count = width < 768 ? 18 : PARTICLE_COUNT;
+  function initSlices() {
+    slices.length = 0;
+    const count = width < 768 ? 16 : SLICE_COUNT;
     for (let i = 0; i < count; i++) {
-      particles.push(new Particle());
+      slices.push(new PizzaSlice());
     }
   }
 
   function addRipple(x, y) {
     ripples.push(new RadarRipple(x, y));
-    // Cria 6-8 partículas de faísca ao clicar
-    const sparkCount = width < 768 ? 5 : 8;
+    const sparkCount = width < 768 ? 4 : 7;
     for (let i = 0; i < sparkCount; i++) {
       sparks.push(new Spark(x, y));
     }
   }
 
-  // Event Listeners de interação
   window.addEventListener('resize', () => {
     resize();
-    initParticles();
+    initSlices();
   }, { passive: true });
 
   window.addEventListener('mousemove', (e) => {
@@ -251,12 +234,10 @@
     mouse.isHovered = false;
   }, { passive: true });
 
-  // Disparo reativo ao clique
   window.addEventListener('click', (e) => {
     addRipple(e.clientX, e.clientY);
   }, { passive: true });
 
-  // Suporte a toque no telemóvel
   window.addEventListener('touchstart', (e) => {
     if (e.touches && e.touches[0]) {
       const touch = e.touches[0];
@@ -275,9 +256,7 @@
     }
   }, { passive: true });
 
-  // Loop de Animação a 60 FPS
   function animate() {
-    // Interpolação fluida da posição do rato
     if (mouse.isHovered) {
       mouse.x += (mouse.targetX - mouse.x) * 0.14;
       mouse.y += (mouse.targetY - mouse.y) * 0.14;
@@ -285,25 +264,25 @@
 
     ctx.clearRect(0, 0, width, height);
 
-    // Brilho de cursor suave (Aura dinâmica que segue o rato)
+    // Aura suave de calor que acompanha o rato
     if (mouse.isHovered && mouse.x > 0 && mouse.y > 0) {
-      const glow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 240);
-      glow.addColorStop(0, 'rgba(225, 29, 72, 0.05)');
-      glow.addColorStop(0.5, 'rgba(245, 158, 11, 0.025)');
+      const glow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 220);
+      glow.addColorStop(0, 'rgba(225, 29, 72, 0.045)');
+      glow.addColorStop(0.5, 'rgba(245, 158, 11, 0.02)');
       glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
       ctx.fillStyle = glow;
       ctx.beginPath();
-      ctx.arc(mouse.x, mouse.y, 240, 0, Math.PI * 2);
+      ctx.arc(mouse.x, mouse.y, 220, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // Atualiza e desenha partículas flutuantes
-    for (let i = 0; i < particles.length; i++) {
-      particles[i].update();
-      particles[i].draw();
+    // Desenha as fatias de pizza flutuantes
+    for (let i = 0; i < slices.length; i++) {
+      slices[i].update();
+      slices[i].draw();
     }
 
-    // Ondas sonares de clique
+    // Ondas radar de clique
     for (let i = ripples.length - 1; i >= 0; i--) {
       ripples[i].update();
       ripples[i].draw();
@@ -324,8 +303,7 @@
     requestAnimationFrame(animate);
   }
 
-  // Inicialização
   resize();
-  initParticles();
+  initSlices();
   requestAnimationFrame(animate);
 })();
