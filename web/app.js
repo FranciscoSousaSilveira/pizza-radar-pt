@@ -141,12 +141,76 @@
     geoStatusText: document.getElementById('geo-status-text'),
   };
 
+  // Lógica do Loader Temático (Estilo Preço da Jola)
+  const LOADER_MESSAGES = [
+    'A aquecer o forno a lenha...',
+    'A verificar os preços oficiais em Lisboa...',
+    'A negociar o queijo com as pizzarias...',
+    'A comparar custos reais por pizza...',
+    'A espreitar as melhores ofertas de hoje...',
+  ];
+  let loaderMsgIndex = 0;
+  let loaderInterval = null;
+  const loaderStartTime = performance.now();
+
+  function startLoaderMessages() {
+    const msgEl = document.getElementById('pizza-loader-msg');
+    const sliceEl = document.getElementById('pizza-loader-interactive-slice');
+    if (sliceEl) {
+      sliceEl.addEventListener('click', () => {
+        sliceEl.style.transform = 'scale(1.22) rotate(15deg)';
+        setTimeout(() => {
+          sliceEl.style.transform = '';
+        }, 300);
+      });
+    }
+    if (!msgEl) return;
+    loaderInterval = setInterval(() => {
+      loaderMsgIndex = (loaderMsgIndex + 1) % LOADER_MESSAGES.length;
+      msgEl.classList.add('msg-fade');
+      setTimeout(() => {
+        msgEl.textContent = LOADER_MESSAGES[loaderMsgIndex];
+        msgEl.classList.remove('msg-fade');
+      }, 250);
+    }, 1400);
+  }
+
+  function dismissLoader() {
+    const loaderEl = document.getElementById('pizza-loader');
+    if (!loaderEl) return;
+    if (loaderInterval) {
+      clearInterval(loaderInterval);
+      loaderInterval = null;
+    }
+    // Garante um tempo mínimo de exposição suave (~600ms) para animação fluida
+    const elapsed = performance.now() - loaderStartTime;
+    const minDisplayTime = 650;
+    const remainingTime = Math.max(0, minDisplayTime - elapsed);
+
+    setTimeout(() => {
+      loaderEl.classList.add('fade-out');
+      setTimeout(() => {
+        loaderEl.style.display = 'none';
+      }, 500);
+    }, remainingTime);
+  }
+
+  // Timeout de salvaguarda para nunca bloquear o utilizador
+  setTimeout(() => {
+    dismissLoader();
+  }, 3500);
+
   // Inicialização
   async function init() {
+    startLoaderMessages();
     setupEventListeners();
     setupStoresEventListeners();
     setupMapEventListeners();
-    await Promise.all([loadData(), loadStoresData()]);
+    try {
+      await Promise.all([loadData(), loadStoresData()]);
+    } finally {
+      dismissLoader();
+    }
     startLiveClock();
     initStoresMap();
   }

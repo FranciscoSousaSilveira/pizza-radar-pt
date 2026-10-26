@@ -3062,3 +3062,181 @@ body {
   position: relative;
   z-index: 1;
 }
+
+
+/* ==========================================================================
+   Loader Temático Estilo Preço da Jola (Pizza 3D Spline)
+   ========================================================================== */
+.pizza-loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(245, 241, 235, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.45s ease;
+  will-change: opacity, transform;
+}
+
+.pizza-loader-overlay.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.pizza-loader-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 34px 36px 28px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(220, 212, 198, 0.8);
+  border-radius: 28px;
+  box-shadow: 0 20px 48px -12px rgba(45, 25, 10, 0.12), 0 0 1px 1px rgba(255, 255, 255, 0.9) inset;
+  max-width: 320px;
+  width: 88%;
+  text-align: center;
+  animation: cardPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes cardPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.pizza-loader-graphic-wrap {
+  position: relative;
+  width: 140px;
+  height: 155px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.pizza-loader-img {
+  width: 125px;
+  height: auto;
+  max-height: 135px;
+  object-fit: contain;
+  animation: pizzaFloat 2.4s ease-in-out infinite alternate;
+  transform-origin: center bottom;
+  filter: drop-shadow(0 8px 16px rgba(180, 83, 9, 0.15));
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.pizza-loader-img:hover {
+  transform: scale(1.08) rotate(3deg);
+}
+
+.pizza-loader-img:active {
+  transform: scale(0.92) rotate(-6deg);
+}
+
+.pizza-loader-shadow {
+  width: 85px;
+  height: 14px;
+  background: radial-gradient(ellipse at center, rgba(80, 40, 15, 0.22) 0%, rgba(80, 40, 15, 0) 70%);
+  border-radius: 50%;
+  animation: pizzaShadowPulse 2.4s ease-in-out infinite alternate;
+  margin-top: 2px;
+}
+
+@keyframes pizzaFloat {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(-3deg);
+  }
+  100% {
+    transform: translateY(-6px) rotate(2.5deg);
+  }
+}
+
+@keyframes pizzaShadowPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(0.72);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(0.88);
+    opacity: 0.65;
+  }
+}
+
+.pizza-loader-text-wrap {
+  margin-top: 4px;
+  margin-bottom: 16px;
+}
+
+.pizza-loader-title {
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.01em;
+}
+
+.pizza-loader-status {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #64748B;
+  margin: 0;
+  min-height: 22px;
+  line-height: 1.4;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.pizza-loader-status.msg-fade {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.pizza-loader-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(226, 219, 207, 0.6);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.pizza-loader-progress-fill {
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(90deg, #E31B23, #F59E0B);
+  border-radius: 999px;
+  animation: progressPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes progressPulse {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}

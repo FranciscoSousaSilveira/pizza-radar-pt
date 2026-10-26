@@ -19,9 +19,28 @@
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
   <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
   <script src="assets/vendor/leaflet/leaflet.js"></script>
-  <link rel="stylesheet" href="styles.css?v=2.6">
+  <link rel="stylesheet" href="styles.css?v=2.7">
 </head>
 <body>
+  <!-- Loader Temático Estilo Preço da Jola (Pizza 3D Spline) -->
+  <div id="pizza-loader" class="pizza-loader-overlay" role="status" aria-live="polite">
+    <div class="pizza-loader-card">
+      <div class="pizza-loader-graphic-wrap">
+        <picture>
+          <source srcset="assets/pizza-slice-clean.webp" type="image/webp">
+          <img src="assets/pizza-slice-clean.png" alt="Pizza Radar" class="pizza-loader-img" width="125" height="135" id="pizza-loader-interactive-slice" title="Clica para fazer saltar!">
+        </picture>
+        <div class="pizza-loader-shadow" aria-hidden="true"></div>
+      </div>
+      <div class="pizza-loader-text-wrap">
+        <h2 class="pizza-loader-title">Pizza Radar Lisboa</h2>
+        <p class="pizza-loader-status" id="pizza-loader-msg">A aquecer o forno a lenha...</p>
+      </div>
+      <div class="pizza-loader-progress-bar" aria-hidden="true">
+        <div class="pizza-loader-progress-fill"></div>
+      </div>
+    </div>
+  </div>
   <!-- Fundo Reativo de Fatias de Pizza -->
   <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
   <a href="#main-content" class="skip-link">Saltar para o conteúdo principal</a>
@@ -418,7 +437,7 @@
     </button>
   </nav>
 
-  <script src="ambient.js?v=2.6" defer></script>
-  <script src="app.js?v=2.6" defer></script>
+  <script src="ambient.js?v=2.7" defer></script>
+  <script src="app.js?v=2.7" defer></script>
 </body>
 </html>
