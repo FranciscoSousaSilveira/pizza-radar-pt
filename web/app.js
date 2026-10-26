@@ -199,26 +199,63 @@
     initStoresMap();
   }
 
-  // Unifica grupos promocionais que partilham a mesma marca, título e preço em canais complementares
+  // Unifica grupos promocionais por marca, título e tipo de oferta
+  // Exclui ofertas exclusivas de restaurante/sala (buffets/rodízios) e unifica canais (Take Away + Entrega)
   function deduplicateVisualGroups(groups) {
     const unified = [];
     const seenMap = new Map();
 
     for (const group of groups) {
-      const normTitle = (group.title || '').trim().toLowerCase();
-      const priceKey = group.min_price_cents !== null && group.min_price_cents !== undefined ? group.min_price_cents : group.display_price_label;
-      const key = `${group.vendor}|${normTitle}|${priceKey}|${group.offer_type}`;
+      // 1. Filtrar ofertas sem canal de encomenda válido (exclui buffets/dine-in exclusivos)
+      const validChannels = (group.dispatch_methods || []).filter(
+        (m) => m === 'DELIVERY' || m === 'TAKE_AWAY'
+      );
+      if (validChannels.length === 0) continue;
+
+      // 2. Normalizar título limpando pontuação final (ex.: 'JÚNIOR JOHNS.' -> 'JÚNIOR JOHNS')
+      const cleanTitle = (group.title || '').trim().replace(/[.\s]+$/, '');
+      const normTitle = cleanTitle.toLowerCase();
+      const key = `${group.vendor}|${normTitle}|${group.offer_type}`;
 
       if (seenMap.has(key)) {
         const existing = seenMap.get(key);
-        // Fundir métodos de atendimento (ex.: ['DELIVERY'] + ['TAKE_AWAY'])
-        if (group.dispatch_methods) {
-          for (const dm of group.dispatch_methods) {
-            if (!existing.dispatch_methods.includes(dm)) {
-              existing.dispatch_methods.push(dm);
-            }
+
+        // Fundir canais de atendimento
+        for (const dm of validChannels) {
+          if (!existing.dispatch_methods.includes(dm)) {
+            existing.dispatch_methods.push(dm);
           }
         }
+
+        // Mapear preços específicos de cada canal
+        if (!existing.channelPricing) {
+          existing.channelPricing = {};
+          const firstDm = existing.dispatch_methods[0];
+          if (firstDm) {
+            existing.channelPricing[firstDm] = {
+              price_cents: existing.min_price_cents,
+              display_label: existing.display_price_label,
+            };
+          }
+        }
+        for (const dm of validChannels) {
+          existing.channelPricing[dm] = {
+            price_cents: group.min_price_cents,
+            display_label: group.display_price_label,
+          };
+        }
+
+        // Se o preço desta variante for menor, atualiza o min_price_cents do grupo
+        if (group.min_price_cents !== null && group.min_price_cents !== undefined) {
+          if (
+            existing.min_price_cents === null ||
+            existing.min_price_cents === undefined ||
+            group.min_price_cents < existing.min_price_cents
+          ) {
+            existing.min_price_cents = group.min_price_cents;
+          }
+        }
+
         // Fundir variantes de loja caso existam
         if (group.variants && existing.variants) {
           for (const v of group.variants) {
@@ -227,11 +264,31 @@
             }
           }
         }
+
+        // Fundir nomes de lojas aderentes
+        if (group.all_store_names && existing.all_store_names) {
+          for (const sname of group.all_store_names) {
+            if (!existing.all_store_names.includes(sname)) {
+              existing.all_store_names.push(sname);
+            }
+          }
+        }
       } else {
         const cloned = {
           ...group,
-          dispatch_methods: [...(group.dispatch_methods || [])]
+          title: cleanTitle,
+          dispatch_methods: [...validChannels],
         };
+        // Inicializar channelPricing caso tenha preço válido
+        if (cloned.min_price_cents !== null && cloned.min_price_cents !== undefined) {
+          cloned.channelPricing = {};
+          for (const dm of validChannels) {
+            cloned.channelPricing[dm] = {
+              price_cents: cloned.min_price_cents,
+              display_label: cloned.display_price_label,
+            };
+          }
+        }
         seenMap.set(key, cloned);
         unified.push(cloned);
       }
@@ -902,8 +959,31 @@
       sizeBadgeHTML = '<span class="badge-size-pill size-family" title="Pizza familiar (~3 a 4 pessoas)">👨‍👩‍👧‍👦 Familiar • 3-4 pess.</span>';
     }
 
-    // Preço e Desconto
-    const displayPrice = group.display_price_label || 'Preço sob consulta';
+    // Preço e Desconto (com adaptação inteligente ao canal ativo)
+    let displayPrice = group.display_price_label || 'Preço sob consulta';
+    let channelBreakdownHTML = '';
+
+    if (state.filterChannel !== 'ALL' && group.channelPricing && group.channelPricing[state.filterChannel]) {
+      displayPrice = group.channelPricing[state.filterChannel].display_label;
+    } else if (group.channelPricing) {
+      const pricingList = Object.entries(group.channelPricing);
+      const uniqueCents = [...new Set(pricingList.map(([_, p]) => p.price_cents).filter((c) => c !== null && c !== undefined))];
+      if (uniqueCents.length > 1) {
+        const minCents = Math.min(...uniqueCents);
+        displayPrice = `Desde ${formatEuros(minCents / 100)}`;
+
+        const parts = [];
+        if (group.channelPricing.TAKE_AWAY && group.channelPricing.TAKE_AWAY.display_label) {
+          parts.push(`🥡 Take Away: <strong>${escapeHTML(group.channelPricing.TAKE_AWAY.display_label)}</strong>`);
+        }
+        if (group.channelPricing.DELIVERY && group.channelPricing.DELIVERY.display_label) {
+          parts.push(`🛵 Entrega: <strong>${escapeHTML(group.channelPricing.DELIVERY.display_label)}</strong>`);
+        }
+        if (parts.length > 1) {
+          channelBreakdownHTML = `<div class="channel-price-breakdown">${parts.join(' • ')}</div>`;
+        }
+      }
+    }
 
     // Preço Original e Poupança
     let originalPriceHTML = '';
@@ -1046,6 +1126,7 @@
               ${originalPriceHTML}
               ${sizeBadgeHTML}
             </div>
+            ${channelBreakdownHTML}
             ${unitPriceBadgeHTML}
             ${valueMetricsHTML}
           </div>
@@ -1146,6 +1227,9 @@
       }
       if (lower.includes('papito')) {
         return 'https://www.papajohns.pt/promocoes/o-papito-menu-individual/';
+      }
+      if (lower.includes('junior') || lower.includes('júnior')) {
+        return 'https://www.papajohns.pt/promocoes/junior-johns/';
       }
     }
 

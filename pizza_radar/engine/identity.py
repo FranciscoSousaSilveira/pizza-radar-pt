@@ -247,8 +247,13 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
     grouped: dict[str, list[UnifiedPromo]] = {}
 
     for promo in promos:
+        # Pizza Radar PT é exclusivo para canais de encomenda (Delivery e Take Away).
+        # Ofertas exclusivas de sala (como Buffets ou Rodízios presenciais) não contam para o radar.
+        valid_methods = [m for m in promo.dispatch_methods if m in (DispatchMethod.DELIVERY, DispatchMethod.TAKE_AWAY)]
+        if not valid_methods:
+            continue
         campaign_id = extract_canonical_campaign_id(promo.id)
-        method = promo.dispatch_methods[0] if promo.dispatch_methods else DispatchMethod.DELIVERY
+        method = valid_methods[0]
         pid = build_persistent_promo_id(promo.vendor, campaign_id, method)
         grouped.setdefault(pid, []).append(promo)
 
@@ -331,10 +336,11 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
         else:
             group_offer_type = best_item.offer_type
 
+        clean_title = re.sub(r"[.\s]+$", "", best_item.title).strip()
         vg = VisualPromoGroup(
             persistent_id=pid,
             vendor=best_item.vendor,
-            title=best_item.title,
+            title=clean_title,
             description=best_item.description,
             dispatch_methods=best_item.dispatch_methods,
             store_scope=best_item.store_scope,

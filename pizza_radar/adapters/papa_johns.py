@@ -239,6 +239,8 @@ _PAPA_JOHNS_KNOWN_SLUGS: dict[str, str] = {
     "papa as 3": "papa-as-3as/",
     "papa day": "papa-as-3as/",
     "super john": "super-john/",
+    "junior": "junior-johns/",
+    "júnior": "junior-johns/",
 }
 
 
