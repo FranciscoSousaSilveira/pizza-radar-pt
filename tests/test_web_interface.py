@@ -192,6 +192,13 @@ class TestWebInterfaceIntegrity(unittest.TestCase):
         self.assertTrue(familia_group.get("is_comparable_for_unit_price"), "Deve ser comparável para preço unitário")
         self.assertEqual(familia_group.get("min_price_per_pizza_cents"), 1350)
 
+    def test_telepizza_links_avoid_broken_urls(self) -> None:
+        """Garante que os links da Telepizza utilizam apenas endpoints oficiais validos e nunca rotas quebradas."""
+        js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+        self.assertNotIn("comida-ao-domicilio", js)
+        self.assertIn("https://www.telepizza.pt/menus", js)
+        self.assertIn("https://www.telepizza.pt/promocoes", js)
+
     def test_unproven_offers_excluded_from_best_unit_price(self) -> None:
         """Ofertas sem contagem comprovada não podem entrar no ranking BEST_UNIT_PRICE."""
         json_path = WEB_DIR / "data" / "promotions.json"
