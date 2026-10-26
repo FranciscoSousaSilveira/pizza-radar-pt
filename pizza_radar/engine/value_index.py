@@ -155,8 +155,17 @@ def compute_value_metrics(
     euro_100 = f"{price_per_100_euros:.2f}".replace(".", ",")
     value_badge = f"{euro_100} € / 100 cm²"
 
-    if estimated_portions == 1:
-        portion_badge = "Ideal para 1 pessoa"
+    if count == 1:
+        if p_size == PizzaSize.INDIVIDUAL:
+            portion_badge = "Ideal para 1 pessoa"
+        elif p_size == PizzaSize.MEDIUM:
+            portion_badge = "Ideal para 1-2 pessoas"
+        elif p_size == PizzaSize.LARGE:
+            portion_badge = "Ideal para 2-3 pessoas"
+        elif p_size == PizzaSize.FAMILY:
+            portion_badge = "Ideal para 3-4 pessoas"
+        else:
+            portion_badge = f"Ideal para {estimated_portions} pessoas"
     else:
         portion_badge = f"Ideal para {estimated_portions} pessoas"
 

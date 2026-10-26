@@ -439,9 +439,9 @@
       elements.sizeChips.forEach((chip) => {
         const sz = chip.dataset.size;
         if (sz === 'ALL') chip.innerHTML = `Todos os Tamanhos <small>(${allPizzaCount})</small>`;
-        else if (sz === 'INDIVIDUAL') chip.innerHTML = `🧍 Individual <small>(~1 pess. • ${individualCount})</small>`;
-        else if (sz === 'MEDIUM') chip.innerHTML = `👫 Média <small>(~2 pess. • ${mediumCount})</small>`;
-        else if (sz === 'FAMILY') chip.innerHTML = `👨‍👩‍👧‍👦 Grande / Familiar <small>(3-4 pess. • ${familyCount})</small>`;
+        else if (sz === 'INDIVIDUAL') chip.innerHTML = `🧍 Individual <small>(1 pess. • ${individualCount})</small>`;
+        else if (sz === 'MEDIUM') chip.innerHTML = `👫 Média <small>(1-2 pess. • ${mediumCount})</small>`;
+        else if (sz === 'FAMILY') chip.innerHTML = `👨‍👩‍👧‍👦 Grande / Familiar <small>(2-4 pess. • ${familyCount})</small>`;
       });
     }
 
@@ -955,13 +955,13 @@
     let sizeBadgeHTML = '';
     const resolvedSize = resolveGroupPizzaSize(group);
     if (resolvedSize === 'INDIVIDUAL') {
-      sizeBadgeHTML = '<span class="badge-size-pill size-individual" title="Pizza individual (~1 pessoa)">🧍 Individual • 1 pess.</span>';
+      sizeBadgeHTML = '<span class="badge-size-pill size-individual" title="Pizza individual (1 pessoa)">🧍 Individual • 1 pess.</span>';
     } else if (resolvedSize === 'MEDIUM') {
-      sizeBadgeHTML = '<span class="badge-size-pill size-medium" title="Pizza média (~2 pessoas)">👫 Média • 2 pess.</span>';
+      sizeBadgeHTML = '<span class="badge-size-pill size-medium" title="Pizza média (1 a 2 pessoas)">👫 Média • 1-2 pess.</span>';
     } else if (resolvedSize === 'LARGE') {
-      sizeBadgeHTML = '<span class="badge-size-pill size-large" title="Pizza grande (~2 a 3 pessoas)">👨‍👩‍👧 Grande • 2-3 pess.</span>';
+      sizeBadgeHTML = '<span class="badge-size-pill size-large" title="Pizza grande (2 a 3 pessoas)">👨‍👩‍👧 Grande • 2-3 pess.</span>';
     } else if (resolvedSize === 'FAMILY') {
-      sizeBadgeHTML = '<span class="badge-size-pill size-family" title="Pizza familiar (~3 a 4 pessoas)">👨‍👩‍👧‍👦 Familiar • 3-4 pess.</span>';
+      sizeBadgeHTML = '<span class="badge-size-pill size-family" title="Pizza familiar (3 a 4 pessoas)">👨‍👩‍👧‍👦 Familiar • 3-4 pess.</span>';
     }
 
     // Preço e Desconto (com adaptação inteligente ao canal ativo)
