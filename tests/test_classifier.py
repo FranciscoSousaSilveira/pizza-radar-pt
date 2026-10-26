@@ -16,7 +16,7 @@ from pathlib import Path
 import unittest
 
 from pizza_radar.adapters.papa_johns import PapaJohnsAdapter
-from pizza_radar.core.classifier import classify_offer_type
+from pizza_radar.core.classifier import classify_offer_type, classify_pizza_size
 from pizza_radar.core.models import (
     ComponentCategory,
     OfferComponent,
@@ -377,6 +377,72 @@ class TestSnapshotSanitization(unittest.TestCase):
         for brand_key, info in vendor_status.items():
             self.assertIn(info["status"], valid_statuses, f"Status inválido para {brand_key}")
             self.assertNotIn("error_message", info, f"error_message exposta em {brand_key}")
+
+
+class TestPizzaSizeClassifier(unittest.TestCase):
+    """Testa a funcao classify_pizza_size e o mapeamento deterministico de tamanhos."""
+
+    def test_classify_individual(self) -> None:
+        cases = [
+            "Menu Uno Pizza Individual",
+            "Papito Menu Individual",
+            "Pizza Pequena Fiambre",
+            "Menu Junior Pizza",
+        ]
+        for title in cases:
+            with self.subTest(title=title):
+                self.assertEqual(classify_pizza_size(title), PizzaSize.INDIVIDUAL)
+
+    def test_classify_medium(self) -> None:
+        cases = [
+            "2 Pizzas Medias 12.95EUR",
+            "Mega Semana Pizza Media",
+            "Pizza Pan Pepperoni",
+            "Massa Roller Queijo",
+        ]
+        for title in cases:
+            with self.subTest(title=title):
+                self.assertEqual(classify_pizza_size(title), PizzaSize.MEDIUM)
+
+    def test_classify_large(self) -> None:
+        cases = [
+            "2 Pizzas Grandes 15EUR",
+            "Pizza Grande Barbecue",
+        ]
+        for title in cases:
+            with self.subTest(title=title):
+                self.assertEqual(classify_pizza_size(title), PizzaSize.LARGE)
+
+    def test_classify_family(self) -> None:
+        cases = [
+            "Pizza Familiar 14.95EUR",
+            "A Maior da Telepizza",
+            "Pizzas Familiares em Festa",
+        ]
+        for title in cases:
+            with self.subTest(title=title):
+                self.assertEqual(classify_pizza_size(title), PizzaSize.FAMILY)
+
+    def test_classify_components_override(self) -> None:
+        comp = OfferComponent(
+            description="Pizza Familiar Especial",
+            category=ComponentCategory.PIZZA,
+            quantity=1,
+            size=PizzaSize.FAMILY,
+        )
+        res = classify_pizza_size(title="Menu Individual", components=[comp])
+        self.assertEqual(res, PizzaSize.FAMILY)
+
+    def test_classify_unknown(self) -> None:
+        cases = [
+            "Refrigerante Coca-Cola 1.5L",
+            "Pao de Alho Supremo",
+            "Gelado Ben and Jerrys",
+            "Menu Sem Tamanho Explicito",
+        ]
+        for title in cases:
+            with self.subTest(title=title):
+                self.assertEqual(classify_pizza_size(title), PizzaSize.UNKNOWN)
 
 
 if __name__ == "__main__":

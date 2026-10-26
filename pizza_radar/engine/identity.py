@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any
 
+from pizza_radar.core.classifier import classify_pizza_size
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
@@ -287,7 +288,7 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
                     price_cents=promo.price_cents,
                     original_price_cents=promo.original_price_cents,
                     pizza_count=promo.pizza_count,
-                    pizza_size=promo.pizza_size,
+                    pizza_size=promo.pizza_size if promo.pizza_size != PizzaSize.UNKNOWN else classify_pizza_size(promo.title, promo.description),
                     offer_type=promo.offer_type,
                     is_comparable_for_unit_price=promo.is_comparable_for_unit_price,
                     observed_at=promo.last_seen_at or promo.observed_at,
@@ -317,6 +318,8 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
         comp_variant = next((v for v in variants if v.is_comparable_for_unit_price), None)
         pizza_count = comp_variant.pizza_count if comp_variant else best_item.pizza_count
         pizza_size = comp_variant.pizza_size if comp_variant else best_item.pizza_size
+        if pizza_size == PizzaSize.UNKNOWN:
+            pizza_size = classify_pizza_size(best_item.title, best_item.description)
 
         variant_offer_types = {v.offer_type for v in variants}
         if OfferType.PIZZA in variant_offer_types:

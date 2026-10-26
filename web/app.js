@@ -18,6 +18,7 @@
     vendorStatus: {},
     activeRanking: 'LOWEST_ABSOLUTE_PRICE',
     filterProduct: 'ALL',
+    filterSize: 'ALL',
     filterVendor: 'ALL',
     filterChannel: 'ALL',
     filterDay: 'ALL',
@@ -90,6 +91,7 @@
     rankingTabs: document.querySelectorAll('.ranking-tab'),
     rankingExplanation: document.getElementById('explanation-text'),
     productChips: document.querySelectorAll('#product-chips .chip'),
+    sizeChips: document.querySelectorAll('#size-chips .chip'),
     vendorChips: document.querySelectorAll('#vendor-chips .chip'),
     channelChips: document.querySelectorAll('#channel-chips .chip[data-channel]'),
     filterOpenNowPromos: document.getElementById('filter-open-now-promos'),
@@ -146,6 +148,45 @@
     navMap: document.getElementById('nav-map'),
     navTop: document.getElementById('nav-top'),
   };
+
+  // Resolver Deterministicamente o Tamanho de Pizza de um Grupo Promocional
+  function resolveGroupPizzaSize(group) {
+    if (!group) return 'UNKNOWN';
+    if (group.offer_type === 'NON_PIZZA') return 'UNKNOWN';
+
+    // 1. Propriedade direta pizza_size caso preenchida e válida
+    if (group.pizza_size && group.pizza_size !== 'UNKNOWN') {
+      return group.pizza_size;
+    }
+
+    // 2. Variantes com tamanho comprovado
+    if (group.variants && group.variants.length > 0) {
+      const validSizes = group.variants
+        .map((v) => v.pizza_size)
+        .filter((s) => s && s !== 'UNKNOWN');
+      const uniqueSizes = [...new Set(validSizes)];
+      if (uniqueSizes.length === 1) {
+        return uniqueSizes[0];
+      }
+    }
+
+    // 3. Classificação determinística por regex no título e descrição
+    const text = `${group.title || ''} ${group.description || ''}`.toLowerCase();
+    if (/\b(individual|pequena|júnior|junior|menu uno|papito)\b/.test(text)) {
+      return 'INDIVIDUAL';
+    }
+    if (/\b(familiar|familiares|a maior|gigante)\b/.test(text) && !/\bm[eé]dias?\b/.test(text)) {
+      return 'FAMILY';
+    }
+    if (/\b(grande|grandes)\b/.test(text) && !/\bm[eé]dias?\b/.test(text)) {
+      return 'LARGE';
+    }
+    if (/\b(m[eé]dia|m[eé]dias|pan|roller)\b/.test(text)) {
+      return 'MEDIUM';
+    }
+
+    return 'UNKNOWN';
+  }
 
   // Inicialização
   async function init() {
@@ -323,6 +364,25 @@
       else if (type === 'NON_PIZZA') chip.textContent = `Acompanhamentos (${nonPizzaCount})`;
     });
 
+    // Contadores por Tamanho de Pizza
+    const individualCount = groups.filter((g) => resolveGroupPizzaSize(g) === 'INDIVIDUAL').length;
+    const mediumCount = groups.filter((g) => resolveGroupPizzaSize(g) === 'MEDIUM').length;
+    const familyCount = groups.filter((g) => {
+      const s = resolveGroupPizzaSize(g);
+      return s === 'FAMILY' || s === 'LARGE';
+    }).length;
+    const allPizzaCount = groups.filter((g) => g.offer_type !== 'NON_PIZZA').length;
+
+    if (elements.sizeChips) {
+      elements.sizeChips.forEach((chip) => {
+        const sz = chip.dataset.size;
+        if (sz === 'ALL') chip.innerHTML = `Todos os Tamanhos <small>(${allPizzaCount})</small>`;
+        else if (sz === 'INDIVIDUAL') chip.innerHTML = `🧍 Individual <small>(~1 pess. • ${individualCount})</small>`;
+        else if (sz === 'MEDIUM') chip.innerHTML = `👫 Média <small>(~2 pess. • ${mediumCount})</small>`;
+        else if (sz === 'FAMILY') chip.innerHTML = `👨‍👩‍👧‍👦 Grande / Familiar <small>(3-4 pess. • ${familyCount})</small>`;
+      });
+    }
+
     // Contadores por Marca
     const vendorCounts = {
       ALL: total,
@@ -382,6 +442,22 @@
         applyFiltersAndRender();
       });
     });
+
+    // Chips de Tamanho de Pizza
+    if (elements.sizeChips) {
+      elements.sizeChips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+          elements.sizeChips.forEach((c) => {
+            c.classList.remove('active');
+            c.setAttribute('aria-pressed', 'false');
+          });
+          chip.classList.add('active');
+          chip.setAttribute('aria-pressed', 'true');
+          state.filterSize = chip.dataset.size;
+          applyFiltersAndRender();
+        });
+      });
+    }
 
     // Chips de Fornecedor
     elements.vendorChips.forEach((chip) => {
@@ -560,6 +636,7 @@
   // Limpar Todos os Filtros
   function resetFilters() {
     state.filterProduct = 'ALL';
+    state.filterSize = 'ALL';
     state.filterVendor = 'ALL';
     state.filterChannel = 'ALL';
     state.filterDay = 'ALL';
@@ -571,6 +648,12 @@
       c.classList.toggle('active', c.dataset.product === 'ALL');
       c.setAttribute('aria-pressed', c.dataset.product === 'ALL' ? 'true' : 'false');
     });
+    if (elements.sizeChips) {
+      elements.sizeChips.forEach((c) => {
+        c.classList.toggle('active', c.dataset.size === 'ALL');
+        c.setAttribute('aria-pressed', c.dataset.size === 'ALL' ? 'true' : 'false');
+      });
+    }
     elements.vendorChips.forEach((c) => {
       c.classList.toggle('active', c.dataset.vendor === 'ALL');
       c.setAttribute('aria-pressed', c.dataset.vendor === 'ALL' ? 'true' : 'false');
@@ -601,6 +684,20 @@
       filtered = filtered.filter((g) => g.offer_type === 'BUNDLE_WITH_PIZZA');
     } else if (state.filterProduct === 'NON_PIZZA') {
       filtered = filtered.filter((g) => g.offer_type === 'NON_PIZZA');
+    }
+
+    // 0.5 Filtro por Tamanho de Pizza
+    if (state.filterSize && state.filterSize !== 'ALL') {
+      if (state.filterSize === 'INDIVIDUAL') {
+        filtered = filtered.filter((g) => resolveGroupPizzaSize(g) === 'INDIVIDUAL');
+      } else if (state.filterSize === 'MEDIUM') {
+        filtered = filtered.filter((g) => resolveGroupPizzaSize(g) === 'MEDIUM');
+      } else if (state.filterSize === 'FAMILY') {
+        filtered = filtered.filter((g) => {
+          const sz = resolveGroupPizzaSize(g);
+          return sz === 'FAMILY' || sz === 'LARGE';
+        });
+      }
     }
 
     // 1. Filtro por Fornecedor
@@ -792,6 +889,19 @@
       `;
     }
 
+    // Badge de Tamanho de Pizza
+    let sizeBadgeHTML = '';
+    const resolvedSize = resolveGroupPizzaSize(group);
+    if (resolvedSize === 'INDIVIDUAL') {
+      sizeBadgeHTML = '<span class="badge-size-pill size-individual" title="Pizza individual (~1 pessoa)">🧍 Individual • 1 pess.</span>';
+    } else if (resolvedSize === 'MEDIUM') {
+      sizeBadgeHTML = '<span class="badge-size-pill size-medium" title="Pizza média (~2 pessoas)">👫 Média • 2 pess.</span>';
+    } else if (resolvedSize === 'LARGE') {
+      sizeBadgeHTML = '<span class="badge-size-pill size-large" title="Pizza grande (~2 a 3 pessoas)">👨‍👩‍👧 Grande • 2-3 pess.</span>';
+    } else if (resolvedSize === 'FAMILY') {
+      sizeBadgeHTML = '<span class="badge-size-pill size-family" title="Pizza familiar (~3 a 4 pessoas)">👨‍👩‍👧‍👦 Familiar • 3-4 pess.</span>';
+    }
+
     // Preço e Desconto
     const displayPrice = group.display_price_label || 'Preço sob consulta';
 
@@ -934,6 +1044,7 @@
             <div class="price-main-row">
               <span class="price-value">${escapeHTML(displayPrice)}</span>
               ${originalPriceHTML}
+              ${sizeBadgeHTML}
             </div>
             ${unitPriceBadgeHTML}
             ${valueMetricsHTML}
@@ -967,6 +1078,7 @@
   // Atualizar Barra de Estado
   function updateStatusBar(count) {
     const isFiltered = state.filterProduct !== 'ALL' ||
+                       state.filterSize !== 'ALL' ||
                        state.filterVendor !== 'ALL' ||
                        state.filterChannel !== 'ALL' ||
                        state.filterDay !== 'ALL' ||

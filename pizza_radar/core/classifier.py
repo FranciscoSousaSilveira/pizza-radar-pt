@@ -15,7 +15,7 @@ from __future__ import annotations
 import re
 from typing import Sequence
 
-from pizza_radar.core.models import ComponentCategory, OfferComponent, OfferType
+from pizza_radar.core.models import ComponentCategory, OfferComponent, OfferType, PizzaSize
 
 
 _NON_PIZZA_EXCLUSIVE_KEYWORDS: tuple[str, ...] = (
@@ -201,3 +201,32 @@ def classify_offer_type(
         return OfferType.UNKNOWN
 
     return OfferType.UNKNOWN
+
+
+
+def classify_pizza_size(
+    title: str,
+    description: str = "",
+    components: Sequence[OfferComponent] | None = None,
+) -> PizzaSize:
+    """Classifica deterministicamente o tamanho de pizza de uma oferta promocional."""
+    if components:
+        for c in components:
+            if c.category == ComponentCategory.PIZZA and c.size and c.size != PizzaSize.UNKNOWN:
+                return c.size
+
+    text = f"{title} {description}".lower()
+
+    if re.search(r"\b(individual|pequena|júnior|junior|menu uno|papito)\b", text):
+        return PizzaSize.INDIVIDUAL
+
+    if re.search(r"\b(familiar|familiares|a maior|gigante)\b", text) and not re.search(r"\bm[eé]dias?\b", text):
+        return PizzaSize.FAMILY
+
+    if re.search(r"\b(grande|grandes)\b", text) and not re.search(r"\bm[eé]dias?\b", text):
+        return PizzaSize.LARGE
+
+    if re.search(r"\b(m[eé]dia|m[eé]dias|pan|roller)\b", text):
+        return PizzaSize.MEDIUM
+
+    return PizzaSize.UNKNOWN
