@@ -217,16 +217,27 @@ def classify_pizza_size(
 
     text = f"{title} {description}".lower()
 
-    if re.search(r"\b(individual|pequena|júnior|junior|menu uno|papito)\b", text):
+    # Se a oferta menciona múltiplos tamanhos concorrentes (ex.: "média ou familiar", "pão de alho por 5€, ou pizza média por 10€, ou pizza familiar por 15€"),
+    # não possui um tamanho único padronizado para cálculo de métricas de área ou preço unitário.
+    has_individual = bool(re.search(r"\b(individual|pequena|júnior|junior|menu uno|papito)\b", text))
+    has_family = bool(re.search(r"\b(familiar|familiares|a maior|gigante)\b", text))
+    has_large = bool(re.search(r"\b(grande|grandes)\b", text))
+    has_medium = bool(re.search(r"\b(m[eé]dia|m[eé]dias)\b", text))
+
+    detected_sizes = sum([has_individual, has_family, has_large, has_medium])
+    if detected_sizes > 1:
+        return PizzaSize.UNKNOWN
+
+    if has_individual:
         return PizzaSize.INDIVIDUAL
 
-    if re.search(r"\b(familiar|familiares|a maior|gigante)\b", text) and not re.search(r"\bm[eé]dias?\b", text):
+    if has_family:
         return PizzaSize.FAMILY
 
-    if re.search(r"\b(grande|grandes)\b", text) and not re.search(r"\bm[eé]dias?\b", text):
+    if has_large:
         return PizzaSize.LARGE
 
-    if re.search(r"\b(m[eé]dia|m[eé]dias|pan|roller)\b", text):
+    if has_medium or re.search(r"\b(pan|roller)\b", text):
         return PizzaSize.MEDIUM
 
     return PizzaSize.UNKNOWN

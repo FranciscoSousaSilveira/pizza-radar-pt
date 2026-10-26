@@ -172,18 +172,23 @@
 
     // 3. Classificação determinística por regex no título e descrição
     const text = `${group.title || ''} ${group.description || ''}`.toLowerCase();
-    if (/\b(individual|pequena|júnior|junior|menu uno|papito)\b/.test(text)) {
-      return 'INDIVIDUAL';
+
+    // Se mencionar múltiplos tamanhos concorrentes (ex.: "média ou familiar", "pão de alho por 5€, ou pizza média por 10€, ou pizza familiar por 15€"),
+    // não tem tamanho único padronizado.
+    const hasInd = /\b(individual|pequena|júnior|junior|menu uno|papito)\b/.test(text);
+    const hasFam = /\b(familiar|familiares|a maior|gigante)\b/.test(text);
+    const hasLrg = /\b(grande|grandes)\b/.test(text);
+    const hasMed = /\b(m[eé]dia|m[eé]dias)\b/.test(text);
+
+    const detectedCount = (hasInd ? 1 : 0) + (hasFam ? 1 : 0) + (hasLrg ? 1 : 0) + (hasMed ? 1 : 0);
+    if (detectedCount > 1) {
+      return 'UNKNOWN';
     }
-    if (/\b(familiar|familiares|a maior|gigante)\b/.test(text) && !/\bm[eé]dias?\b/.test(text)) {
-      return 'FAMILY';
-    }
-    if (/\b(grande|grandes)\b/.test(text) && !/\bm[eé]dias?\b/.test(text)) {
-      return 'LARGE';
-    }
-    if (/\b(m[eé]dia|m[eé]dias|pan|roller)\b/.test(text)) {
-      return 'MEDIUM';
-    }
+
+    if (hasInd) return 'INDIVIDUAL';
+    if (hasFam) return 'FAMILY';
+    if (hasLrg) return 'LARGE';
+    if (hasMed || /\b(pan|roller)\b/.test(text)) return 'MEDIUM';
 
     return 'UNKNOWN';
   }
@@ -961,6 +966,12 @@
 
     // Preço e Desconto (com adaptação inteligente ao canal ativo)
     let displayPrice = group.display_price_label || 'Preço sob consulta';
+
+    // Promoções tipo catálogo multi-escalão (ex.: Hut Deals com Pão de Alho 5€, Média 10€, Familiar 15€)
+    const descLower = (group.description || '').toLowerCase();
+    if (descLower.includes('por apenas') && descLower.includes(', ou ') && !displayPrice.startsWith('Desde')) {
+      displayPrice = `Desde ${displayPrice}`;
+    }
     let channelBreakdownHTML = '';
 
     if (state.filterChannel !== 'ALL' && group.channelPricing && group.channelPricing[state.filterChannel]) {

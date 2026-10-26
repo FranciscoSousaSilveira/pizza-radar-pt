@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 from pizza_radar.adapters.obscura_scraper import ObscuraExecutionError, ObscuraNotFoundError, ObscuraScraper
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
-from pizza_radar.core.classifier import classify_offer_type
+from pizza_radar.core.classifier import classify_offer_type, classify_pizza_size
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
@@ -55,16 +55,29 @@ _HEADERS = {
 _PRICE_REGEX = re.compile(r"(\d+(?:[.,]\d{1,2})?)\s*€")
 
 
-def _extract_cents_from_text(text: str) -> int | None:
-    match = _PRICE_REGEX.search(text)
-    if not match:
-        return None
-    raw_str = match.group(1).replace(",", ".")
+def _to_cents(s: str) -> int | None:
+    raw_str = s.replace(",", ".")
     try:
         d = Decimal(raw_str)
         return int((d * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
     except (InvalidOperation, ValueError):
         return None
+
+
+def _extract_cents_from_text(text: str) -> int | None:
+    if not text:
+        return None
+    # 1. Se existir indicação explícita de preço total do Menu (ex.: "(Menu 29,75€ para 5 pessoas)"),
+    # esse é o valor total real do pedido, e não o valor fracionado de marketing "por pessoa".
+    menu_match = re.search(r"\(?\bmenu\s+(?:de\s+)?(\d+(?:[.,]\d{1,2})?)\s*€", text, re.IGNORECASE)
+    if menu_match:
+        return _to_cents(menu_match.group(1))
+
+    # 2. Caso geral
+    match = _PRICE_REGEX.search(text)
+    if not match:
+        return None
+    return _to_cents(match.group(1))
 
 
 def _detect_channels(slug: str, title: str, description: str) -> list[DispatchMethod]:
@@ -304,11 +317,24 @@ class PizzaHutAdapter(PromoAdapterInterface):
         store_names = item.get("store_names", [])
         dispatch_methods = item.get("dispatch_methods", [DispatchMethod.TAKE_AWAY])
 
+        # Extração determinística de contagem e tamanho para Pizza Hut
+        pizza_count = None
+        pizza_size = PizzaSize.UNKNOWN
+        text_lower = f"{item['title']} {item['description']}".lower()
+
+        if "3+1" in text_lower and "médias" in text_lower:
+            pizza_count = 3
+            pizza_size = PizzaSize.MEDIUM
+        else:
+            pizza_size = classify_pizza_size(item["title"], item["description"])
+            if pizza_size != PizzaSize.UNKNOWN:
+                pizza_count = 1
+
         offer_type = classify_offer_type(
             title=item["title"],
             description=item["description"],
             included_items=[],
-            pizza_count=None,
+            pizza_count=pizza_count,
         )
 
         return UnifiedPromo(
@@ -325,8 +351,8 @@ class PizzaHutAdapter(PromoAdapterInterface):
             store_scope=store_scope,
             store_ids=store_ids,
             store_names=store_names,
-            pizza_count=None,
-            pizza_size=PizzaSize.UNKNOWN,
+            pizza_count=pizza_count,
+            pizza_size=pizza_size,
             included_items=[],
             source_url=item["link"],
             location_scope="Lisboa",
