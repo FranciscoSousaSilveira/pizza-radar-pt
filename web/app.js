@@ -514,63 +514,73 @@
       });
     });
 
-    // Chips de Tipo de Produto (Pizzas vs Complementos)
-    elements.productChips.forEach((chip) => {
-      chip.addEventListener('click', () => {
-        elements.productChips.forEach((c) => {
+    // Chips de Tipo de Produto (Pizzas vs Menus vs Acompanhamentos) — Delegação Resiliente
+    const productContainer = document.getElementById('product-chips');
+    if (productContainer) {
+      productContainer.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip || !productContainer.contains(chip)) return;
+        productContainer.querySelectorAll('.chip').forEach((c) => {
           c.classList.remove('active');
           c.setAttribute('aria-pressed', 'false');
         });
         chip.classList.add('active');
         chip.setAttribute('aria-pressed', 'true');
-        state.filterProduct = chip.dataset.product;
+        state.filterProduct = chip.dataset.product || 'ALL';
         applyFiltersAndRender();
-      });
-    });
-
-    // Chips de Tamanho de Pizza
-    if (elements.sizeChips) {
-      elements.sizeChips.forEach((chip) => {
-        chip.addEventListener('click', () => {
-          elements.sizeChips.forEach((c) => {
-            c.classList.remove('active');
-            c.setAttribute('aria-pressed', 'false');
-          });
-          chip.classList.add('active');
-          chip.setAttribute('aria-pressed', 'true');
-          state.filterSize = chip.dataset.size;
-          applyFiltersAndRender();
-        });
       });
     }
 
-    // Chips de Fornecedor
-    elements.vendorChips.forEach((chip) => {
-      chip.addEventListener('click', () => {
-        elements.vendorChips.forEach((c) => {
+    // Chips de Tamanho de Pizza — Delegação Resiliente no Contentor
+    const sizeContainer = document.getElementById('size-chips');
+    if (sizeContainer) {
+      sizeContainer.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip || !sizeContainer.contains(chip)) return;
+        sizeContainer.querySelectorAll('.chip').forEach((c) => {
           c.classList.remove('active');
           c.setAttribute('aria-pressed', 'false');
         });
         chip.classList.add('active');
         chip.setAttribute('aria-pressed', 'true');
-        state.filterVendor = chip.dataset.vendor;
+        state.filterSize = chip.dataset.size || 'ALL';
         applyFiltersAndRender();
       });
-    });
+    }
 
-    // Chips de Canal
-    elements.channelChips.forEach((chip) => {
-      chip.addEventListener('click', () => {
-        elements.channelChips.forEach((c) => {
+    // Chips de Fornecedor — Delegação Resiliente
+    const vendorContainer = document.getElementById('vendor-chips');
+    if (vendorContainer) {
+      vendorContainer.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (!chip || !vendorContainer.contains(chip)) return;
+        vendorContainer.querySelectorAll('.chip').forEach((c) => {
           c.classList.remove('active');
           c.setAttribute('aria-pressed', 'false');
         });
         chip.classList.add('active');
         chip.setAttribute('aria-pressed', 'true');
-        state.filterChannel = chip.dataset.channel;
+        state.filterVendor = chip.dataset.vendor || 'ALL';
         applyFiltersAndRender();
       });
-    });
+    }
+
+    // Chips de Canal — Delegação Resiliente
+    const channelContainer = document.getElementById('channel-chips');
+    if (channelContainer) {
+      channelContainer.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip[data-channel]');
+        if (!chip || !channelContainer.contains(chip)) return;
+        channelContainer.querySelectorAll('.chip[data-channel]').forEach((c) => {
+          c.classList.remove('active');
+          c.setAttribute('aria-pressed', 'false');
+        });
+        chip.classList.add('active');
+        chip.setAttribute('aria-pressed', 'true');
+        state.filterChannel = chip.dataset.channel || 'ALL';
+        applyFiltersAndRender();
+      });
+    }
 
     // Filtro Lojas Abertas Agora nas Promoções
     if (elements.filterOpenNowPromos) {
@@ -729,16 +739,14 @@
     state.filterOnlyOpenBrands = false;
     state.searchQuery = '';
 
-    elements.productChips.forEach((c) => {
+    document.querySelectorAll('#product-chips .chip').forEach((c) => {
       c.classList.toggle('active', c.dataset.product === 'ALL');
       c.setAttribute('aria-pressed', c.dataset.product === 'ALL' ? 'true' : 'false');
     });
-    if (elements.sizeChips) {
-      elements.sizeChips.forEach((c) => {
-        c.classList.toggle('active', c.dataset.size === 'ALL');
-        c.setAttribute('aria-pressed', c.dataset.size === 'ALL' ? 'true' : 'false');
-      });
-    }
+    document.querySelectorAll('#size-chips .chip').forEach((c) => {
+      c.classList.toggle('active', c.dataset.size === 'ALL');
+      c.setAttribute('aria-pressed', c.dataset.size === 'ALL' ? 'true' : 'false');
+    });
     elements.vendorChips.forEach((c) => {
       c.classList.toggle('active', c.dataset.vendor === 'ALL');
       c.setAttribute('aria-pressed', c.dataset.vendor === 'ALL' ? 'true' : 'false');

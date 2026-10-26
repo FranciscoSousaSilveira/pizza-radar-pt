@@ -870,6 +870,7 @@ body {
   font-size: 0.72rem;
   opacity: 0.8;
   font-weight: 500;
+  pointer-events: none;
 }
 
 /* Linha 3: Canais e Controlos Secundários */
