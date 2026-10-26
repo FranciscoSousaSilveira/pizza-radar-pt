@@ -22,25 +22,6 @@
   <link rel="stylesheet" href="styles.css?v=2.7">
 </head>
 <body>
-  <!-- Loader Temático Estilo Preço da Jola (Pizza 3D Spline) -->
-  <div id="pizza-loader" class="pizza-loader-overlay" role="status" aria-live="polite">
-    <div class="pizza-loader-card">
-      <div class="pizza-loader-graphic-wrap">
-        <picture>
-          <source srcset="assets/pizza-slice-clean.webp" type="image/webp">
-          <img src="assets/pizza-slice-clean.png" alt="Pizza Radar" class="pizza-loader-img" width="125" height="135" id="pizza-loader-interactive-slice" title="Clica para fazer saltar!">
-        </picture>
-        <div class="pizza-loader-shadow" aria-hidden="true"></div>
-      </div>
-      <div class="pizza-loader-text-wrap">
-        <h2 class="pizza-loader-title">Pizza Radar Lisboa</h2>
-        <p class="pizza-loader-status" id="pizza-loader-msg">A aquecer o forno a lenha...</p>
-      </div>
-      <div class="pizza-loader-progress-bar" aria-hidden="true">
-        <div class="pizza-loader-progress-fill"></div>
-      </div>
-    </div>
-  </div>
   <!-- Fundo Reativo de Fatias de Pizza -->
   <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
   <a href="#main-content" class="skip-link">Saltar para o conteúdo principal</a>
@@ -178,7 +159,7 @@
               <button type="button" id="btn-clear-search" class="btn-clear-search" aria-label="Limpar pesquisa" style="display: none;">✕</button>
             </div>
 
-            <div class="chips-row product-chips-row" role="group" aria-label="Tipo de Oferta" id="product-chips">
+            <div class="chips-row product-chips-row scroll-shadow" role="group" aria-label="Tipo de Oferta" id="product-chips">
               <button type="button" class="chip active" data-product="ALL" aria-pressed="true">Todas as Ofertas</button>
               <button type="button" class="chip" data-product="PIZZA" aria-pressed="false">Pizzas</button>
               <button type="button" class="chip" data-product="BUNDLE_WITH_PIZZA" aria-pressed="false">Menus</button>
@@ -188,7 +169,7 @@
 
           <!-- Linha 2: Filtro de Marcas -->
           <div class="discovery-row discovery-row-brands">
-            <div class="chips-row vendor-chips-row" role="group" aria-label="Filtrar por marca de pizzaria" id="vendor-chips">
+            <div class="chips-row vendor-chips-row scroll-shadow" role="group" aria-label="Filtrar por marca de pizzaria" id="vendor-chips">
               <button type="button" class="chip chip-vendor active" data-vendor="ALL" aria-pressed="true">Todas as Marcas</button>
               <button type="button" class="chip chip-vendor chip-dominos" data-vendor="DOMINOS" aria-pressed="false">Domino's</button>
               <button type="button" class="chip chip-vendor chip-papajohns" data-vendor="PAPA_JOHNS" aria-pressed="false">Papa John's</button>
@@ -199,7 +180,7 @@
 
           <!-- Linha 3: Canais, Lojas Abertas e Comparabilidade -->
           <div class="discovery-row discovery-row-options">
-            <div class="chips-row channel-chips-row" role="group" aria-label="Canal de Atendimento" id="channel-chips">
+            <div class="chips-row channel-chips-row scroll-shadow" role="group" aria-label="Canal de Atendimento" id="channel-chips">
               <button type="button" class="chip active" data-channel="ALL" aria-pressed="true">Todos os Canais</button>
               <button type="button" class="chip" data-channel="TAKE_AWAY" aria-pressed="false">Take Away</button>
               <button type="button" class="chip" data-channel="DELIVERY" aria-pressed="false">Entrega</button>
@@ -271,7 +252,7 @@
         </div>
 
         <!-- Filtro por Marca de Pizzaria -->
-        <div class="chips-row stores-brand-chips-row" role="group" aria-label="Filtrar por marca">
+        <div class="chips-row stores-brand-chips-row scroll-shadow" role="group" aria-label="Filtrar por marca">
           <button type="button" class="chip chip-store-brand active" data-store-brand="ALL" aria-pressed="true">Todas as Marcas (<span id="count-brand-all">33</span>)</button>
           <button type="button" class="chip chip-store-brand chip-dominos" data-store-brand="DOMINOS" aria-pressed="false">Domino's (<span id="count-brand-dominos">8</span>)</button>
           <button type="button" class="chip chip-store-brand chip-papajohns" data-store-brand="PAPA_JOHNS" aria-pressed="false">Papa John's (<span id="count-brand-papajohns">3</span>)</button>
@@ -419,19 +400,19 @@
 
     <!-- Barra Flutuante de Navegação Mobile (Bottom Bar) -->
   <nav class="bottom-nav-bar" id="mobile-bottom-nav" aria-label="Navegação móvel rápida">
-    <a href="#radar-section" class="bottom-nav-btn active" id="bnav-deals">
+    <button type="button" class="bottom-nav-btn active" id="nav-promos">
       <span class="bottom-nav-icon">🔥</span>
-      <span class="bottom-nav-label">Ofertas</span>
-    </a>
-    <a href="#vendor-chips" class="bottom-nav-btn" id="bnav-brands">
+      <span class="bottom-nav-label">Preços</span>
+    </button>
+    <button type="button" class="bottom-nav-btn" id="nav-filters">
       <span class="bottom-nav-icon">🏷️</span>
-      <span class="bottom-nav-label">Marcas</span>
-    </a>
-    <a href="#stores-section" class="bottom-nav-btn" id="bnav-stores">
+      <span class="bottom-nav-label">Filtros</span>
+    </button>
+    <button type="button" class="bottom-nav-btn" id="nav-map">
       <span class="bottom-nav-icon">🗺️</span>
-      <span class="bottom-nav-label">Lojas</span>
-    </a>
-    <button type="button" class="bottom-nav-btn" id="bnav-top" aria-label="Voltar ao Topo">
+      <span class="bottom-nav-label">Mapa</span>
+    </button>
+    <button type="button" class="bottom-nav-btn" id="nav-top" aria-label="Voltar ao Topo">
       <span class="bottom-nav-icon">⬆️</span>
       <span class="bottom-nav-label">Topo</span>
     </button>

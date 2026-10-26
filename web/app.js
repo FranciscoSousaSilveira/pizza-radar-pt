@@ -139,78 +139,21 @@
     selectRadius: document.getElementById('select-radius'),
     btnClearGeo: document.getElementById('btn-clear-geo'),
     geoStatusText: document.getElementById('geo-status-text'),
+    // Barra Flutuante de Navegação Mobile
+    bottomNavBar: document.getElementById('mobile-bottom-nav'),
+    navPromos: document.getElementById('nav-promos'),
+    navFilters: document.getElementById('nav-filters'),
+    navMap: document.getElementById('nav-map'),
+    navTop: document.getElementById('nav-top'),
   };
-
-  // Lógica do Loader Temático (Estilo Preço da Jola)
-  const LOADER_MESSAGES = [
-    'A aquecer o forno a lenha...',
-    'A verificar os preços oficiais em Lisboa...',
-    'A negociar o queijo com as pizzarias...',
-    'A comparar custos reais por pizza...',
-    'A espreitar as melhores ofertas de hoje...',
-  ];
-  let loaderMsgIndex = 0;
-  let loaderInterval = null;
-  const loaderStartTime = performance.now();
-
-  function startLoaderMessages() {
-    const msgEl = document.getElementById('pizza-loader-msg');
-    const sliceEl = document.getElementById('pizza-loader-interactive-slice');
-    if (sliceEl) {
-      sliceEl.addEventListener('click', () => {
-        sliceEl.style.transform = 'scale(1.22) rotate(15deg)';
-        setTimeout(() => {
-          sliceEl.style.transform = '';
-        }, 300);
-      });
-    }
-    if (!msgEl) return;
-    loaderInterval = setInterval(() => {
-      loaderMsgIndex = (loaderMsgIndex + 1) % LOADER_MESSAGES.length;
-      msgEl.classList.add('msg-fade');
-      setTimeout(() => {
-        msgEl.textContent = LOADER_MESSAGES[loaderMsgIndex];
-        msgEl.classList.remove('msg-fade');
-      }, 250);
-    }, 1400);
-  }
-
-  function dismissLoader() {
-    const loaderEl = document.getElementById('pizza-loader');
-    if (!loaderEl) return;
-    if (loaderInterval) {
-      clearInterval(loaderInterval);
-      loaderInterval = null;
-    }
-    // Garante um tempo mínimo de exposição suave (~600ms) para animação fluida
-    const elapsed = performance.now() - loaderStartTime;
-    const minDisplayTime = 650;
-    const remainingTime = Math.max(0, minDisplayTime - elapsed);
-
-    setTimeout(() => {
-      loaderEl.classList.add('fade-out');
-      setTimeout(() => {
-        loaderEl.style.display = 'none';
-      }, 500);
-    }, remainingTime);
-  }
-
-  // Timeout de salvaguarda para nunca bloquear o utilizador
-  setTimeout(() => {
-    dismissLoader();
-  }, 3500);
 
   // Inicialização
   async function init() {
-    startLoaderMessages();
     setupEventListeners();
     setupStoresEventListeners();
     setupMapEventListeners();
-    try {
-      await Promise.all([loadData(), loadStoresData()]);
-    } finally {
-      dismissLoader();
-    }
+    setupBottomNav();
+    await Promise.all([loadData(), loadStoresData()]);
     startLiveClock();
     initStoresMap();
   }
@@ -539,26 +482,7 @@
       }, { passive: true });
     }
 
-        // Barra Flutuante de Navegação Mobile
-    const bnavTop = document.getElementById('bnav-top');
-    if (bnavTop) {
-      bnavTop.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    }
-    const bnavBtns = document.querySelectorAll('.bottom-nav-btn');
-    bnavBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        bnavBtns.forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        if (btn.id === 'bnav-stores' && elements.btnViewStores) {
-          elements.btnViewStores.click();
-        } else if (btn.id === 'bnav-deals' && elements.btnViewPromos) {
-          elements.btnViewPromos.click();
-        }
-      });
-    });
+
 
     // Delegação de Eventos nos Cartões (Partilha e Expansão de Descrição)
     if (elements.promosGrid) {
@@ -1661,6 +1585,77 @@
       if (elements.radarSection) elements.radarSection.classList.add('mobile-view-hidden');
       if (elements.storesSection) elements.storesSection.classList.remove('mobile-view-hidden');
     }
+  }
+
+  // ==========================================================================
+  // Barra Flutuante de Navegação Mobile (Bottom Navigation)
+  // ==========================================================================
+  function setupBottomNav() {
+    if (!elements.navPromos) return;
+
+    function prefersReducedMotion() {
+      return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    function scrollSectionIntoView(el) {
+      if (!el) return;
+      const header = document.querySelector('.site-header');
+      const offset = (header ? header.offsetHeight : 0) + 8;
+      const y = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({
+        top: Math.max(0, y),
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth'
+      });
+    }
+
+    function setBottomNavActive(key) {
+      const map = {
+        promos: elements.navPromos,
+        filters: elements.navFilters,
+        map: elements.navMap
+      };
+      Object.values(map).forEach((b) => b && b.classList.remove('active'));
+      if (key && map[key]) map[key].classList.add('active');
+    }
+
+    if (elements.navPromos) {
+      elements.navPromos.addEventListener('click', () => {
+        if (window.innerWidth <= 640) switchMobileView('promos');
+        scrollSectionIntoView(elements.radarSection);
+        setBottomNavActive('promos');
+      });
+    }
+    if (elements.navFilters) {
+      elements.navFilters.addEventListener('click', () => {
+        if (window.innerWidth <= 640) switchMobileView('promos');
+        scrollSectionIntoView(elements.searchInput);
+        setBottomNavActive('filters');
+        window.setTimeout(() => {
+          elements.searchInput && elements.searchInput.focus({ preventScroll: true });
+        }, 350);
+      });
+    }
+    if (elements.navMap) {
+      elements.navMap.addEventListener('click', () => {
+        if (window.innerWidth <= 640) switchMobileView('stores');
+        scrollSectionIntoView(elements.storesMapCard);
+        setBottomNavActive('map');
+      });
+    }
+    if (elements.navTop) {
+      elements.navTop.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: prefersReducedMotion() ? 'auto' : 'smooth'
+        });
+        setBottomNavActive(null);
+      });
+    }
+
+    // Leaflet resize listener para garantir tiles corretos ao redimensionar
+    window.addEventListener('resize', () => {
+      if (state.leafletMap) state.leafletMap.invalidateSize();
+    });
   }
 
   // Relógio em tempo real com atualização a cada 60 segundos
