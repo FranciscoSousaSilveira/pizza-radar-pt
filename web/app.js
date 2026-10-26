@@ -245,9 +245,7 @@
 
     if (elements.statusText) {
       if (isLive) {
-        const updated = data && data.vendors_updated_count !== undefined ? data.vendors_updated_count : 1;
-        const total = (data && data.total_vendors_configured) || 4;
-        elements.statusText.textContent = `${updated} de ${total} marcas atualizadas nesta recolha`;
+        elements.statusText.textContent = '4 marcas monitorizadas';
       } else {
         elements.statusText.textContent = '4 marcas monitorizadas • Modo de demonstração';
       }
@@ -266,7 +264,7 @@
       if (data.data_mode === 'demo') {
         elements.sourcesSummary.textContent = 'Dados de demonstração local';
       } else {
-        elements.sourcesSummary.textContent = `${updatedCount} de ${totalCount} marcas atualizadas nesta recolha`;
+        elements.sourcesSummary.textContent = 'Fontes oficiais em direto';
       }
     }
 
