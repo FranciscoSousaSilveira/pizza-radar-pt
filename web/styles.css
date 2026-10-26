@@ -1,11 +1,7 @@
 /* ==========================================================================
    Pizza Radar Lisboa — Design System & Folha de Estilos
-   Direção: Food App de Descoberta Gastronómica.
+   Direção: Food App de Descoberta Gastronómica com estilo Uber Eats / Skyscanner.
    Polimento: Baseado nas regras rigorosas de better-typography e better-ui.
-   - better-typography: text-wrap balance/pretty, tabular-nums, line-height por função,
-     inputs a 16px em mobile, medida máxima de 65ch, suavização de tipos na raiz.
-   - better-ui: escala tátil de 0.96 no clique, sombras em camadas translúcidas,
-     raios concêntricos, contorno de 1px em imagens, transições estritas por propriedade.
    ========================================================================== */
 
 :root {
@@ -32,7 +28,7 @@
   --color-accent-green-bg: #F0FDF4;
   --color-accent-green-text: #166534;
 
-  /* Marcas Oficiais */
+  /* Marcas Oficiais - Cores Oficiais e Vivas */
   --brand-dominos: #006491;
   --brand-dominos-hover: #004d70;
   --brand-papajohns: #007A3D;
@@ -48,10 +44,9 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  --radius-xl: 24px;
   --radius-pill: 9999px;
 
-  /* Sombras e Transições */
+  /* Sombras e Transições - mais profundidade e suaves */
   --shadow-soft: 0 4px 12px rgba(28, 25, 23, 0.05);
   --shadow-hover: 0 6px 16px rgba(28, 25, 23, 0.08);
   --transition-fast: 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -61,10 +56,12 @@
   --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.06), 0 8px 24px -4px rgba(28, 25, 23, 0.06);
   --shadow-hover: 0 6px 14px -2px rgba(28, 25, 23, 0.09), 0 20px 32px -6px rgba(28, 25, 23, 0.12);
   --shadow-badge: 0 1px 4px rgba(0, 0, 0, 0.18);
+  --shadow-card-prominent: 0 4px 20px -4px rgba(28, 25, 23, 0.08), 0 2px 8px -2px rgba(28, 25, 23, 0.05);
 
   /* better-ui: Curva tátil exata e duração estrita */
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --ease-tactile: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --transition-fast: 0.15s cubic-bezier(0.2, 0, 0, 1);
 }
 
@@ -79,7 +76,7 @@
 body {
   font-family: var(--font-family);
   background-color: var(--color-canvas);
-  background-image:
+  background-image: 
     /* 1. Halo luminoso de forno a lenha no topo (Warm Lisbon oven ambient glow) */
     radial-gradient(ellipse 90% 560px at 50% -40px, rgba(194, 65, 12, 0.12) 0%, rgba(217, 119, 6, 0.05) 45%, transparent 75%),
     /* 2. Feixe focal suave de radar */
@@ -449,7 +446,6 @@ body {
 /* Scroll Shadow Utility */
 .scroll-shadow {
   position: relative;
-  overflow: hidden;
 }
 
 .scroll-shadow::before, .scroll-shadow::after {
@@ -715,14 +711,15 @@ body {
 
 @media (min-width: 860px) {
   .discovery-row-main {
-    flex-direction: row;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
 .search-input-wrap {
   position: relative;
   flex: 1;
+  min-width: 0;
   width: 100%;
   display: flex;
   align-items: center;
@@ -730,9 +727,11 @@ body {
 
 .search-icon {
   position: absolute;
+  top: 50%;
   left: 14px;
   width: 18px;
   height: 18px;
+  transform: translateY(-50%);
   color: var(--color-text-muted);
   pointer-events: none;
 }
@@ -788,6 +787,8 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -796,7 +797,34 @@ body {
   display: none;
 }
 
+@media (min-width: 860px) {
+  .product-chips-row {
+    flex: none;
+  }
+
+  .product-chips-row,
+  .vendor-chips-row,
+  .size-chips-row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .product-chips-row.scroll-shadow::before,
+  .product-chips-row.scroll-shadow::after,
+  .vendor-chips-row.scroll-shadow::before,
+  .vendor-chips-row.scroll-shadow::after,
+  .size-chips-row.scroll-shadow::before,
+  .size-chips-row.scroll-shadow::after {
+    content: none;
+  }
+}
+
+.vendor-chips-row {
+  width: 100%;
+}
+
 .chip {
+  flex-shrink: 0;
   height: 38px;
   padding: 0 14px;
   border-radius: var(--radius-pill);
@@ -858,19 +886,6 @@ body {
 .chip-vendor.active[data-vendor="TELEPIZZA"] {
   background: var(--brand-telepizza);
   border-color: var(--brand-telepizza);
-}
-
-/* Linha 2.5: Tamanho de Pizza */
-.discovery-row-size {
-  padding-top: 4px;
-  border-top: 1px solid var(--color-border-subtle);
-}
-
-.size-chips-row .chip small {
-  font-size: 0.72rem;
-  opacity: 0.8;
-  font-weight: 500;
-  pointer-events: none;
 }
 
 /* Linha 3: Canais e Controlos Secundários */
@@ -1030,20 +1045,20 @@ body {
 
 /* Cartão Individual */
 .promo-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.95);
+  background: #FDFAF6;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 2px 8px -2px rgba(28, 25, 23, 0.04), 0 10px 24px -4px rgba(28, 25, 23, 0.06);
-  transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.25s ease;
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .promo-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 28px -4px rgba(28, 25, 23, 0.12), 0 20px 36px -8px rgba(28, 25, 23, 0.08);
-  border-color: rgba(203, 213, 225, 0.95);
+  box-shadow: var(--shadow-hover);
+  border-color: #CBD5E1;
 }
 
 /* Topo do Cartão: Imagem ou Banner de Marca (16:9 Estrito) */
@@ -1365,60 +1380,6 @@ body {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  flex-wrap: wrap;
-}
-
-/* Badge de Tamanho de Pizza no Preço */
-.badge-size-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: var(--radius-pill);
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  background: #F1F5F9;
-  color: #334155;
-  border: 1px solid #CBD5E1;
-  white-space: nowrap;
-}
-
-.badge-size-pill.size-individual {
-  background: #F0FDF4;
-  color: #166534;
-  border-color: #BBF7D0;
-}
-
-.badge-size-pill.size-medium {
-  background: #EFF6FF;
-  color: #1E40AF;
-  border-color: #BFDBFE;
-}
-
-.badge-size-pill.size-large,
-.badge-size-pill.size-family,
-.badge-size-pill.size-multisize {
-  background: #FAF5FF;
-  color: #6B21A8;
-  border-color: #E9D5FF;
-}
-
-/* Detalhamento de Preço por Canal (Take Away vs Entrega) */
-.channel-price-breakdown {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-  font-size: 0.78rem;
-  color: var(--color-text-secondary);
-  margin-top: 4px;
-  line-height: 1.3;
-}
-
-.channel-price-breakdown strong {
-  color: var(--color-text-primary);
-  font-weight: 700;
 }
 
 /* better-typography: tabular-nums nos preços */
@@ -1988,6 +1949,26 @@ body {
   gap: 10px;
 }
 
+.store-brand-mark {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--color-text-primary);
+  font-weight: 800;
+}
+
+.store-brand-logo {
+  display: block;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.store-brand-logo-papa-johns,
+.store-brand-logo-pizza-hut { width: 48px; }
+.store-brand-logo-telepizza { width: 78px; }
+
 .store-brand-badge-wrap {
   display: flex;
   flex-direction: column;
@@ -2267,7 +2248,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--color-brand-primary);
+  min-height: 44px;
+  background: #ae3c24;
   color: #FFFFFF;
   font-size: 0.84rem;
   font-weight: 750;
@@ -2279,7 +2261,7 @@ body {
 }
 
 .btn-near-me:hover {
-  background: var(--color-brand-primary-hover);
+  background: #8f2f1c;
   transform: translateY(-1px);
 }
 
@@ -2355,14 +2337,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  color: #FFFFFF;
+  width: 36px;
+  height: 36px;
+  margin: 4px;
+  border-radius: 18px;
+  background: #FFFFFF;
+  color: #3B322B;
   font-size: 14px;
   font-weight: 800;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+  border: 2px solid rgba(255, 255, 255, 0.9);
   cursor: pointer;
   transition: transform 0.15s ease-out;
 }
@@ -2371,10 +2355,16 @@ body {
   transform: scale(1.15);
 }
 
-.custom-brand-marker.marker-dominos { background: #006491; }
-.custom-brand-marker.marker-papajohns { background: #007A33; }
-.custom-brand-marker.marker-pizzahut { background: #EE3124; }
-.custom-brand-marker.marker-telepizza { background: #D32F2F; }
+.custom-brand-marker img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.custom-brand-marker img + .marker-fallback { display: none; }
+
+.custom-brand-marker.marker-telepizza { width: 52px; }
+.custom-brand-marker.marker-telepizza img { width: 46px; }
 
 .custom-user-marker {
   width: 18px;
@@ -2475,6 +2465,16 @@ body {
    Aplica-se EXCLUSIVAMENTE em ecrãs móveis (≤640px)
    ========================================================================== */
 @media (max-width: 640px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .main-layout > * {
+    min-width: 0;
+  }
+
   /* Toque responsivo nativo sem flash cinzento */
   *, *::before, *::after {
     -webkit-tap-highlight-color: transparent;
@@ -2723,7 +2723,6 @@ body {
   }
 
   .discovery-row-brands,
-  .discovery-row-size,
   .stores-quick-filters-row {
     padding-top: 6px;
     border-top: 1px solid var(--color-border-subtle);
@@ -3026,114 +3025,592 @@ body {
   }
 }
 
-
 /* ==========================================================================
-   UI Overhaul: Scroll Shadow & Mobile Bottom Navigation Bar
+   Mobile Optimization v2.2 — Bottom Nav, Vista Promoções/Lojas & Scroll Polish
    ========================================================================== */
 
-.scroll-shadow-wrap {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-}
-
-.scroll-shadow-wrap::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 32px;
-  background: linear-gradient(to right, transparent, var(--color-surface, #EFEBE4));
-  pointer-events: none;
-  z-index: 5;
-}
-
-.bottom-nav-bar {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  body {
-    padding-bottom: 74px !important;
+/* Correção: alternância de vista Promoções/Lojas em telemóvel */
+@media (max-width: 640px) {
+  .mobile-view-hidden {
+    display: none !important;
   }
+
+  /* Fade suave nas bordas dos carrosséis de chips (substitui pseudos antigos) */
+  .scroll-shadow {
+    -webkit-mask-image: linear-gradient(to right, transparent 0px, #000 16px, #000 calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0px, #000 16px, #000 calc(100% - 16px), transparent 100%);
+  }
+  .scroll-shadow::before,
+  .scroll-shadow::after {
+    content: none;
+    display: none;
+  }
+
+  /* Desempenho: menos blur em superfícies grandes no telemóvel */
+  .site-header,
+  .radar-app-section,
+  .stores-app-section,
+  .discovery-card,
+  .stores-filters-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .radar-app-section {
+    background: rgba(255, 255, 255, 0.82);
+  }
+  .stores-app-section {
+    background: rgba(255, 255, 255, 0.82);
+  }
+  .discovery-card,
+  .stores-filters-card {
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Rodapé e topo do ecrã respiram acima da barra inferior */
+  .site-footer {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .btn-back-to-top {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Barra de Navegação Inferior Fixa (telemóvel) */
+@media (max-width: 768px) {
   .bottom-nav-bar {
     position: fixed;
-    bottom: 0;
     left: 0;
     right: 0;
-    height: 64px;
-    background: rgba(253, 250, 246, 0.94);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid rgba(226, 232, 240, 0.9);
+    bottom: 0;
+    z-index: 200;
     display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 1000;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.07);
-    padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 0px));
+    align-items: stretch;
+    gap: 2px;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+    background: rgba(246, 243, 238, 0.97);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -4px 16px rgba(28, 25, 23, 0.07);
   }
-  .bottom-nav-btn {
+
+  .bottom-nav-item {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 46px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: none;
+    gap: 1px;
+    padding: 4px 2px;
     border: none;
+    border-radius: var(--radius-md);
+    background: transparent;
     color: var(--color-text-muted);
-    text-decoration: none;
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 5px 8px;
-    border-radius: var(--radius-pill);
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-    min-width: 58px;
-  }
-  .bottom-nav-btn:hover, .bottom-nav-btn.active {
-    color: var(--brand-telepizza, #E31B23);
-    background: rgba(227, 27, 35, 0.08);
-  }
-  .bottom-nav-icon {
-    font-size: 1.25rem;
-    line-height: 1;
-    margin-bottom: 3px;
-  }
-  .bottom-nav-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.02em;
+    font-family: inherit;
+    font-size: 0.62rem;
     font-weight: 700;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.15s var(--ease-tactile), color 0.15s var(--ease-tactile), transform 0.1s var(--ease-tactile);
+  }
+
+  .bottom-nav-item:hover {
+    color: var(--color-text-primary);
+  }
+
+  .bottom-nav-item:active {
+    transform: scale(0.95);
+  }
+
+  .bottom-nav-item.active {
+    background: #FFEDD5;
+    color: #9A3412;
+  }
+
+  .bottom-nav-icon {
+    font-size: 1.1rem;
+    line-height: 1;
   }
 }
 
-
-/* ==========================================================================
-   Canvas de Fundo Reativo (Fatias de Pizza Flutuantes)
-   ========================================================================== */
-.ambient-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 0;
+/* Desktop: barra inferior nunca aparece */
+@media (min-width: 769px) {
+  .bottom-nav-bar {
+    display: none;
+  }
 }
 
-.site-header,
-.main-layout,
-.hero-section,
-.radar-app-section,
-.stores-section,
-.site-footer {
+/* Movimento reduzido: desliga animações e scroll suave */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===========================================================================
+   Homepage editorial refresh — a fallback stays in place until a Spline scene
+   earns its place on the page.
+   =========================================================================== */
+:root {
+  --color-canvas: #fffaf5;
+  --color-canvas-alt: #f4eadf;
+  --color-surface-subtle: #fbf5ee;
+  --color-border: #e7d8ca;
+  --color-text-primary: #2d1a16;
+  --color-text-body: #5d4640;
+  --color-text-muted: #806a62;
+  --color-accent-radar: #ae3c24;
+  --color-accent-green: #3c674e;
+}
+
+body {
+  background-image: none;
+  background-color: #fff;
+}
+
+.data-mode-banner {
+  padding: 6px 16px;
+  background: #fff0c9;
+  border-bottom-color: #efca73;
+  color: #78500b;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.site-header {
+  padding: 14px 20px;
+  background: rgba(255, 250, 245, 0.94);
+  border-bottom-color: #eee2d7;
+  backdrop-filter: blur(10px);
+}
+
+.header-container {
+  max-width: 1280px;
+}
+
+.brand-nav-logo {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.brand-title {
+  font-size: 1.18rem;
+}
+
+.header-nav {
+  gap: 24px;
+}
+
+.nav-link {
+  color: #69524b;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.nav-link-active,
+.nav-link:hover {
+  color: var(--color-accent-radar);
+}
+
+.main-layout {
+  max-width: 1280px;
+  padding: 0 24px 64px;
+  gap: 0;
+}
+
+.hero-section {
+  padding: 42px 20px 62px;
+  background: #fff;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.hero-section::before,
+.hero-section::after {
+  display: none;
+}
+
+.hero-container {
+  max-width: 740px;
+}
+
+.hero-kicker {
+  margin-bottom: 18px;
+  color: var(--color-accent-radar);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 248px;
+  height: 248px;
+  margin: 0 auto 12px;
+}
+
+.hero-logo-halo {
   position: relative;
   z-index: 1;
+  width: 248px;
+  height: 248px;
+  border: 0;
+  box-shadow: none;
 }
 
-/* ==========================================================================
-   Brand Logos & Enhanced UI Overhaul Elements
-   ========================================================================== */
+.hero-logo-halo:hover {
+  transform: translateY(-4px) rotate(-2deg);
+  box-shadow: none;
+}
+
+.hero-logo-img {
+  transform: scale(1.16);
+}
+
+@keyframes hero-arrive {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-art,
+.hero-title,
+.hero-subtitle,
+.hero-actions {
+  animation: hero-arrive 0.65s var(--ease-tactile) both;
+}
+
+.hero-title { animation-delay: 0.08s; }
+.hero-subtitle { animation-delay: 0.16s; }
+.hero-actions { animation-delay: 0.24s; }
+
+.hero-title {
+  max-width: 20ch;
+  font-family: var(--font-family);
+  font-size: clamp(2.6rem, 4.5vw, 3.9rem);
+  font-weight: 850;
+  letter-spacing: -0.055em;
+  line-height: 1.06;
+  margin-bottom: 20px;
+}
+
+.hero-subtitle {
+  max-width: 49ch;
+  font-size: 1.08rem;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.hero-actions {
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.btn-hero-primary,
+.btn-hero-secondary {
+  min-height: 46px;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  padding: 12px 18px;
+}
+
+.btn-hero-primary {
+  background: var(--color-accent-radar);
+  box-shadow: none;
+}
+
+.btn-hero-primary:hover {
+  background: #862d1c;
+}
+
+.btn-hero-secondary {
+  background: transparent;
+  border-color: #c9b3a5;
+}
+
+.header-market-strip {
+  border-radius: 0;
+  border-width: 1px 0;
+  box-shadow: none;
+  font-size: 0.8rem;
+  padding: 10px 4px;
+}
+
+.radar-app-section,
+.stores-app-section {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--color-surface-subtle);
+  padding: 52px 42px;
+}
+
+.radar-section-title,
+.stores-section-title,
+.features-heading {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+.radar-section-title,
+.stores-section-title {
+  font-size: clamp(2rem, 3vw, 2.65rem);
+  letter-spacing: -0.04em;
+}
+
+.ranking-segmented-control {
+  max-width: 590px;
+  background: #ebe0d5;
+}
+
+.discovery-card,
+.stores-filters-card {
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.features-section {
+  margin: 0;
+  padding: 76px 42px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #302019;
+}
+
+.features-heading,
+.features-intro,
+.feature-title,
+.feature-text {
+  color: #fffaf5;
+}
+
+.features-intro {
+  color: #e0cbc1;
+}
+
+.features-grid {
+  gap: 1px;
+  background: rgba(255, 250, 245, 0.18);
+}
+
+.feature-card {
+  border: 0;
+  border-radius: 0;
+  background: #302019;
+  box-shadow: none;
+  padding: 28px 24px;
+}
+
+.feature-card:hover {
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.feature-icon-box {
+  background: #f1c3ae;
+  color: #702619;
+  border-radius: 50%;
+}
+
+.mobile-nav-switcher {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .site-header {
+    padding: max(10px, env(safe-area-inset-top, 0px)) 16px 10px;
+  }
+
+  .header-nav {
+    display: none;
+  }
+
+  .main-layout {
+    padding: 0 0 calc(86px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .hero-section {
+    padding: 48px 20px 44px;
+  }
+
+  .hero-kicker {
+    margin-bottom: 14px;
+    font-size: 0.68rem;
+  }
+
+  .hero-art {
+    width: 184px;
+    height: 184px;
+    margin-bottom: 12px;
+  }
+
+  .hero-logo-halo {
+    width: 184px;
+    height: 184px;
+  }
+
+  .hero-logo-img {
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-title {
+    width: 100%;
+    max-width: 330px;
+    font-size: clamp(2.25rem, 11vw, 3rem);
+    line-height: 1.03;
+    margin-bottom: 16px;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-subtitle {
+    max-width: 33ch;
+    font-size: 0.96rem;
+    margin-bottom: 22px;
+  }
+
+  .hero-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .btn-hero-primary,
+  .btn-hero-secondary {
+    justify-content: center;
+    width: min(100%, 320px);
+  }
+
+  .header-market-strip {
+    max-width: 320px;
+    gap: 6px 8px;
+    justify-content: center;
+  }
+
+  .market-sep {
+    display: none;
+  }
+
+  .radar-app-section,
+  .stores-app-section,
+  .features-section {
+    padding: 40px 16px;
+    border-radius: 0;
+  }
+
+  .radar-app-section,
+  .stores-app-section {
+    background: var(--color-surface-subtle);
+  }
+
+  .radar-section-title,
+  .stores-section-title {
+    font-size: 2rem;
+  }
+
+  .features-section {
+    padding: 52px 16px;
+  }
+
+  .features-grid {
+    gap: 1px;
+  }
+
+  .feature-card {
+    padding: 24px 8px;
+  }
+
+  .bottom-nav-bar {
+    background: rgba(255, 250, 245, 0.98);
+    border-top-color: #e7d8ca;
+    box-shadow: 0 -6px 18px rgba(45, 26, 22, 0.08);
+  }
+
+  .bottom-nav-item.active {
+    background: #f5d2c1;
+    color: #772717;
+  }
+}
+
+/* One calm editorial system from hero through results. */
+html {
+  scroll-behavior: smooth;
+}
+
+#radar-section,
+#stores-section,
+#how-it-works {
+  scroll-margin-top: 78px;
+}
+
+.site-header {
+  background: #fff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.discovery-card,
+.stores-filters-card {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-color: #dfcfc1;
+}
+
+.radar-app-section,
+.stores-app-section {
+  background: #fbf5ee;
+}
+
+.promo-card {
+  border: 1px solid #dbc9bc;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: none;
+  transition: border-color 0.25s var(--ease-tactile), transform 0.25s var(--ease-tactile);
+}
+
+.promo-card:hover {
+  transform: translateY(-3px);
+  box-shadow: none;
+  border-color: #ae3c24;
+}
+
+.card-media {
+  display: block;
+}
+
+.card-media-overlay {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.22), transparent 34%, rgba(0, 0, 0, 0.32));
+}
+
+#card-pid_pizza_hut_15056_dine_in .card-image {
+  object-position: center bottom;
+}
+
+.card-body {
+  padding: 18px 18px 14px;
+}
+
+.card-tags-row {
+  min-height: 64px;
+  margin-bottom: 10px;
+}
+
 .promo-brand-logo {
   display: block;
   width: auto;
@@ -3148,96 +3625,209 @@ body {
   max-height: 64px;
 }
 
-.store-brand-logo {
-  display: block;
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  object-position: left center;
-}
-
-.store-brand-logo-papa-johns,
-.store-brand-logo-pizza-hut { width: 48px; }
-.store-brand-logo-telepizza { width: 78px; }
-
-.store-brand-mark {
-  display: flex;
-  align-items: center;
-  min-height: 40px;
-  color: var(--color-text-primary);
-  font-weight: 800;
-}
-
-.hero-art {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 248px;
-  height: 248px;
-  margin: 0 auto 12px;
-}
-
-.hero-kicker {
-  margin-bottom: 18px;
-  color: var(--color-accent-radar);
-  font-size: 0.76rem;
-  font-weight: 800;
+.card-fallback-banner .fallback-sub {
+  color: #fff;
+  font-size: 0.9rem;
   letter-spacing: 0.12em;
+}
+
+.vendor-inline,
+.badge-channel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: #806a62;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-@media (max-width: 640px) {
-  .hero-art {
-    width: 184px;
-    height: 184px;
-    margin-bottom: 12px;
-  }
-  .hero-kicker {
-    margin-bottom: 14px;
-    font-size: 0.68rem;
-  }
+.vendor-inline {
+  color: #ae3c24;
 }
 
-.custom-brand-marker {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  margin: 4px;
-  border-radius: 18px;
-  background: #FFFFFF;
-  color: #3B322B;
-  font-size: 14px;
-  font-weight: 800;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-  transition: transform 0.15s ease-out;
+.badge-channel::before {
+  content: '·';
+  margin: 0 7px;
+  color: #b9a59a;
 }
 
-.custom-brand-marker:hover {
-  transform: scale(1.15);
-}
-
-.custom-brand-marker img {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-}
-
-.custom-brand-marker img + .marker-fallback {
+.promo-card .badge-offer-type,
+.promo-card .badge-brand-status,
+.promo-card .badge-super-discount,
+.promo-card .badge-preserved {
   display: none;
 }
 
-.custom-brand-marker.marker-telepizza {
-  width: 52px;
+.card-title {
+  max-width: 28ch;
+  color: #34231d;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  letter-spacing: -0.025em;
 }
 
-.custom-brand-marker.marker-telepizza img {
-  width: 46px;
+.card-description,
+.card-description.is-expanded {
+  max-width: 60ch;
+  transition: none;
 }
 
-.bottom-nav-item {
-  composes: bottom-nav-btn;
+.value-index-badge-wrap,
+.card-meta .meta-item:last-child {
+  display: none;
+}
+
+.card-footer {
+  padding: 0 18px 18px;
+  border-top: 0;
+}
+
+.btn-card-cta {
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.status-indicator-pulse,
+.custom-user-marker {
+  animation: none;
+}
+
+.stores-grid {
+  gap: 1px;
+  background: #dfcfc1;
+}
+
+.store-card {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  transition: background-color 0.15s ease;
+}
+
+.store-card:hover {
+  transform: none;
+  box-shadow: none;
+  background: #fffaf5;
+}
+
+.features-section {
+  background: #f1e4d7;
+}
+
+.features-heading,
+.feature-title,
+.feature-text {
+  color: #34231d;
+}
+
+.features-intro {
+  color: #705a51;
+}
+
+.features-grid {
+  background: #d6b9a9;
+}
+
+.feature-card {
+  background: #f1e4d7;
+}
+
+.feature-card:hover {
+  transform: translateY(-3px);
+  background: #f8eee4;
+}
+
+.feature-card:hover .feature-icon-box {
+  transform: translateY(-2px);
+}
+
+.scroll-reveal {
+  transition: opacity 0.58s var(--ease-tactile), transform 0.58s var(--ease-tactile);
+}
+
+.scroll-reveal.is-pending {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.feature-card:nth-child(2).scroll-reveal {
+  transition-delay: 0.08s;
+}
+
+.feature-card:nth-child(3).scroll-reveal {
+  transition-delay: 0.16s;
+}
+
+.filter-details {
+  margin-top: 14px;
+  border-top: 1px solid #dfcfc1;
+}
+
+.filter-details summary {
+  width: max-content;
+  padding: 12px 0 4px;
+  color: #705a51;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.filter-details[open] summary {
+  color: #ae3c24;
+}
+
+.discovery-row-sizes {
+  padding: 10px 0;
+}
+
+.size-chips-row {
+  flex: 1 1 280px;
+}
+
+.filter-details .discovery-row-options {
+  padding-top: 10px;
+}
+
+.badge-size-pill {
+  align-self: flex-start;
+  color: #705a51;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.channel-price-breakdown {
+  color: #705a51;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .promo-card {
+    margin: 0;
+  }
+
+  .card-body {
+    padding: 16px 14px 12px;
+  }
+
+  .card-footer {
+    padding: 0 14px 14px;
+  }
+
+  .card-title {
+    font-size: 1.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal.is-pending {
+    opacity: 1;
+    transform: none;
+  }
 }

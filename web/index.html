@@ -19,11 +19,9 @@
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
   <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
   <script src="assets/vendor/leaflet/leaflet.js"></script>
-  <link rel="stylesheet" href="styles.css?v=3.0">
+  <link rel="stylesheet" href="styles.css?v=3.5">
 </head>
 <body>
-  <!-- Fundo Reativo de Fatias de Pizza -->
-  <canvas id="ambient-canvas" class="ambient-canvas" aria-hidden="true"></canvas>
   <a href="#main-content" class="skip-link">Saltar para o conteúdo principal</a>
 
   <!-- Banner de Modo de Dados -->
@@ -32,7 +30,7 @@
     <span id="data-mode-text">Dados de demonstração — atualização automática ainda não ativa</span>
   </div>
 
-  <!-- Barra de Navegação Superior Sticky (Estilo Preço da Jola) -->
+  <!-- Navegação principal -->
   <header class="site-header" role="banner">
     <div class="header-container">
       <div class="nav-brand-row">
@@ -48,14 +46,10 @@
           <a href="#radar-section" class="nav-link nav-link-active" id="nav-link-promos">Promoções</a>
           <a href="#stores-section" class="nav-link" id="nav-link-stores">Lojas Abertas</a>
           <a href="#how-it-works" class="nav-link">Como Funciona</a>
-          <div class="header-status-badge" aria-label="Estado da monitorização">
-            <span class="status-indicator" aria-hidden="true"></span>
-            <span class="status-text" id="status-text">4 marcas monitorizadas</span>
-          </div>
         </nav>
       </div>
 
-      <!-- Barra de Alternância Rápida para Telemóvel (Mobile Switcher) -->
+      <!-- Mantida para compatibilidade com a alternância de vistas em telemóvel. -->
       <div class="mobile-nav-switcher" role="tablist" aria-label="Mudar entre Promoções e Lojas Abertas">
         <button type="button" class="mobile-nav-tab active" id="btn-view-promos" role="tab" aria-selected="true" aria-controls="radar-section">
           <span>🍕 Promoções</span>
@@ -72,37 +66,37 @@
   <!-- Conteúdo Principal -->
   <main id="main-content" class="main-layout" role="main">
 
-    <!-- Hero Section Dinâmica com Logo Oficial e Chamada Principal -->
+    <!-- O logótipo original é a ilustração 2D principal. -->
     <section class="hero-section" aria-labelledby="hero-title">
       <div class="hero-container">
-        <p class="hero-kicker">Promoções oficiais de pizza • Lisboa</p>
+        <p class="hero-kicker">Promoções oficiais de pizza · Lisboa</p>
         <div class="hero-art" aria-hidden="true">
           <div class="hero-logo-halo">
             <picture>
               <source media="(prefers-reduced-motion: reduce)" srcset="assets/logo.jpg">
-              <img src="assets/logo-animated.svg" alt="Logótipo Pizza Radar" class="hero-logo-img" width="300" height="300">
+              <img src="assets/logo-animated.svg" alt="" class="hero-logo-img" width="300" height="300">
             </picture>
           </div>
         </div>
 
-        <h1 class="hero-title" id="hero-title">Onde pedir a melhor pizza ao melhor preço em Lisboa?</h1>
+        <h1 class="hero-title" id="hero-title">Onde pedir pizza ao melhor preço em Lisboa?</h1>
         <p class="hero-subtitle">
-          Comparamos em tempo real as promoções oficiais das maiores pizzarias de Lisboa, sem intermediários, sem comissões e com descontos reais auditados por pizza individual.
+          Compara ofertas oficiais, preço por pizza e condições de cada marca num só lugar.
         </p>
 
         <div class="hero-actions">
           <a href="#radar-section" class="btn-hero-primary">
-            <span>Explorar Promoções</span>
+            <span>Ver promoções</span>
             <svg class="hero-icon" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M10 4v12m0 0l-5-5m5 5l5-5"></path>
             </svg>
           </a>
-          <a href="#how-it-works" class="btn-hero-secondary">
-            <span>Como Funciona</span>
+          <a href="#stores-section" class="btn-hero-secondary">
+            <span>Encontrar lojas</span>
           </a>
         </div>
 
-        <!-- Resumo Rápido de Mercado -->
+        <!-- Métricas atualizadas por app.js; mantêm os IDs estáveis. -->
         <div class="header-market-strip" aria-label="Resumo do mercado de pizzas">
           <span class="market-metric"><strong id="stat-total-promos">20</strong> ofertas ativas</span>
           <span class="market-sep" aria-hidden="true">•</span>
@@ -118,8 +112,8 @@
     <!-- Secção do Radar de Ofertas (App & Filtros) -->
     <section id="radar-section" class="radar-app-section" aria-labelledby="rankings-heading">
       <div class="radar-section-header">
-        <h2 id="rankings-heading" class="radar-section-title">Radar de Promoções</h2>
-        <p class="radar-section-subtitle">Ordena por preço ou desconto e pesquisa pelos teus ingredientes favoritos.</p>
+        <h2 id="rankings-heading" class="radar-section-title">Começa pela melhor promoção</h2>
+        <p class="radar-section-subtitle">Vê primeiro as opções mais vantajosas. Usa os filtros apenas quando precisares.</p>
       </div>
 
       <!-- Segmented Control para Ordenação -->
@@ -182,36 +176,37 @@
             </div>
           </div>
 
-          <!-- Linha 2.5: Filtro de Tamanho de Pizza -->
-          <div class="discovery-row discovery-row-size">
-            <div class="chips-row size-chips-row scroll-shadow" role="group" aria-label="Filtrar por tamanho de pizza" id="size-chips">
-              <button type="button" class="chip active" data-size="ALL" aria-pressed="true">Todos os Tamanhos</button>
-              <button type="button" class="chip" data-size="INDIVIDUAL" aria-pressed="false">🧍 Individual <small>(1 pess.)</small></button>
-              <button type="button" class="chip" data-size="MEDIUM" aria-pressed="false">👫 Média <small>(1-2 pess.)</small></button>
-              <button type="button" class="chip" data-size="FAMILY" aria-pressed="false">👨‍👩‍👧‍👦 Grande / Familiar <small>(2-4 pess.)</small></button>
-            </div>
-          </div>
-
-          <!-- Linha 3: Canais, Lojas Abertas e Comparabilidade -->
-          <div class="discovery-row discovery-row-options">
-            <div class="chips-row channel-chips-row scroll-shadow" role="group" aria-label="Canal de Atendimento" id="channel-chips">
-              <button type="button" class="chip active" data-channel="ALL" aria-pressed="true">Todos os Canais</button>
-              <button type="button" class="chip" data-channel="TAKE_AWAY" aria-pressed="false">Take Away</button>
-              <button type="button" class="chip" data-channel="DELIVERY" aria-pressed="false">Entrega</button>
-              <button type="button" class="chip" data-channel="DINE_IN" aria-pressed="false">No Restaurante</button>
-
-            </div>
-
-            <div class="secondary-controls">
-              <div class="toggle-field">
-                <label class="toggle-container" for="toggle-comparable">
-                  <input type="checkbox" id="toggle-comparable">
-                  <span class="toggle-switch" aria-hidden="true"></span>
-                  <span class="toggle-label">Apenas preço unitário</span>
-                </label>
+          <!-- Filtros adicionais, fechados para dar prioridade aos resultados -->
+          <details class="filter-details">
+            <summary>Mais filtros</summary>
+            <div class="discovery-row discovery-row-sizes">
+              <span class="discovery-label">Tamanho</span>
+              <div class="chips-row size-chips-row scroll-shadow" role="group" aria-label="Tamanho da pizza" id="size-chips">
+                <button type="button" class="chip active" data-size="ALL" aria-pressed="true">Todos os tamanhos</button>
+                <button type="button" class="chip" data-size="INDIVIDUAL" aria-pressed="false">Individual</button>
+                <button type="button" class="chip" data-size="MEDIUM" aria-pressed="false">Média</button>
+                <button type="button" class="chip" data-size="FAMILY" aria-pressed="false">Grande / Familiar</button>
               </div>
             </div>
-          </div>
+            <div class="discovery-row discovery-row-options">
+              <div class="chips-row channel-chips-row scroll-shadow" role="group" aria-label="Canal de Atendimento" id="channel-chips">
+                <button type="button" class="chip active" data-channel="ALL" aria-pressed="true">Todos os Canais</button>
+                <button type="button" class="chip" data-channel="TAKE_AWAY" aria-pressed="false">Take Away</button>
+                <button type="button" class="chip" data-channel="DELIVERY" aria-pressed="false">Entrega</button>
+                <button type="button" class="chip" data-channel="DINE_IN" aria-pressed="false">No Restaurante</button>
+              </div>
+
+              <div class="secondary-controls">
+                <div class="toggle-field">
+                  <label class="toggle-container" for="toggle-comparable">
+                    <input type="checkbox" id="toggle-comparable">
+                    <span class="toggle-switch" aria-hidden="true"></span>
+                    <span class="toggle-label">Apenas preço unitário</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </details>
 
           <!-- Linha 4: Barra de Resultados & Limpeza -->
           <div class="results-statusbar" aria-live="polite">
@@ -223,7 +218,7 @@
       </div>
 
       <!-- Grelha de Cartões Promocionais -->
-      <div class="cards-section" aria-label="Lista de promoções">
+      <section class="cards-section" aria-label="Lista de promoções">
         <div class="promos-grid" id="promos-grid" role="region" aria-live="polite">
           <!-- Cartões gerados dinamicamente via app.js -->
         </div>
@@ -234,7 +229,7 @@
           <p class="empty-message">Não encontramos ofertas que correspondam aos filtros selecionados. Tenta ajustar o canal ou limpar a pesquisa.</p>
           <button type="button" class="btn-clear-empty" id="btn-clear-empty">Ver todas as promoções</button>
         </div>
-      </div>
+      </section>
     </section>
 
     <!-- Secção de Lojas Abertas Agora em Lisboa -->
@@ -336,8 +331,8 @@
     <!-- Secção de Destaques / Vantagens (Como Funciona) -->
     <section id="how-it-works" class="features-section" aria-labelledby="features-title">
       <div class="features-header">
-        <h2 id="features-title" class="features-heading">Porquê o Pizza Radar?</h2>
-        <p class="features-intro">Transparência total para aproveitares o melhor valor real em cada encomenda.</p>
+        <h2 id="features-title" class="features-heading">Escolhe com mais contexto.</h2>
+        <p class="features-intro">O Pizza Radar transforma campanhas dispersas numa comparação simples e verificável.</p>
       </div>
 
       <div class="features-grid">
@@ -348,8 +343,8 @@
               <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
             </svg>
           </div>
-          <h3 class="feature-title">Radar de Fontes Oficiais</h3>
-          <p class="feature-text">Recolhemos dados diretamente das APIs e páginas públicas de Domino's, Papa John's, Pizza Hut e Telepizza em Lisboa. Preços diretos de catálogo.</p>
+          <h3 class="feature-title">Fontes oficiais</h3>
+          <p class="feature-text">Reunimos campanhas publicadas pelas pizzarias, sem inventar descontos ou esconder condições.</p>
         </div>
 
         <div class="feature-card">
@@ -358,20 +353,20 @@
               <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
             </svg>
           </div>
-          <h3 class="feature-title">Preço Unitário por Pizza</h3>
-          <p class="feature-text">Decompomos menus 2x1, trios e packs familiares no valor real por pizza individual, para saberes exatamente quanto custa cada pizza.</p>
+          <h3 class="feature-title">Preço que faz sentido</h3>
+          <p class="feature-text">Quando há informação suficiente, calculamos o valor por pizza para comparar menus e promoções.</p>
         </div>
 
         <div class="feature-card">
           <div class="feature-icon-box">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1 2-2V8a2 2 0 0 1 2-2h6"></path>
               <polyline points="15 3 21 3 21 9"></polyline>
               <line x1="10" y1="14" x2="21" y2="3"></line>
             </svg>
           </div>
-          <h3 class="feature-title">Sem Taxas nem Intermediários</h3>
-          <p class="feature-text">Não cobramos comissões nem taxas de entrega. Encaminhamos-te diretamente para o site oficial da pizzaria para fazeres o teu pedido.</p>
+          <h3 class="feature-title">Directamente à marca</h3>
+          <p class="feature-text">Depois de decidires, segues para o site oficial da pizzaria — sem taxas nem intermediários.</p>
         </div>
       </div>
     </section>
@@ -409,27 +404,26 @@
     ↑
   </button>
 
-    <!-- Barra Flutuante de Navegação Mobile (Bottom Bar) -->
-  <nav class="bottom-nav-bar" id="mobile-bottom-nav" aria-label="Navegação móvel rápida">
-    <button type="button" class="bottom-nav-btn bottom-nav-item active" id="nav-promos">
-      <span class="bottom-nav-icon">🔥</span>
+  <!-- Bottom Navigation Bar (Mobile) -->
+  <nav class="bottom-nav-bar" aria-label="Navegação rápida no telemóvel">
+    <button type="button" class="bottom-nav-item active" id="btn-nav-promos" aria-pressed="true">
+      <span class="bottom-nav-icon" aria-hidden="true">🔥</span>
       <span class="bottom-nav-label">Preços</span>
     </button>
-    <button type="button" class="bottom-nav-btn bottom-nav-item" id="nav-filters">
-      <span class="bottom-nav-icon">🏷️</span>
+    <button type="button" class="bottom-nav-item" id="btn-nav-filters" aria-pressed="false">
+      <span class="bottom-nav-icon" aria-hidden="true">🏷️</span>
       <span class="bottom-nav-label">Filtros</span>
     </button>
-    <button type="button" class="bottom-nav-btn bottom-nav-item" id="nav-map">
-      <span class="bottom-nav-icon">🗺️</span>
+    <button type="button" class="bottom-nav-item" id="btn-nav-map" aria-pressed="false">
+      <span class="bottom-nav-icon" aria-hidden="true">🗺️</span>
       <span class="bottom-nav-label">Mapa</span>
     </button>
-    <button type="button" class="bottom-nav-btn bottom-nav-item" id="nav-top" aria-label="Voltar ao Topo">
-      <span class="bottom-nav-icon">⬆️</span>
+    <button type="button" class="bottom-nav-item" id="btn-nav-top" aria-pressed="false">
+      <span class="bottom-nav-icon" aria-hidden="true">⬆️</span>
       <span class="bottom-nav-label">Topo</span>
     </button>
   </nav>
 
-  <script src="ambient.js?v=3.0" defer></script>
-  <script src="app.js?v=3.0" defer></script>
+  <script src="app.js?v=3.5" defer></script>
 </body>
 </html>
