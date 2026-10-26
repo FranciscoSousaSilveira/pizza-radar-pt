@@ -91,7 +91,7 @@
     rankingExplanation: document.getElementById('explanation-text'),
     productChips: document.querySelectorAll('#product-chips .chip'),
     vendorChips: document.querySelectorAll('#vendor-chips .chip'),
-    channelChips: document.querySelectorAll('#channel-chips .chip'),
+    channelChips: document.querySelectorAll('#channel-chips .chip[data-channel]'),
     filterOpenNowPromos: document.getElementById('filter-open-now-promos'),
     selectDay: document.getElementById('select-day'),
     searchInput: document.getElementById('search-input'),
@@ -1006,15 +1006,8 @@
     if (!group) return '#';
     let url = group.source_url || '#';
 
-    // Telepizza: encaminhar com precisao para a seccao oficial da oferta sem hashes quebrados
+    // Telepizza: encaminhar com precisao para a pagina oficial de promocoes
     if (group.vendor === 'TELEPIZZA') {
-      const lower = (group.title || '').toLowerCase();
-      if (lower.includes('menu') || lower.includes('almoço') || lower.includes('almoco')) {
-        return 'https://www.telepizza.pt/menus';
-      }
-      if (lower.includes('pizzolino') || lower.includes('entrada') || lower.includes('bucket') || lower.includes('bebida')) {
-        return 'https://www.telepizza.pt/comida-ao-domicilio/entrada';
-      }
       return 'https://www.telepizza.pt/promocoes';
     }
 
