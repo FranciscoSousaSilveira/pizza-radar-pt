@@ -444,6 +444,28 @@ class TestPizzaSizeClassifier(unittest.TestCase):
             with self.subTest(title=title):
                 self.assertEqual(classify_pizza_size(title), PizzaSize.UNKNOWN)
 
+    def test_double_stuffed_crust_and_cheesy_bites_classified_as_pizza_bundles(self) -> None:
+        """Confirma que ofertas de Stuffed Crust e Cheesy Bites são reconhecidas como pizza/bundle."""
+        ot = classify_offer_type(
+            title="MENU DOUBLE STUFFED CRUST 24,25€",
+            description="Pede já o Menu Double Stuffed Crust, com duplo rebordo recheado de queijo. Inclui 3 Fatias de Pão de Alho Supremo e 1 Bebida 1,5 L.",
+        )
+        self.assertEqual(ot, OfferType.BUNDLE_WITH_PIZZA)
+
+    def test_pizza_size_with_drink_size_sanitization(self) -> None:
+        """Garante que 'bebida grande' não contamina ofertas A MAIOR ou Familiar."""
+        size_family = classify_pizza_size(
+            title="A MAIOR desde 17,95€",
+            description="Pizza A MAIOR mais oferta bebida grande",
+        )
+        self.assertEqual(size_family, PizzaSize.FAMILY)
+
+        size_large = classify_pizza_size(
+            title="MENU FAMÍLIA GRANDES | Desde 28,00€",
+            description="2 Pizzas grandes + 2 complementos + bebida familiar",
+        )
+        self.assertEqual(size_large, PizzaSize.LARGE)
+
 
 if __name__ == "__main__":
     unittest.main()

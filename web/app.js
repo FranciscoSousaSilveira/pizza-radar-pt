@@ -170,11 +170,25 @@
       }
     }
 
-    // 3. Classificação determinística por regex no título e descrição
-    const text = `${group.title || ''} ${group.description || ''}`.toLowerCase();
+    // 3. Precedência para título explícito com tamanho único
+    const titleText = (group.title || '').toLowerCase();
+    const tInd = /\b(individual|pequena|júnior|junior|menu uno|papito)\b/.test(titleText);
+    const tFam = /\b(familiar|familiares|a maior|gigante)\b/.test(titleText);
+    const tLrg = /\b(grande|grandes)\b/.test(titleText);
+    const tMed = /\b(m[eé]dia|m[eé]dias)\b/.test(titleText);
+    const tCount = (tInd ? 1 : 0) + (tFam ? 1 : 0) + (tLrg ? 1 : 0) + (tMed ? 1 : 0);
+    if (tCount === 1) {
+      if (tInd) return 'INDIVIDUAL';
+      if (tFam) return 'FAMILY';
+      if (tLrg) return 'LARGE';
+      if (tMed) return 'MEDIUM';
+    }
 
-    // Se mencionar múltiplos tamanhos concorrentes (ex.: "média ou familiar", "pão de alho por 5€, ou pizza média por 10€, ou pizza familiar por 15€"),
-    // não tem tamanho único padronizado.
+    // 4. Classificação por regex no título e descrição com sanitização de bebidas
+    let text = `${group.title || ''} ${group.description || ''}`.toLowerCase();
+    text = text.replace(/\b(?:bebidas?|refrigerantes?|garrafas?|latas?|copos?)\s+(?:grandes?|familiares?|m[eé]dias?|individua?is?)\b/g, '');
+    text = text.replace(/\b(?:grandes?|familiares?|m[eé]dias?|individua?is?)\s+(?:bebidas?|refrigerantes?|garrafas?|latas?|copos?)\b/g, '');
+
     const hasInd = /\b(individual|pequena|júnior|junior|menu uno|papito)\b/.test(text);
     const hasFam = /\b(familiar|familiares|a maior|gigante)\b/.test(text);
     const hasLrg = /\b(grande|grandes)\b/.test(text);
@@ -217,8 +231,17 @@
       );
       if (validChannels.length === 0) continue;
 
-      // 2. Normalizar título limpando pontuação final (ex.: 'JÚNIOR JOHNS.' -> 'JÚNIOR JOHNS')
-      const cleanTitle = (group.title || '').trim().replace(/[.\s]+$/, '');
+      // 2. Normalizar título limpando sufixos de canal e pontuação final
+      let cleanTitle = (group.title || '').trim().replace(/[.\s]+$/, '');
+      if (group.vendor === 'PIZZA_HUT') {
+        // Remover sufixos de canal da Pizza Hut: '3+1 TW' -> '3+1', 'Cheesy Bites DLV' -> 'Cheesy Bites'
+        cleanTitle = cleanTitle.replace(/\s+(?:tw|dlv|ei)$/i, '').trim();
+      } else if (group.vendor === 'DOMINOS') {
+        // Normalizar sufixos de preço e tags de canal da Domino's
+        cleanTitle = cleanTitle.replace(/\s*\|\s*(?:desde\s+)?\d+(?:[.,]\d{1,2})?\s*€.*$/i, '').trim();
+        cleanTitle = cleanTitle.replace(/\s+desde\s+\d+(?:[.,]\d{1,2})?\s*€\s+cada$/i, ' (2 Pizzas)').trim();
+        cleanTitle = cleanTitle.replace(/\s+desde\s+\d+(?:[.,]\d{1,2})?\s*€$/i, '').trim();
+      }
       const normTitle = cleanTitle.toLowerCase();
       const key = `${group.vendor}|${normTitle}|${group.offer_type}`;
 

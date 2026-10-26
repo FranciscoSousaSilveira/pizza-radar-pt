@@ -41,6 +41,8 @@ _KNOWN_CHANNEL_SUFFIX_PATTERNS = [
     r"_pj_delivery(?:_[0-9]+)*$",
     r"_takeaway(?:_[0-9]+)*$",
     r"_delivery(?:_[0-9]+)*$",
+    r"_tw(?:_[0-9]+)*$",
+    r"_dlv(?:_[0-9]+)*$",
     r"_promo(?:_[0-9]+)*$",
 ]
 _SUFFIX_REGEX = re.compile("|".join(_KNOWN_CHANNEL_SUFFIX_PATTERNS), re.IGNORECASE)

@@ -90,6 +90,10 @@ _PIZZA_KEYWORDS: tuple[str, ...] = (
     "massa fina",
     "massa pan",
     "rolling pizza",
+    "double stuffed crust",
+    "stuffed crust",
+    "cheesy bites",
+    "rolling stuffed crust",
 )
 
 # Padrões específicos de bundles / menus combinados conhecidos
@@ -215,14 +219,44 @@ def classify_pizza_size(
             if c.category == ComponentCategory.PIZZA and c.size and c.size != PizzaSize.UNKNOWN:
                 return c.size
 
+    # 1. Se o título indica explicitamente e sem ambiguidade um tamanho único de pizza,
+    # tem precedência total sobre eventuais tamanhos de acompanhamentos/bebidas na descrição.
+    clean_title = title.lower()
+    t_individual = bool(re.search(r"\b(individual|pequena|júnior|junior|menu uno|papito)\b", clean_title))
+    t_family = bool(re.search(r"\b(familiar|familiares|a maior|gigante)\b", clean_title))
+    t_large = bool(re.search(r"\b(grande|grandes)\b", clean_title))
+    t_medium = bool(re.search(r"\b(m[eé]dia|m[eé]dias)\b", clean_title))
+    t_detected = sum([t_individual, t_family, t_large, t_medium])
+    if t_detected == 1:
+        if t_individual:
+            return PizzaSize.INDIVIDUAL
+        if t_family:
+            return PizzaSize.FAMILY
+        if t_large:
+            return PizzaSize.LARGE
+        if t_medium:
+            return PizzaSize.MEDIUM
+
     text = f"{title} {description}".lower()
+
+    # Sanitizar tamanhos de bebidas e complementos na descrição (ex: "bebida grande", "duas latas")
+    text_clean = re.sub(
+        r"\b(?:bebidas?|refrigerantes?|garrafas?|latas?|copos?)\s+(?:grandes?|familiares?|m[eé]dias?|individua?is?)\b",
+        "",
+        text,
+    )
+    text_clean = re.sub(
+        r"\b(?:grandes?|familiares?|m[eé]dias?|individua?is?)\s+(?:bebidas?|refrigerantes?|garrafas?|latas?|copos?)\b",
+        "",
+        text_clean,
+    )
 
     # Se a oferta menciona múltiplos tamanhos concorrentes (ex.: "média ou familiar", "pão de alho por 5€, ou pizza média por 10€, ou pizza familiar por 15€"),
     # não possui um tamanho único padronizado para cálculo de métricas de área ou preço unitário.
-    has_individual = bool(re.search(r"\b(individual|pequena|júnior|junior|menu uno|papito)\b", text))
-    has_family = bool(re.search(r"\b(familiar|familiares|a maior|gigante)\b", text))
-    has_large = bool(re.search(r"\b(grande|grandes)\b", text))
-    has_medium = bool(re.search(r"\b(m[eé]dia|m[eé]dias)\b", text))
+    has_individual = bool(re.search(r"\b(individual|pequena|júnior|junior|menu uno|papito)\b", text_clean))
+    has_family = bool(re.search(r"\b(familiar|familiares|a maior|gigante)\b", text_clean))
+    has_large = bool(re.search(r"\b(grande|grandes)\b", text_clean))
+    has_medium = bool(re.search(r"\b(m[eé]dia|m[eé]dias)\b", text_clean))
 
     detected_sizes = sum([has_individual, has_family, has_large, has_medium])
     if detected_sizes > 1:
@@ -237,7 +271,7 @@ def classify_pizza_size(
     if has_large:
         return PizzaSize.LARGE
 
-    if has_medium or re.search(r"\b(pan|roller)\b", text):
+    if has_medium or re.search(r"\b(pan|roller)\b", text_clean):
         return PizzaSize.MEDIUM
 
     return PizzaSize.UNKNOWN
