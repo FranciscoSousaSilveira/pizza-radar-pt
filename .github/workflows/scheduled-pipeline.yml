@@ -2,8 +2,8 @@ name: Scheduled Pipeline & Deployment
 
 on:
   schedule:
-    # Executa duas vezes ao dia: 10:30 UTC e 17:30 UTC (antes do almoço e jantar)
-    - cron: '30 10,17 * * *'
+    # Executa três vezes ao dia: 10:30 UTC, 16:30 UTC e 19:30 UTC (almoço, pré-jantar e pico de jantar em Lisboa)
+    - cron: '30 10,16,19 * * *'
   workflow_dispatch:
     inputs:
       dry_run:

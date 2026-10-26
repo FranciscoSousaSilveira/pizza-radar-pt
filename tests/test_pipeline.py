@@ -147,6 +147,34 @@ class TestPipelineRunner(unittest.TestCase):
         # Total de ofertas ativas mantido
         self.assertEqual(res2.total_active_promotions, 2)
 
+    def test_second_round_retry_recovers_failed_vendor(self) -> None:
+        """Se um operador falhar na 1ª tentativa mas tiver sucesso na 2ª ronda, a pipeline recupera-o para SUCCESS."""
+        p_pj = self._make_promo("pj_1", Brand.PAPA_JOHNS, 1200)
+        p_ph = self._make_promo("ph_1", Brand.PIZZA_HUT, 1400)
+
+        mock_ph = MagicMock(spec=PromoAdapterInterface)
+        mock_ph.vendor = Brand.PIZZA_HUT
+        mock_ph.coverage_level = "FULL"
+        mock_ph.coverage_note = None
+        # 1ª chamada falha (Timeout transitório), 2ª chamada tem sucesso
+        mock_ph.fetch_promotions.side_effect = [
+            TimeoutError("Timeout transitório"),
+            [p_ph],
+        ]
+
+        adapters = [
+            MockAdapter(Brand.PAPA_JOHNS, [p_pj]),
+            mock_ph,
+        ]
+
+        result = run_pipeline(self.repo, adapters, retry_delay=0.0)
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.vendor_results["PAPA_JOHNS"].status, "SUCCESS")
+        self.assertEqual(result.vendor_results["PIZZA_HUT"].status, "SUCCESS")
+        self.assertEqual(mock_ph.fetch_promotions.call_count, 2)
+        self.assertEqual(result.total_active_promotions, 2)
+
     def test_database_failure_aborts_snapshot_export(self) -> None:
         """Se ocorrer uma falha crítica na base de dados, a publicação é abortada."""
         p_pj = self._make_promo("pj_1", Brand.PAPA_JOHNS, 1200)

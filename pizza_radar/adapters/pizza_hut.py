@@ -20,6 +20,7 @@ import html
 import json
 import logging
 import re
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -121,26 +122,62 @@ def _detect_channels(slug: str, title: str, description: str) -> list[DispatchMe
 class PizzaHutAdapter(PromoAdapterInterface):
     """Adaptador para a Pizza Hut Portugal."""
 
-    DEFAULT_TIMEOUT: float = 15.0
+    DEFAULT_TIMEOUT: float = 25.0
+    MAX_RETRIES: int = 3
+    RETRY_BACKOFF: float = 2.0
 
     @property
     def vendor(self) -> Brand:
         return Brand.PIZZA_HUT
 
-    def fetch_raw(self, timeout: float = DEFAULT_TIMEOUT) -> list[dict[str, Any]]:
-        """Obtém a lista de ofertas via endpoint WP REST API da Pizza Hut."""
+    def fetch_raw(
+        self,
+        timeout: float = DEFAULT_TIMEOUT,
+        max_retries: int = MAX_RETRIES,
+    ) -> list[dict[str, Any]]:
+        """Obtém a lista de ofertas via endpoint WP REST API da Pizza Hut com retries determinísticos."""
         req = urllib.request.Request(_API_URL, headers=_HEADERS, method="GET")
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                body = resp.read()
-        except urllib.error.HTTPError as exc:
-            raise NetworkError(f"HTTP {exc.code} ao aceder a {_API_URL}: {exc.reason}", vendor=self.vendor) from exc
-        except urllib.error.URLError as exc:
-            raise NetworkError(f"Erro de rede ao aceder a {_API_URL}: {exc.reason}", vendor=self.vendor) from exc
-        except TimeoutError as exc:
-            raise NetworkError(f"Timeout ({timeout}s) ao aceder a {_API_URL}", vendor=self.vendor) from exc
-        except OSError as exc:
-            raise NetworkError(f"Erro de I/O ao aceder a {_API_URL}: {exc}", vendor=self.vendor) from exc
+        last_exc: Exception | None = None
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    body = resp.read()
+                last_exc = None
+                break
+            except urllib.error.HTTPError as exc:
+                if exc.code in (500, 502, 503, 504) and attempt < max_retries:
+                    last_exc = exc
+                    delay = attempt * self.RETRY_BACKOFF
+                    logger.warning(
+                        "Tentativa %d/%d falhou com HTTP %d para Pizza Hut. A tentar novamente em %.1fs...",
+                        attempt,
+                        max_retries,
+                        exc.code,
+                        delay,
+                    )
+                    time.sleep(delay)
+                    continue
+                raise NetworkError(f"HTTP {exc.code} ao aceder a {_API_URL}: {exc.reason}", vendor=self.vendor) from exc
+            except (TimeoutError, urllib.error.URLError, OSError) as exc:
+                last_exc = exc
+                logger.warning(
+                    "Tentativa %d/%d de recolha da Pizza Hut falhou: %s",
+                    attempt,
+                    max_retries,
+                    exc,
+                )
+                if attempt < max_retries:
+                    delay = attempt * self.RETRY_BACKOFF
+                    time.sleep(delay)
+
+        if last_exc is not None:
+            if isinstance(last_exc, TimeoutError):
+                raise NetworkError(f"Timeout ({timeout}s) após {max_retries} tentativas ao aceder a {_API_URL}", vendor=self.vendor) from last_exc
+            elif isinstance(last_exc, urllib.error.URLError):
+                raise NetworkError(f"Erro de rede após {max_retries} tentativas ao aceder a {_API_URL}: {last_exc.reason}", vendor=self.vendor) from last_exc
+            else:
+                raise NetworkError(f"Erro de I/O após {max_retries} tentativas ao aceder a {_API_URL}: {last_exc}", vendor=self.vendor) from last_exc
 
         try:
             data = json.loads(body.decode("utf-8"), parse_float=Decimal)

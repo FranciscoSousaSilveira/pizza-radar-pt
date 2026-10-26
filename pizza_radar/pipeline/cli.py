@@ -142,6 +142,7 @@ def main(argv: list[str] | None = None) -> int:
         snapshot_output_path=args.snapshot_output,
         location_scope=args.location_scope,
         data_mode=data_mode,
+        retry_delay=5.0,
     )
 
     logger.info("Resultado da pipeline: success=%s", result.success)
