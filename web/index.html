@@ -19,7 +19,7 @@
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
   <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
   <script src="assets/vendor/leaflet/leaflet.js"></script>
-  <link rel="stylesheet" href="styles.css?v=2.8">
+  <link rel="stylesheet" href="styles.css?v=3.0">
 </head>
 <body>
   <!-- Fundo Reativo de Fatias de Pizza -->
@@ -75,9 +75,13 @@
     <!-- Hero Section Dinâmica com Logo Oficial e Chamada Principal -->
     <section class="hero-section" aria-labelledby="hero-title">
       <div class="hero-container">
-        <div class="hero-badge-wrap">
+        <p class="hero-kicker">Promoções oficiais de pizza • Lisboa</p>
+        <div class="hero-art" aria-hidden="true">
           <div class="hero-logo-halo">
-            <img src="assets/logo.jpg" alt="Logótipo Oficial Pizza Radar" class="hero-logo-img" width="120" height="120">
+            <picture>
+              <source media="(prefers-reduced-motion: reduce)" srcset="assets/logo.jpg">
+              <img src="assets/logo-animated.svg" alt="Logótipo Pizza Radar" class="hero-logo-img" width="300" height="300">
+            </picture>
           </div>
         </div>
 
@@ -407,25 +411,25 @@
 
     <!-- Barra Flutuante de Navegação Mobile (Bottom Bar) -->
   <nav class="bottom-nav-bar" id="mobile-bottom-nav" aria-label="Navegação móvel rápida">
-    <button type="button" class="bottom-nav-btn active" id="nav-promos">
+    <button type="button" class="bottom-nav-btn bottom-nav-item active" id="nav-promos">
       <span class="bottom-nav-icon">🔥</span>
       <span class="bottom-nav-label">Preços</span>
     </button>
-    <button type="button" class="bottom-nav-btn" id="nav-filters">
+    <button type="button" class="bottom-nav-btn bottom-nav-item" id="nav-filters">
       <span class="bottom-nav-icon">🏷️</span>
       <span class="bottom-nav-label">Filtros</span>
     </button>
-    <button type="button" class="bottom-nav-btn" id="nav-map">
+    <button type="button" class="bottom-nav-btn bottom-nav-item" id="nav-map">
       <span class="bottom-nav-icon">🗺️</span>
       <span class="bottom-nav-label">Mapa</span>
     </button>
-    <button type="button" class="bottom-nav-btn" id="nav-top" aria-label="Voltar ao Topo">
+    <button type="button" class="bottom-nav-btn bottom-nav-item" id="nav-top" aria-label="Voltar ao Topo">
       <span class="bottom-nav-icon">⬆️</span>
       <span class="bottom-nav-label">Topo</span>
     </button>
   </nav>
 
-  <script src="ambient.js?v=2.8" defer></script>
-  <script src="app.js?v=2.8" defer></script>
+  <script src="ambient.js?v=3.0" defer></script>
+  <script src="app.js?v=3.0" defer></script>
 </body>
 </html>

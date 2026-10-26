@@ -81,6 +81,13 @@
     TELEPIZZA: 'Telepizza',
   };
 
+  const BRAND_LOGOS = {
+    DOMINOS: 'assets/brands/dominos.png',
+    PAPA_JOHNS: 'assets/brands/papa-johns.png',
+    PIZZA_HUT: 'assets/brands/pizza-hut.png',
+    TELEPIZZA: 'assets/brands/telepizza.svg',
+  };
+
   // Elementos DOM
   const elements = {
     promosGrid: document.getElementById('promos-grid'),
@@ -281,6 +288,15 @@
             group.min_price_cents < existing.min_price_cents
           ) {
             existing.min_price_cents = group.min_price_cents;
+          }
+        }
+        if (group.min_price_per_pizza_euros !== null && group.min_price_per_pizza_euros !== undefined) {
+          if (
+            existing.min_price_per_pizza_euros === null ||
+            existing.min_price_per_pizza_euros === undefined ||
+            group.min_price_per_pizza_euros < existing.min_price_per_pizza_euros
+          ) {
+            existing.min_price_per_pizza_euros = group.min_price_per_pizza_euros;
           }
         }
 
@@ -1103,19 +1119,16 @@
     }
 
     // Imagem Oficial ou Fallback com Identidade da Marca
+    const brandLogo = BRAND_LOGOS[group.vendor];
     let mediaHTML = '';
     if (group.image_url) {
       mediaHTML = `
         <div class="card-media card-image-wrap">
           <img src="${escapeHTML(group.image_url)}" alt="${escapeHTML(group.title)}" class="card-image" loading="lazy" decoding="async" onerror="this.onerror=null; this.parentElement.classList.add('has-fallback-active');">
           <div class="card-fallback-banner vendor-bg-${escapeHTML(group.vendor)}">
-            <span class="fallback-brand">${escapeHTML(vendorLabel)}</span>
             <span class="fallback-sub">Oferta Oficial</span>
           </div>
           <div class="card-media-overlay"></div>
-          <div class="floating-badge-top-left">
-            <span class="vendor-badge vendor-${escapeHTML(group.vendor)}">${escapeHTML(vendorLabel)}</span>
-          </div>
           ${discountTagHTML ? `<div class="floating-badge-top-right">${discountTagHTML}</div>` : ''}
           <div class="floating-badge-bottom-right">
             <span class="dispatch-badge">${escapeHTML(channels)}</span>
@@ -1126,13 +1139,9 @@
       mediaHTML = `
         <div class="card-media card-image-wrap has-fallback-active">
           <div class="card-fallback-banner vendor-bg-${escapeHTML(group.vendor)}">
-            <span class="fallback-brand">${escapeHTML(vendorLabel)}</span>
             <span class="fallback-sub">Oferta Oficial</span>
           </div>
           <div class="card-media-overlay"></div>
-          <div class="floating-badge-top-left">
-            <span class="vendor-badge vendor-${escapeHTML(group.vendor)}">${escapeHTML(vendorLabel)}</span>
-          </div>
           ${discountTagHTML ? `<div class="floating-badge-top-right">${discountTagHTML}</div>` : ''}
           <div class="floating-badge-bottom-right">
             <span class="dispatch-badge">${escapeHTML(channels)}</span>
@@ -1152,6 +1161,7 @@
 
         <div class="card-body">
           <div class="card-tags-row">
+            ${brandLogo ? `<img class="promo-brand-logo" src="${brandLogo}" alt="${escapeHTML(vendorLabel)}" loading="lazy" onerror="this.remove()">` : escapeHTML(vendorLabel)}
             ${offerTypeBadgeHTML}
             ${storeStatusBadgeHTML}
             ${channelBadgeHTML}
@@ -1602,6 +1612,7 @@
   function buildStoreCardHTML(store, lisbonTime) {
     const status = getStoreStatus(store, lisbonTime);
     const vendorLabel = VENDOR_LABELS[store.brand] || store.brand;
+    const logo = BRAND_LOGOS[store.brand];
 
     let badgeClass = 'status-badge-closed';
     let dotClass = 'dot-closed';
@@ -1634,8 +1645,8 @@
     return `
       <article class="store-card store-card-${escapeHTML(store.brand.toLowerCase())}" id="store-${escapeHTML(store.id)}">
         <header class="store-card-header">
-          <div class="store-brand-badge store-brand-${escapeHTML(store.brand)}">
-            ${escapeHTML(vendorLabel)}
+          <div class="store-brand-mark">
+            ${logo ? `<img class="store-brand-logo store-brand-logo-${escapeHTML(store.brand.toLowerCase().replace('_', '-'))}" src="${logo}" alt="${escapeHTML(vendorLabel)}" onerror="this.remove()">` : escapeHTML(vendorLabel)}
           </div>
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             ${distanceBadgeHTML}
@@ -1813,6 +1824,7 @@
       }
       if (elements.radarSection) elements.radarSection.classList.add('mobile-view-hidden');
       if (elements.storesSection) elements.storesSection.classList.remove('mobile-view-hidden');
+      state.leafletMap?.invalidateSize();
     }
   }
 
@@ -1965,17 +1977,19 @@
       const lat = store.latitude;
       const lng = store.longitude;
 
-      const brandClass = `marker-${store.brand.toLowerCase()}`;
+      const logo = BRAND_LOGOS[store.brand];
+      const brandClass = logo ? `marker-${store.brand.toLowerCase().replace('_', '-')}` : '';
       const letter = brandLetters[store.brand] || '🍕';
+      const markerWidth = store.brand === 'TELEPIZZA' ? 60 : 44;
       const status = getStoreStatus(store, lisbonTime);
       const vendorLabel = VENDOR_LABELS[store.brand] || store.brand;
 
       const markerIcon = L.divIcon({
         className: 'custom-leaflet-marker-wrap',
-        html: `<div class="custom-brand-marker ${brandClass}" title="${escapeHTML(store.name)}">${letter}</div>`,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
-        popupAnchor: [0, -18],
+        html: `<div class="custom-brand-marker ${brandClass}" role="img" aria-label="${escapeHTML(vendorLabel)} • ${escapeHTML(store.name)}" title="${escapeHTML(store.name)}">${logo ? `<img src="${logo}" alt="" onerror="this.remove()">` : ''}<span class="marker-fallback">${letter}</span></div>`,
+        iconSize: [markerWidth, 44],
+        iconAnchor: [markerWidth / 2, 22],
+        popupAnchor: [0, -24],
       });
 
       const distInfo = store.distanceKm !== undefined ? ` • <strong>${store.distanceKm.toFixed(1)} km</strong>` : '';

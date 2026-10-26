@@ -3130,3 +3130,114 @@ body {
   position: relative;
   z-index: 1;
 }
+
+/* ==========================================================================
+   Brand Logos & Enhanced UI Overhaul Elements
+   ========================================================================== */
+.promo-brand-logo {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 130px;
+  max-height: 48px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.promo-brand-logo[src*="papa-johns"] {
+  max-height: 64px;
+}
+
+.store-brand-logo {
+  display: block;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.store-brand-logo-papa-johns,
+.store-brand-logo-pizza-hut { width: 48px; }
+.store-brand-logo-telepizza { width: 78px; }
+
+.store-brand-mark {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--color-text-primary);
+  font-weight: 800;
+}
+
+.hero-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 248px;
+  height: 248px;
+  margin: 0 auto 12px;
+}
+
+.hero-kicker {
+  margin-bottom: 18px;
+  color: var(--color-accent-radar);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+  .hero-art {
+    width: 184px;
+    height: 184px;
+    margin-bottom: 12px;
+  }
+  .hero-kicker {
+    margin-bottom: 14px;
+    font-size: 0.68rem;
+  }
+}
+
+.custom-brand-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: 4px;
+  border-radius: 18px;
+  background: #FFFFFF;
+  color: #3B322B;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: transform 0.15s ease-out;
+}
+
+.custom-brand-marker:hover {
+  transform: scale(1.15);
+}
+
+.custom-brand-marker img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.custom-brand-marker img + .marker-fallback {
+  display: none;
+}
+
+.custom-brand-marker.marker-telepizza {
+  width: 52px;
+}
+
+.custom-brand-marker.marker-telepizza img {
+  width: 46px;
+}
+
+.bottom-nav-item {
+  composes: bottom-nav-btn;
+}

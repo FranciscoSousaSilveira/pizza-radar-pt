@@ -107,6 +107,52 @@ class TestWebInterfaceIntegrity(unittest.TestCase):
         # Confirma que só em modo 'live' é exibido 'Atualizado 2x ao dia'
         self.assertIn("if (isLive)", js)
 
+    def test_mobile_bottom_navigation_is_wired(self) -> None:
+        """A barra inferior móvel não pode chamar uma função inexistente."""
+        html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+        js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn('class="bottom-nav-bar"', html)
+        self.assertIn("setupBottomNav();", js)
+        self.assertIn("function setupBottomNav()", js)
+        self.assertIn("state.leafletMap?.invalidateSize()", js)
+
+    def test_map_and_store_card_brand_logos_are_available(self) -> None:
+        js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+        for brand, logo in {
+            "DOMINOS": "dominos.png",
+            "PAPA_JOHNS": "papa-johns.png",
+            "PIZZA_HUT": "pizza-hut.png",
+            "TELEPIZZA": "telepizza.svg",
+        }.items():
+            self.assertIn(f"{brand}: 'assets/brands/{logo}'", js)
+            self.assertGreater((WEB_DIR / "assets" / "brands" / logo).stat().st_size, 100)
+        self.assertIn('onerror="this.remove()"', js)
+        self.assertEqual(js.count('const logo = BRAND_LOGOS[store.brand];'), 2)
+        self.assertIn('class="store-brand-logo', js)
+
+    def test_promotion_cards_show_one_brand_logo_instead_of_duplicate_names(self) -> None:
+        js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+        self.assertIn('class="promo-brand-logo"', js)
+        self.assertNotIn('class="vendor-badge', js)
+        self.assertNotIn('class="vendor-inline', js)
+        self.assertNotIn('class="fallback-brand', js)
+
+    def test_size_filter_and_channel_prices_keep_the_clean_filter_layout(self) -> None:
+        html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+        css = (WEB_DIR / "styles.css").read_text(encoding="utf-8")
+        js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn('id="size-chips"', html)
+        self.assertIn('data-size="FAMILY"', html)
+        self.assertIn('scrollbar-width: none;', css)
+        self.assertIn('.chips-row::-webkit-scrollbar', css)
+        self.assertIn("state.filterSize = 'ALL'", js)
+        self.assertIn("resolveGroupPizzaSize(group)", js)
+        self.assertIn('channel-price-breakdown', js)
+        self.assertIn('existing.min_price_per_pizza_euros = group.min_price_per_pizza_euros', js)
+
+
     def test_segundas_a_dobrar_not_interpreted_as_two_pizzas(self) -> None:
         """A promoção 'Segundas a Dobrar' é um desconto percentual e não pode ser tratada como 2 pizzas."""
         json_path = WEB_DIR / "data" / "promotions.json"
