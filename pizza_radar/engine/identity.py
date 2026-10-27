@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any
 
+from pizza_radar.core.classifier import classify_pizza_size
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
@@ -40,6 +41,8 @@ _KNOWN_CHANNEL_SUFFIX_PATTERNS = [
     r"_pj_delivery(?:_[0-9]+)*$",
     r"_takeaway(?:_[0-9]+)*$",
     r"_delivery(?:_[0-9]+)*$",
+    r"_tw(?:_[0-9]+)*$",
+    r"_dlv(?:_[0-9]+)*$",
     r"_promo(?:_[0-9]+)*$",
 ]
 _SUFFIX_REGEX = re.compile("|".join(_KNOWN_CHANNEL_SUFFIX_PATTERNS), re.IGNORECASE)
@@ -246,8 +249,13 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
     grouped: dict[str, list[UnifiedPromo]] = {}
 
     for promo in promos:
+        # Pizza Radar PT é exclusivo para canais de encomenda (Delivery e Take Away).
+        # Ofertas exclusivas de sala (como Buffets ou Rodízios presenciais) não contam para o radar.
+        valid_methods = [m for m in promo.dispatch_methods if m in (DispatchMethod.DELIVERY, DispatchMethod.TAKE_AWAY)]
+        if not valid_methods:
+            continue
         campaign_id = extract_canonical_campaign_id(promo.id)
-        method = promo.dispatch_methods[0] if promo.dispatch_methods else DispatchMethod.DELIVERY
+        method = valid_methods[0]
         pid = build_persistent_promo_id(promo.vendor, campaign_id, method)
         grouped.setdefault(pid, []).append(promo)
 
@@ -287,7 +295,7 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
                     price_cents=promo.price_cents,
                     original_price_cents=promo.original_price_cents,
                     pizza_count=promo.pizza_count,
-                    pizza_size=promo.pizza_size,
+                    pizza_size=promo.pizza_size if promo.pizza_size != PizzaSize.UNKNOWN else classify_pizza_size(promo.title, promo.description),
                     offer_type=promo.offer_type,
                     is_comparable_for_unit_price=promo.is_comparable_for_unit_price,
                     observed_at=promo.last_seen_at or promo.observed_at,
@@ -317,6 +325,8 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
         comp_variant = next((v for v in variants if v.is_comparable_for_unit_price), None)
         pizza_count = comp_variant.pizza_count if comp_variant else best_item.pizza_count
         pizza_size = comp_variant.pizza_size if comp_variant else best_item.pizza_size
+        if pizza_size == PizzaSize.UNKNOWN:
+            pizza_size = classify_pizza_size(best_item.title, best_item.description)
 
         variant_offer_types = {v.offer_type for v in variants}
         if OfferType.PIZZA in variant_offer_types:
@@ -328,10 +338,11 @@ def group_promos_for_visual_presentation(promos: list[UnifiedPromo]) -> list[Vis
         else:
             group_offer_type = best_item.offer_type
 
+        clean_title = re.sub(r"[.\s]+$", "", best_item.title).strip()
         vg = VisualPromoGroup(
             persistent_id=pid,
             vendor=best_item.vendor,
-            title=best_item.title,
+            title=clean_title,
             description=best_item.description,
             dispatch_methods=best_item.dispatch_methods,
             store_scope=best_item.store_scope,

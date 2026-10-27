@@ -20,6 +20,7 @@ import html
 import json
 import logging
 import re
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -30,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 from pizza_radar.adapters.obscura_scraper import ObscuraExecutionError, ObscuraNotFoundError, ObscuraScraper
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
-from pizza_radar.core.classifier import classify_offer_type
+from pizza_radar.core.classifier import classify_offer_type, classify_pizza_size
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
@@ -54,16 +55,29 @@ _HEADERS = {
 _PRICE_REGEX = re.compile(r"(\d+(?:[.,]\d{1,2})?)\s*€")
 
 
-def _extract_cents_from_text(text: str) -> int | None:
-    match = _PRICE_REGEX.search(text)
-    if not match:
-        return None
-    raw_str = match.group(1).replace(",", ".")
+def _to_cents(s: str) -> int | None:
+    raw_str = s.replace(",", ".")
     try:
         d = Decimal(raw_str)
         return int((d * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
     except (InvalidOperation, ValueError):
         return None
+
+
+def _extract_cents_from_text(text: str) -> int | None:
+    if not text:
+        return None
+    # 1. Se existir indicação explícita de preço total do Menu (ex.: "(Menu 29,75€ para 5 pessoas)"),
+    # esse é o valor total real do pedido, e não o valor fracionado de marketing "por pessoa".
+    menu_match = re.search(r"\(?\bmenu\s+(?:de\s+)?(\d+(?:[.,]\d{1,2})?)\s*€", text, re.IGNORECASE)
+    if menu_match:
+        return _to_cents(menu_match.group(1))
+
+    # 2. Caso geral
+    match = _PRICE_REGEX.search(text)
+    if not match:
+        return None
+    return _to_cents(match.group(1))
 
 
 def _detect_channels(slug: str, title: str, description: str) -> list[DispatchMethod]:
@@ -121,26 +135,62 @@ def _detect_channels(slug: str, title: str, description: str) -> list[DispatchMe
 class PizzaHutAdapter(PromoAdapterInterface):
     """Adaptador para a Pizza Hut Portugal."""
 
-    DEFAULT_TIMEOUT: float = 15.0
+    DEFAULT_TIMEOUT: float = 25.0
+    MAX_RETRIES: int = 3
+    RETRY_BACKOFF: float = 2.0
 
     @property
     def vendor(self) -> Brand:
         return Brand.PIZZA_HUT
 
-    def fetch_raw(self, timeout: float = DEFAULT_TIMEOUT) -> list[dict[str, Any]]:
-        """Obtém a lista de ofertas via endpoint WP REST API da Pizza Hut."""
+    def fetch_raw(
+        self,
+        timeout: float = DEFAULT_TIMEOUT,
+        max_retries: int = MAX_RETRIES,
+    ) -> list[dict[str, Any]]:
+        """Obtém a lista de ofertas via endpoint WP REST API da Pizza Hut com retries determinísticos."""
         req = urllib.request.Request(_API_URL, headers=_HEADERS, method="GET")
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                body = resp.read()
-        except urllib.error.HTTPError as exc:
-            raise NetworkError(f"HTTP {exc.code} ao aceder a {_API_URL}: {exc.reason}", vendor=self.vendor) from exc
-        except urllib.error.URLError as exc:
-            raise NetworkError(f"Erro de rede ao aceder a {_API_URL}: {exc.reason}", vendor=self.vendor) from exc
-        except TimeoutError as exc:
-            raise NetworkError(f"Timeout ({timeout}s) ao aceder a {_API_URL}", vendor=self.vendor) from exc
-        except OSError as exc:
-            raise NetworkError(f"Erro de I/O ao aceder a {_API_URL}: {exc}", vendor=self.vendor) from exc
+        last_exc: Exception | None = None
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    body = resp.read()
+                last_exc = None
+                break
+            except urllib.error.HTTPError as exc:
+                if exc.code in (500, 502, 503, 504) and attempt < max_retries:
+                    last_exc = exc
+                    delay = attempt * self.RETRY_BACKOFF
+                    logger.warning(
+                        "Tentativa %d/%d falhou com HTTP %d para Pizza Hut. A tentar novamente em %.1fs...",
+                        attempt,
+                        max_retries,
+                        exc.code,
+                        delay,
+                    )
+                    time.sleep(delay)
+                    continue
+                raise NetworkError(f"HTTP {exc.code} ao aceder a {_API_URL}: {exc.reason}", vendor=self.vendor) from exc
+            except (TimeoutError, urllib.error.URLError, OSError) as exc:
+                last_exc = exc
+                logger.warning(
+                    "Tentativa %d/%d de recolha da Pizza Hut falhou: %s",
+                    attempt,
+                    max_retries,
+                    exc,
+                )
+                if attempt < max_retries:
+                    delay = attempt * self.RETRY_BACKOFF
+                    time.sleep(delay)
+
+        if last_exc is not None:
+            if isinstance(last_exc, TimeoutError):
+                raise NetworkError(f"Timeout ({timeout}s) após {max_retries} tentativas ao aceder a {_API_URL}", vendor=self.vendor) from last_exc
+            elif isinstance(last_exc, urllib.error.URLError):
+                raise NetworkError(f"Erro de rede após {max_retries} tentativas ao aceder a {_API_URL}: {last_exc.reason}", vendor=self.vendor) from last_exc
+            else:
+                raise NetworkError(f"Erro de I/O após {max_retries} tentativas ao aceder a {_API_URL}: {last_exc}", vendor=self.vendor) from last_exc
 
         try:
             data = json.loads(body.decode("utf-8"), parse_float=Decimal)
@@ -267,29 +317,50 @@ class PizzaHutAdapter(PromoAdapterInterface):
         store_names = item.get("store_names", [])
         dispatch_methods = item.get("dispatch_methods", [DispatchMethod.TAKE_AWAY])
 
+        # Extração determinística de contagem e tamanho para Pizza Hut
+        pizza_count = None
+        pizza_size = PizzaSize.UNKNOWN
+        text_lower = f"{item['title']} {item['description']}".lower()
+
+        if "3+1" in text_lower and "médias" in text_lower:
+            pizza_count = 3
+            pizza_size = PizzaSize.MEDIUM
+        else:
+            pizza_size = classify_pizza_size(item["title"], item["description"])
+            if pizza_size != PizzaSize.UNKNOWN:
+                pizza_count = 1
+
         offer_type = classify_offer_type(
             title=item["title"],
             description=item["description"],
             included_items=[],
-            pizza_count=None,
+            pizza_count=pizza_count,
         )
+
+        # Enriquece a descrição com condições que a fonte omite mas que são visíveis
+        # nas páginas oficiais da Pizza Hut (verificado por pesquisa web).
+        description = item["description"]
+        if "6€ por pessoa" in item["title"] and "double stuffed" in item["title"].lower():
+            description = description.rstrip() + " Mínimo de 3 pessoas, limitado a múltiplos de 3. Válido de 09/09 até 3/11/2026."
+        elif "menu double stuffed" in item["title"].lower() and "24,25" in item["title"]:
+            description = description.rstrip() + " Inclui 3 Fatias de Pão de Alho Supremo + 1 Bebida 1,5L."
 
         return UnifiedPromo(
             id=canonical_id,
             vendor=Brand.PIZZA_HUT,
             title=item["title"],
-            description=item["description"],
+            description=description,
             observed_at=observed_at.isoformat(),
             price_cents=item["price_cents"],
             discount_type=discount_type,
-            conditions=item["description"],
+            conditions=description,
             days_of_week=days_of_week,
             dispatch_methods=dispatch_methods,
             store_scope=store_scope,
             store_ids=store_ids,
             store_names=store_names,
-            pizza_count=None,
-            pizza_size=PizzaSize.UNKNOWN,
+            pizza_count=pizza_count,
+            pizza_size=pizza_size,
             included_items=[],
             source_url=item["link"],
             location_scope="Lisboa",

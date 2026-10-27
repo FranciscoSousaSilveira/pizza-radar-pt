@@ -13,6 +13,7 @@ Garante:
 from __future__ import annotations
 
 import logging
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -53,6 +54,83 @@ class PipelineResult:
     error_message: str | None = None
 
 
+def _sync_single_adapter(
+    adapter: PromoAdapterInterface,
+    repo: PromotionRepository,
+    now: datetime,
+    max_consecutive_misses: int,
+) -> VendorSyncStatus:
+    """Executa a sincronização isolada de um único adaptador com persistência na BD."""
+    vendor_name = adapter.vendor.value
+    # 1. Recolha através do adaptador (isolamento de falhas por operador)
+    try:
+        logger.info("A iniciar recolha para o vendedor %s...", vendor_name)
+        promos = adapter.fetch_promotions()
+        offers_count = len(promos)
+    except Exception as e:
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        logger.error("Falha na sincronização do vendedor %s: %s", vendor_name, error_msg)
+
+        # Tentar registar a falha na auditoria da BD (se acessível)
+        try:
+            repo.record_vendor_sync_run(
+                vendor=adapter.vendor,
+                status="FAILED",
+                error_message=error_msg,
+                executed_at=now,
+            )
+        except Exception as db_err:
+            logger.warning("Não foi possível registar falha de sync na BD: %s", db_err)
+
+        # Importante: o estado existente deste operador NÃO é modificado
+        return VendorSyncStatus(
+            vendor=adapter.vendor,
+            status="FAILED",
+            offers_found=0,
+            error_message=error_msg,
+        )
+
+    # 2. Persistência atómica na base de dados
+    try:
+        stats = repo.upsert_promotions(
+            promos=promos,
+            vendor=adapter.vendor,
+            sync_time=now,
+            max_consecutive_misses=max_consecutive_misses,
+        )
+
+        # Registar execução com sucesso
+        repo.record_vendor_sync_run(
+            vendor=adapter.vendor,
+            status="SUCCESS",
+            offers_found=offers_count,
+            executed_at=now,
+        )
+
+        coverage_level = getattr(adapter, "coverage_level", "FULL")
+        coverage_note = getattr(adapter, "coverage_note", None)
+        logger.info(
+            "Vendedor %s concluído: %d ofertas recolhidas (%d criadas, %d atualizadas).",
+            vendor_name,
+            offers_count,
+            stats.created,
+            stats.updated,
+        )
+        return VendorSyncStatus(
+            vendor=adapter.vendor,
+            status="SUCCESS",
+            offers_found=offers_count,
+            stats=stats,
+            coverage_level=coverage_level,
+            coverage_note=coverage_note,
+        )
+
+    except Exception as e:
+        error_msg = f"Falha na base de dados durante persistência do vendedor {vendor_name}: {e}"
+        logger.critical(error_msg)
+        raise RuntimeError(error_msg) from e
+
+
 def run_pipeline(
     repo: PromotionRepository,
     adapters: Sequence[PromoAdapterInterface],
@@ -61,6 +139,7 @@ def run_pipeline(
     max_consecutive_misses: int = 2,
     location_scope: str = "Lisboa",
     data_mode: str = "live",
+    retry_delay: float = 0.0,
 ) -> PipelineResult:
     """Executa a sincronização coordenada dos adaptadores e gera o snapshot.
 
@@ -72,6 +151,7 @@ def run_pipeline(
         max_consecutive_misses: Limiar de ausências para desativação (padrão: 2).
         location_scope: Âmbito geográfico (padrão: "Lisboa").
         data_mode: Modo de dados do snapshot ("live" em produção, "demo" em local).
+        retry_delay: Intervalo em segundos antes da 2ª ronda de auto-recuperação (padrão: 5.0s).
 
     Returns:
         PipelineResult estruturado com detalhes por vendedor e estado do snapshot.
@@ -84,76 +164,16 @@ def run_pipeline(
     vendor_results: dict[str, VendorSyncStatus] = {}
     any_success = False
 
+    # 1ª Ronda de sincronização
     for adapter in adapters:
         vendor_name = adapter.vendor.value
-        # 1. Recolha através do adaptador (isolamento de falhas por operador)
         try:
-            logger.info("A iniciar recolha para o vendedor %s...", vendor_name)
-            promos = adapter.fetch_promotions()
-            offers_count = len(promos)
+            status = _sync_single_adapter(adapter, repo, now, max_consecutive_misses)
+            vendor_results[vendor_name] = status
+            if status.status == "SUCCESS":
+                any_success = True
         except Exception as e:
-            error_msg = f"{type(e).__name__}: {str(e)}"
-            logger.error("Falha na sincronização do vendedor %s: %s", vendor_name, error_msg)
-
-            # Tentar registar a falha na auditoria da BD (se acessível)
-            try:
-                repo.record_vendor_sync_run(
-                    vendor=adapter.vendor,
-                    status="FAILED",
-                    error_message=error_msg,
-                    executed_at=now,
-                )
-            except Exception as db_err:
-                logger.warning("Não foi possível registar falha de sync na BD: %s", db_err)
-
-            # Importante: o estado existente deste operador NÃO é modificado
-            vendor_results[vendor_name] = VendorSyncStatus(
-                vendor=adapter.vendor,
-                status="FAILED",
-                offers_found=0,
-                error_message=error_msg,
-            )
-            continue
-
-        # 2. Persistência atómica na base de dados
-        try:
-            stats = repo.upsert_promotions(
-                promos=promos,
-                vendor=adapter.vendor,
-                sync_time=now,
-                max_consecutive_misses=max_consecutive_misses,
-            )
-
-            # Registar execução com sucesso
-            repo.record_vendor_sync_run(
-                vendor=adapter.vendor,
-                status="SUCCESS",
-                offers_found=offers_count,
-                executed_at=now,
-            )
-
-            coverage_level = getattr(adapter, "coverage_level", "FULL")
-            coverage_note = getattr(adapter, "coverage_note", None)
-            vendor_results[vendor_name] = VendorSyncStatus(
-                vendor=adapter.vendor,
-                status="SUCCESS",
-                offers_found=offers_count,
-                stats=stats,
-                coverage_level=coverage_level,
-                coverage_note=coverage_note,
-            )
-            any_success = True
-            logger.info(
-                "Vendedor %s concluído: %d ofertas recolhidas (%d criadas, %d atualizadas).",
-                vendor_name,
-                offers_count,
-                stats.created,
-                stats.updated,
-            )
-
-        except Exception as e:
-            error_msg = f"Falha na base de dados durante persistência do vendedor {vendor_name}: {e}"
-            logger.critical(error_msg)
+            error_msg = str(e)
             vendor_results[vendor_name] = VendorSyncStatus(
                 vendor=adapter.vendor,
                 status="FAILED",
@@ -170,6 +190,49 @@ def run_pipeline(
                 snapshot_exported=False,
                 error_message=error_msg,
             )
+
+    # 2ª Ronda de auto-recuperação determinística para marcas em falha
+    failed_adapters = [
+        a for a in adapters
+        if vendor_results.get(a.vendor.value) and vendor_results[a.vendor.value].status == "FAILED"
+    ]
+    if failed_adapters:
+        logger.warning(
+            "2ª ronda de auto-recuperação: %d vendedor(es) falharam na 1ª tentativa (%s). A aguardar %.1fs...",
+            len(failed_adapters),
+            ", ".join(a.vendor.value for a in failed_adapters),
+            retry_delay,
+        )
+        if retry_delay > 0:
+            time.sleep(retry_delay)
+
+        for adapter in failed_adapters:
+            vendor_name = adapter.vendor.value
+            try:
+                status = _sync_single_adapter(adapter, repo, now, max_consecutive_misses)
+                if status.status == "SUCCESS":
+                    logger.info("Auto-recuperação bem-sucedida para %s na 2ª ronda!", vendor_name)
+                    vendor_results[vendor_name] = status
+                    any_success = True
+                else:
+                    logger.warning("Auto-recuperação para %s falhou novamente na 2ª ronda.", vendor_name)
+            except Exception as e:
+                error_msg = str(e)
+                vendor_results[vendor_name] = VendorSyncStatus(
+                    vendor=adapter.vendor,
+                    status="FAILED",
+                    offers_found=0,
+                    error_message=error_msg,
+                )
+                return PipelineResult(
+                    success=False,
+                    sync_time=now_iso,
+                    vendor_results=vendor_results,
+                    expired_by_date=0,
+                    total_active_promotions=0,
+                    snapshot_exported=False,
+                    error_message=error_msg,
+                )
 
     # Desativar ofertas com valid_until ultrapassada
     expired_by_date = 0

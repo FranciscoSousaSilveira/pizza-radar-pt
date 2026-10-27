@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 from pizza_radar.adapters.obscura_scraper import ObscuraExecutionError, ObscuraNotFoundError, ObscuraScraper
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
-from pizza_radar.core.classifier import classify_offer_type
+from pizza_radar.core.classifier import classify_offer_type, classify_pizza_size
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
@@ -318,6 +318,10 @@ class DominosAdapter(PromoAdapterInterface):
             pizza_count=None,
         )
 
+        # Detecção de tamanho de pizza para ofertas simples
+        pizza_size = classify_pizza_size(item["title"], item["description"])
+        pizza_count = 1 if pizza_size != PizzaSize.UNKNOWN else None
+
         return UnifiedPromo(
             id=canonical_id,
             vendor=Brand.DOMINOS,
@@ -333,8 +337,8 @@ class DominosAdapter(PromoAdapterInterface):
             store_scope=StoreScope.SPECIFIC_STORES,
             store_ids=[_STORE_ID_LISBOA],
             store_names=["Areeiro (Lisboa)"],
-            pizza_count=None,
-            pizza_size=PizzaSize.UNKNOWN,
+            pizza_count=pizza_count,
+            pizza_size=pizza_size,
             included_items=[],
             image_url=image_url,
             source_url=_OFFERS_URL,

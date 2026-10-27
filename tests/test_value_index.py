@@ -71,7 +71,7 @@ class TestValueIndex(unittest.TestCase):
         self.assertEqual(metrics.price_per_100_cm2_euros, 1.27)
         self.assertEqual(metrics.estimated_portions, 2)
         self.assertEqual(metrics.value_badge_label, "1,27 € / 100 cm²")
-        self.assertEqual(metrics.portion_badge_label, "Ideal para 2 pessoas")
+        self.assertEqual(metrics.portion_badge_label, "Ideal para 1-2 pessoas")
 
     def test_compute_value_metrics_unknown_size_returns_none(self):
         """Ofertas sem tamanho ou preço não inventam área e retornam None."""

@@ -239,6 +239,8 @@ _PAPA_JOHNS_KNOWN_SLUGS: dict[str, str] = {
     "papa as 3": "papa-as-3as/",
     "papa day": "papa-as-3as/",
     "super john": "super-john/",
+    "junior": "junior-johns/",
+    "júnior": "junior-johns/",
 }
 
 
@@ -276,7 +278,24 @@ def extract_composition(
     """
     full_text = f"{name} {description}".strip()
 
-    # 1. Padrões explícitos compostos com entrada e bebida
+    # 1. Padrões explícitos compostos com entrada e bebida/refrigerante
+    m_combo_generic = re.search(
+        r"(?i)\b(?:1\s+)?(?:pizza\s+)?(m[eé]dia|grande|familiar)\s*[\+\&]\s*entrada\s*[\+\&]\s*(?:\d+\s+)?(?:bebidas?|refrigerantes?)\b",
+        full_text,
+    )
+    if m_combo_generic:
+        sz_str = m_combo_generic.group(1).lower()
+        sz = PizzaSize.LARGE if "grande" in sz_str else (PizzaSize.FAMILY if "familiar" in sz_str else PizzaSize.MEDIUM)
+        return (
+            1,
+            sz,
+            [
+                OfferComponent(category=ComponentCategory.PIZZA, quantity=1, size=sz, description=f"Pizza {sz.name.capitalize()}"),
+                OfferComponent(category=ComponentCategory.SIDE, quantity=1, description="Entrada"),
+                OfferComponent(category=ComponentCategory.DRINK, quantity=1, description="Bebida"),
+            ],
+        )
+
     if re.search(r"(?i)\bm[eé]dia\s*[\+\&]\s*entrada\s*[\+\&]\s*bebidas?\b", full_text):
         return (
             1,
@@ -393,14 +412,14 @@ def extract_composition(
             [OfferComponent(category=ComponentCategory.PIZZA, description="Pizza")],
         )
 
-    if re.search(r"(?i)\b2\s+refrigerantes\b", full_text):
+    if re.search(r"(?i)\b2\s+refrigerantes\b", full_text) and not re.search(r"(?i)\bpizzas?\b", full_text):
         return (
             None,
             PizzaSize.UNKNOWN,
             [OfferComponent(category=ComponentCategory.DRINK, quantity=2, description="2 Refrigerantes")],
         )
 
-    if re.search(r"(?i)\b(copo\s+gelado|gelado)\b", full_text):
+    if re.search(r"(?i)\b(copo\s+gelado|gelado)\b", full_text) and not re.search(r"(?i)\bpizzas?\b", full_text):
         return (
             None,
             PizzaSize.UNKNOWN,

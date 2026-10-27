@@ -38,6 +38,10 @@ class TestPizzaHutAdapter(unittest.TestCase):
         """Extrai cêntimos com suporte a inteiros e decimais."""
         self.assertEqual(_extract_cents_from_text("DOUBLE STUFFED CRUST – Apenas 6€ por pessoa"), 600)
         self.assertEqual(_extract_cents_from_text("MENU DOUBLE STUFFED CRUST 24,25€"), 2425)
+        self.assertEqual(
+            _extract_cents_from_text("... por 5,95€ por pessoa (Menu 29,75€ para 5 pessoas)."),
+            2975,
+        )
         self.assertIsNone(_extract_cents_from_text("2x1 terças"))
 
     def test_parse_offers_fixture(self) -> None:

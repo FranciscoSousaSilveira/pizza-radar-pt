@@ -11,6 +11,7 @@ Invariantes de Engenharia:
 from __future__ import annotations
 
 import http.client
+import json
 import urllib.error
 from unittest.mock import MagicMock, patch
 import unittest
@@ -78,6 +79,49 @@ class TestPizzaHutItemResilience(unittest.TestCase):
         with self.assertRaises(ParseError) as ctx:
             self.adapter.parse(raw_items)
         self.assertEqual(ctx.exception.vendor, Brand.PIZZA_HUT)
+
+    @patch("urllib.request.urlopen")
+    @patch("time.sleep")
+    def test_pizza_hut_retries_transient_timeout_until_success(
+        self,
+        mock_sleep: MagicMock,
+        mock_urlopen: MagicMock,
+    ) -> None:
+        """Pizza Hut sofre retry em timeout transitório e tem sucesso na 3ª tentativa."""
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = json.dumps([{"id": 101, "slug": "menu-tw", "title": {"rendered": "Menu 10 €"}}]).encode("utf-8")
+        mock_resp.__enter__.return_value = mock_resp
+
+        mock_urlopen.side_effect = [
+            TimeoutError("Timeout transitório na WP API"),
+            urllib.error.URLError("Falha de DNS temporária"),
+            mock_resp,
+        ]
+
+        result = self.adapter.fetch_raw(max_retries=3)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["id"], 101)
+        self.assertEqual(mock_urlopen.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
+
+    @patch("urllib.request.urlopen")
+    @patch("time.sleep")
+    def test_pizza_hut_retries_exhausted_raises_network_error(
+        self,
+        mock_sleep: MagicMock,
+        mock_urlopen: MagicMock,
+    ) -> None:
+        """Se as 3 tentativas falharem com timeout, NetworkError é propagado."""
+        mock_urlopen.side_effect = TimeoutError("Timeout persistente")
+
+        with self.assertRaises(NetworkError) as ctx:
+            self.adapter.fetch_raw(max_retries=3)
+
+        self.assertEqual(ctx.exception.vendor, Brand.PIZZA_HUT)
+        self.assertIn("Timeout", str(ctx.exception))
+        self.assertIn("após 3 tentativas", str(ctx.exception))
+        self.assertEqual(mock_urlopen.call_count, 3)
+        self.assertEqual(mock_sleep.call_count, 2)
 
 
 class TestDominosResilienceAndSession(unittest.TestCase):

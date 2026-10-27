@@ -18,6 +18,7 @@
     vendorStatus: {},
     activeRanking: 'LOWEST_ABSOLUTE_PRICE',
     filterProduct: 'ALL',
+    filterSize: 'ALL',
     filterVendor: 'ALL',
     filterChannel: 'ALL',
     filterDay: 'ALL',
@@ -80,6 +81,13 @@
     TELEPIZZA: 'Telepizza',
   };
 
+  const BRAND_LOGOS = {
+    DOMINOS: 'assets/brands/dominos.png',
+    PAPA_JOHNS: 'assets/brands/papa-johns.png',
+    PIZZA_HUT: 'assets/brands/pizza-hut.png',
+    TELEPIZZA: 'assets/brands/telepizza.svg',
+  };
+
   // Elementos DOM
   const elements = {
     promosGrid: document.getElementById('promos-grid'),
@@ -90,6 +98,7 @@
     rankingTabs: document.querySelectorAll('.ranking-tab'),
     rankingExplanation: document.getElementById('explanation-text'),
     productChips: document.querySelectorAll('#product-chips .chip'),
+    sizeChips: document.querySelectorAll('#size-chips .chip'),
     vendorChips: document.querySelectorAll('#vendor-chips .chip'),
     channelChips: document.querySelectorAll('#channel-chips .chip'),
     filterOpenNowPromos: document.getElementById('filter-open-now-promos'),
@@ -107,6 +116,12 @@
     sourcesGrid: document.getElementById('sources-grid'),
     btnClearSearch: document.getElementById('btn-clear-search'),
     btnBackToTop: document.getElementById('btn-back-to-top'),
+    // Bottom Navigation Bar (Mobile)
+    bottomNavBar: document.querySelector('.bottom-nav-bar'),
+    navPromos: document.getElementById('btn-nav-promos'),
+    navFilters: document.getElementById('btn-nav-filters'),
+    navMap: document.getElementById('btn-nav-map'),
+    navTop: document.getElementById('btn-nav-top'),
     // Elementos de Lojas de Lisboa
     radarSection: document.getElementById('radar-section'),
     storesSection: document.getElementById('stores-section'),
@@ -141,6 +156,30 @@
     geoStatusText: document.getElementById('geo-status-text'),
   };
 
+  function resolveGroupPizzaSize(group) {
+    if (!group || group.offer_type === 'NON_PIZZA') return 'UNKNOWN';
+    if (group.pizza_size && group.pizza_size !== 'UNKNOWN') return group.pizza_size;
+    const sizes = [...new Set((group.variants || []).map((v) => v.pizza_size).filter((s) => s && s !== 'UNKNOWN'))];
+    if (sizes.length === 1) return sizes[0];
+    if (sizes.length > 1) return 'UNKNOWN';
+
+    const title = (group.title || '').toLowerCase();
+    const text = `${title} ${group.description || ''}`.toLowerCase()
+      .replace(/\b(?:bebidas?|refrigerantes?|garrafas?|latas?|copos?)\s+(?:grandes?|familiares?|m[eé]dias?|individua?is?)\b/g, '')
+      .replace(/\b(?:grandes?|familiares?|m[eé]dias?|individua?is?)\s+(?:bebidas?|refrigerantes?|garrafas?|latas?|copos?)\b/g, '');
+    const detect = (value) => [
+      /\b(individual|pequena|júnior|junior|menu uno|papito)\b/.test(value),
+      /\b(m[eé]dia|m[eé]dias)\b/.test(value),
+      /\b(grande|grandes)\b/.test(value),
+      /\b(familiar|familiares|a maior|gigante)\b/.test(value),
+    ];
+    const titleMatches = detect(title);
+    const matches = titleMatches.filter(Boolean).length === 1 ? titleMatches : detect(text);
+    if (matches.filter(Boolean).length > 1) return 'UNKNOWN';
+    if (!matches.some(Boolean)) return /\b(pan|roller)\b/.test(text) ? 'MEDIUM' : 'UNKNOWN';
+    return ['INDIVIDUAL', 'MEDIUM', 'LARGE', 'FAMILY'][matches.findIndex(Boolean)];
+  }
+
   // Inicialização
   async function init() {
     setupEventListeners();
@@ -149,27 +188,61 @@
     await Promise.all([loadData(), loadStoresData()]);
     startLiveClock();
     initStoresMap();
+    setupBottomNav();
+    setupScrollReveal();
   }
 
-  // Unifica grupos promocionais que partilham a mesma marca, título e preço em canais complementares
+  function setupScrollReveal() {
+    if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.remove('is-pending');
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.radar-section-header, .stores-section-header, .features-header, .feature-card').forEach((element) => {
+      if (element.getBoundingClientRect().top < window.innerHeight - 40) return;
+      element.classList.add('scroll-reveal', 'is-pending');
+      observer.observe(element);
+    });
+  }
+
+  // Unifica a mesma oferta entre canais, conservando os preços de cada canal.
   function deduplicateVisualGroups(groups) {
     const unified = [];
     const seenMap = new Map();
 
     for (const group of groups) {
-      const normTitle = (group.title || '').trim().toLowerCase();
-      const priceKey = group.min_price_cents !== null && group.min_price_cents !== undefined ? group.min_price_cents : group.display_price_label;
-      const key = `${group.vendor}|${normTitle}|${priceKey}|${group.offer_type}`;
+      const channels = (group.dispatch_methods || []).filter((method) => method === 'DELIVERY' || method === 'TAKE_AWAY');
+      if (!channels.length) continue;
+      let title = (group.title || '').trim().replace(/[.\s]+$/, '');
+      if (group.vendor === 'PIZZA_HUT') title = title.replace(/\s+(?:tw|dlv|ei)$/i, '').trim();
+      if (group.vendor === 'DOMINOS') {
+        title = title.replace(/\s*\|\s*(?:desde\s+)?\d+(?:[.,]\d{1,2})?\s*€.*$/i, '').trim();
+        title = title.replace(/\s+desde\s+\d+(?:[.,]\d{1,2})?\s*€\s+cada$/i, ' (2 Pizzas)').trim();
+        title = title.replace(/\s+desde\s+\d+(?:[.,]\d{1,2})?\s*€$/i, '').trim();
+      }
+      const key = `${group.vendor}|${title.toLowerCase()}|${group.offer_type}`;
 
       if (seenMap.has(key)) {
         const existing = seenMap.get(key);
-        // Fundir métodos de atendimento (ex.: ['DELIVERY'] + ['TAKE_AWAY'])
-        if (group.dispatch_methods) {
-          for (const dm of group.dispatch_methods) {
-            if (!existing.dispatch_methods.includes(dm)) {
-              existing.dispatch_methods.push(dm);
-            }
+        for (const channel of channels) {
+          if (!existing.dispatch_methods.includes(channel)) existing.dispatch_methods.push(channel);
+          if (group.min_price_cents != null &&
+              (existing.channelPricing[channel]?.price_cents == null || group.min_price_cents < existing.channelPricing[channel].price_cents)) {
+            existing.channelPricing[channel] = {
+              price_cents: group.min_price_cents,
+              display_label: group.display_price_label,
+            };
           }
+        }
+        if (group.min_price_cents != null && (existing.min_price_cents == null || group.min_price_cents < existing.min_price_cents)) {
+          existing.min_price_cents = group.min_price_cents;
+          existing.display_price_label = group.display_price_label;
+          existing.min_price_per_pizza_cents = group.min_price_per_pizza_cents;
+          existing.min_price_per_pizza_euros = group.min_price_per_pizza_euros;
+          existing.value_metrics = group.value_metrics;
         }
         // Fundir variantes de loja caso existam
         if (group.variants && existing.variants) {
@@ -179,10 +252,21 @@
             }
           }
         }
+        for (const storeName of group.all_store_names || []) {
+          if (!existing.all_store_names.includes(storeName)) existing.all_store_names.push(storeName);
+        }
       } else {
+        const displayTitle = title === 'MÉDIA' ? 'Pizza média' : title === 'Grande (2 Pizzas)' ? '2 pizzas grandes' : title;
         const cloned = {
           ...group,
-          dispatch_methods: [...(group.dispatch_methods || [])]
+          title: displayTitle,
+          dispatch_methods: channels,
+          variants: [...(group.variants || [])],
+          all_store_names: [...(group.all_store_names || [])],
+          channelPricing: Object.fromEntries(channels.map((channel) => [channel, {
+            price_cents: group.min_price_cents,
+            display_label: group.display_price_label,
+          }])),
         };
         seenMap.set(key, cloned);
         unified.push(cloned);
@@ -195,7 +279,7 @@
   async function loadData() {
     try {
       elements.resultsCount.textContent = 'A carregar promoções públicas...';
-      const response = await fetch('data/promotions.json');
+      const response = await fetch('data/promotions.json', { cache: 'no-store' });
       if (!response.ok) {
         throw new Error(`Falha HTTP ao carregar snapshot: ${response.status}`);
       }
@@ -292,11 +376,27 @@
     if (elements.statLocation && data.location_scope) {
       elements.statLocation.textContent = data.location_scope;
     }
-    if (elements.statMinPrice && state.stats && state.stats.min_price_cents !== null && state.stats.min_price_cents !== undefined) {
-      elements.statMinPrice.textContent = formatEuros(state.stats.min_price_cents / 100);
+    if (elements.statMinPrice) {
+      const pizzaOffers = (state.allGroups || []).filter((g) => g.offer_type === 'PIZZA' || g.offer_type === 'BUNDLE_WITH_PIZZA');
+      let minCents = null;
+      for (const g of pizzaOffers) {
+        if (g.min_price_cents != null && (minCents === null || g.min_price_cents < minCents)) minCents = g.min_price_cents;
+      }
+      if (minCents === null && state.stats && state.stats.min_price_cents != null) minCents = state.stats.min_price_cents;
+      if (minCents !== null && minCents !== undefined) {
+        elements.statMinPrice.textContent = formatEuros(minCents / 100);
+      }
     }
-    if (elements.statUnitPrice && state.stats && state.stats.cheapest_pizza_cents !== null && state.stats.cheapest_pizza_cents !== undefined) {
-      elements.statUnitPrice.textContent = formatEuros(state.stats.cheapest_pizza_cents / 100) + ' / pizza';
+    if (elements.statUnitPrice) {
+      const comparable = (state.allGroups || []).filter((g) => g.is_comparable_for_unit_price === true);
+      let minUnit = null;
+      for (const g of comparable) {
+        if (g.min_price_per_pizza_euros != null && (minUnit === null || g.min_price_per_pizza_euros < minUnit)) minUnit = g.min_price_per_pizza_euros;
+      }
+      if (minUnit === null && state.stats && state.stats.cheapest_pizza_cents != null) minUnit = state.stats.cheapest_pizza_cents / 100;
+      if (minUnit !== null && minUnit !== undefined) {
+        elements.statUnitPrice.textContent = formatEuros(minUnit) + ' / pizza';
+      }
     }
   }
 
@@ -316,6 +416,18 @@
       else if (type === 'PIZZA') chip.textContent = `Pizzas (${pizzaCount})`;
       else if (type === 'BUNDLE_WITH_PIZZA') chip.textContent = `Menus (${menuCount})`;
       else if (type === 'NON_PIZZA') chip.textContent = `Acompanhamentos (${nonPizzaCount})`;
+    });
+
+    const sizeCounts = { ALL: 0, INDIVIDUAL: 0, MEDIUM: 0, FAMILY: 0 };
+    groups.filter((group) => group.offer_type !== 'NON_PIZZA').forEach((group) => {
+      sizeCounts.ALL += 1;
+      const size = resolveGroupPizzaSize(group);
+      if (size === 'LARGE' || size === 'FAMILY') sizeCounts.FAMILY += 1;
+      else if (sizeCounts[size] !== undefined) sizeCounts[size] += 1;
+    });
+    const sizeLabels = { ALL: 'Todos os tamanhos', INDIVIDUAL: 'Individual', MEDIUM: 'Média', FAMILY: 'Grande / Familiar' };
+    elements.sizeChips.forEach((chip) => {
+      chip.textContent = `${sizeLabels[chip.dataset.size]} (${sizeCounts[chip.dataset.size]})`;
     });
 
     // Contadores por Marca
@@ -374,6 +486,19 @@
         chip.classList.add('active');
         chip.setAttribute('aria-pressed', 'true');
         state.filterProduct = chip.dataset.product;
+        applyFiltersAndRender();
+      });
+    });
+
+    elements.sizeChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        elements.sizeChips.forEach((c) => {
+          c.classList.remove('active');
+          c.setAttribute('aria-pressed', 'false');
+        });
+        chip.classList.add('active');
+        chip.setAttribute('aria-pressed', 'true');
+        state.filterSize = chip.dataset.size;
         applyFiltersAndRender();
       });
     });
@@ -553,6 +678,7 @@
   // Limpar Todos os Filtros
   function resetFilters() {
     state.filterProduct = 'ALL';
+    state.filterSize = 'ALL';
     state.filterVendor = 'ALL';
     state.filterChannel = 'ALL';
     state.filterDay = 'ALL';
@@ -563,6 +689,10 @@
     elements.productChips.forEach((c) => {
       c.classList.toggle('active', c.dataset.product === 'ALL');
       c.setAttribute('aria-pressed', c.dataset.product === 'ALL' ? 'true' : 'false');
+    });
+    elements.sizeChips.forEach((c) => {
+      c.classList.toggle('active', c.dataset.size === 'ALL');
+      c.setAttribute('aria-pressed', c.dataset.size === 'ALL' ? 'true' : 'false');
     });
     elements.vendorChips.forEach((c) => {
       c.classList.toggle('active', c.dataset.vendor === 'ALL');
@@ -594,6 +724,13 @@
       filtered = filtered.filter((g) => g.offer_type === 'BUNDLE_WITH_PIZZA');
     } else if (state.filterProduct === 'NON_PIZZA') {
       filtered = filtered.filter((g) => g.offer_type === 'NON_PIZZA');
+    }
+
+    if (state.filterSize !== 'ALL') {
+      filtered = filtered.filter((group) => {
+        const size = resolveGroupPizzaSize(group);
+        return state.filterSize === 'FAMILY' ? size === 'FAMILY' || size === 'LARGE' : size === state.filterSize;
+      });
     }
 
     // 1. Filtro por Fornecedor
@@ -647,12 +784,13 @@
   // Algoritmos Determinísticos de Ordenação
   function sortGroupsByRanking(groups, ranking) {
     const list = [...groups];
+    const priceForChannel = (group) => group.channelPricing?.[state.filterChannel]?.price_cents ?? group.min_price_cents ?? 9999999;
 
     switch (ranking) {
       case 'LOWEST_ABSOLUTE_PRICE':
         return list.sort((a, b) => {
-          const pA = a.min_price_cents !== null && a.min_price_cents !== undefined ? a.min_price_cents : 9999999;
-          const pB = b.min_price_cents !== null && b.min_price_cents !== undefined ? b.min_price_cents : 9999999;
+          const pA = priceForChannel(a);
+          const pB = priceForChannel(b);
           if (pA !== pB) return pA - pB;
           return a.persistent_id.localeCompare(b.persistent_id);
         });
@@ -663,8 +801,8 @@
           const dB = b.max_discount_percentage !== null && b.max_discount_percentage !== undefined ? b.max_discount_percentage : -1;
           if (dB !== dA) return dB - dA;
           // Desempate por menor preço
-          const pA = a.min_price_cents || 9999999;
-          const pB = b.min_price_cents || 9999999;
+          const pA = priceForChannel(a);
+          const pB = priceForChannel(b);
           if (pA !== pB) return pA - pB;
           return a.persistent_id.localeCompare(b.persistent_id);
         });
@@ -677,8 +815,8 @@
           g.min_price_per_pizza_cents !== null
         );
         return comparableOnly.sort((a, b) => {
-          const uA = a.min_price_per_pizza_cents || 9999999;
-          const uB = b.min_price_per_pizza_cents || 9999999;
+          const uA = state.filterChannel !== 'ALL' && a.pizza_count ? priceForChannel(a) / a.pizza_count : a.min_price_per_pizza_cents || 9999999;
+          const uB = state.filterChannel !== 'ALL' && b.pizza_count ? priceForChannel(b) / b.pizza_count : b.min_price_per_pizza_cents || 9999999;
           if (uA !== uB) return uA - uB;
           return a.persistent_id.localeCompare(b.persistent_id);
         });
@@ -692,11 +830,11 @@
           g.value_metrics.price_per_100_cm2_cents !== undefined
         );
         return valueOnly.sort((a, b) => {
-          const vA = a.value_metrics.price_per_100_cm2_cents;
-          const vB = b.value_metrics.price_per_100_cm2_cents;
+          const vA = state.filterChannel !== 'ALL' && a.value_metrics.total_area_cm2 ? priceForChannel(a) * 100 / a.value_metrics.total_area_cm2 : a.value_metrics.price_per_100_cm2_cents;
+          const vB = state.filterChannel !== 'ALL' && b.value_metrics.total_area_cm2 ? priceForChannel(b) * 100 / b.value_metrics.total_area_cm2 : b.value_metrics.price_per_100_cm2_cents;
           if (vA !== vB) return vA - vB;
-          const pA = a.min_price_cents || 9999999;
-          const pB = b.min_price_cents || 9999999;
+          const pA = priceForChannel(a);
+          const pB = priceForChannel(b);
           if (pA !== pB) return pA - pB;
           return a.persistent_id.localeCompare(b.persistent_id);
         });
@@ -733,6 +871,7 @@
   // Construir HTML de um Cartão Promocional
   function buildCardHTML(group) {
     const vendorLabel = VENDOR_LABELS[group.vendor] || group.vendor;
+    const brandLogo = BRAND_LOGOS[group.vendor];
     const channels = (group.dispatch_methods || [])
       .map((c) => CHANNEL_LABELS[c] || c)
       .join(' • ');
@@ -745,24 +884,14 @@
       offerTypeBadgeHTML = '<span class="badge-offer-type type-bundle">Menu</span>';
     } else if (group.offer_type === 'NON_PIZZA') {
       offerTypeBadgeHTML = '<span class="badge-offer-type type-non-pizza">Acompanhamento</span>';
+    } else if (group.offer_type === 'UNKNOWN') {
+      offerTypeBadgeHTML = '<span class="badge-offer-type type-unknown">Oferta</span>';
     }
 
     const vStatus = state.vendorStatus && state.vendorStatus[group.vendor];
     let preservedBadgeHTML = '';
     if (vStatus && (vStatus.status === 'STALE' || vStatus.status === 'PRESERVED')) {
       preservedBadgeHTML = '<span class="badge-preserved" title="Oferta preservada da recolha anterior">Preservada</span>';
-    }
-
-    // Badges de Canal de Atendimento no Cartão
-    let channelBadgeHTML = '';
-    const hasDelivery = (group.dispatch_methods || []).includes('DELIVERY');
-    const hasTakeAway = (group.dispatch_methods || []).includes('TAKE_AWAY');
-    if (hasDelivery && hasTakeAway) {
-      channelBadgeHTML = '<span class="badge-channel badge-channel-both" title="Disponível para entrega e take away">🛵 Entrega & 🥡 Take Away</span>';
-    } else if (hasDelivery) {
-      channelBadgeHTML = '<span class="badge-channel badge-channel-delivery" title="Exclusivo entrega ao domicílio">🛵 Entrega</span>';
-    } else if (hasTakeAway) {
-      channelBadgeHTML = '<span class="badge-channel badge-channel-takeaway" title="Exclusivo levantamento em loja">🥡 Take Away</span>';
     }
 
     // Descrição e Botão Ver mais / Ver menos
@@ -785,8 +914,20 @@
       `;
     }
 
-    // Preço e Desconto
-    const displayPrice = group.display_price_label || 'Preço sob consulta';
+    const size = resolveGroupPizzaSize(group);
+    const sizeLabel = { INDIVIDUAL: 'Individual · 1 pessoa', MEDIUM: 'Média · 1–2 pessoas', LARGE: 'Grande · 2–3 pessoas', FAMILY: 'Familiar · 3–4 pessoas' }[size];
+    const sizeBadgeHTML = sizeLabel ? `<span class="badge-size-pill">${sizeLabel}</span>` : '';
+
+    let displayPrice = group.display_price_label || 'Preço sob consulta';
+    const channelPrices = Object.entries(group.channelPricing || {}).filter(([, price]) => price.price_cents != null);
+    let channelBreakdownHTML = '';
+    if (state.filterChannel !== 'ALL' && group.channelPricing?.[state.filterChannel]?.display_label) {
+      displayPrice = group.channelPricing[state.filterChannel].display_label;
+    } else if (new Set(channelPrices.map(([, price]) => price.price_cents)).size > 1) {
+      displayPrice = `Desde ${formatEuros(Math.min(...channelPrices.map(([, price]) => price.price_cents)) / 100)}`;
+      channelBreakdownHTML = `<div class="channel-price-breakdown">${channelPrices.map(([channel, price]) =>
+        `${escapeHTML(CHANNEL_LABELS[channel])}: <strong>${escapeHTML(price.display_label)}</strong>`).join(' · ')}</div>`;
+    }
 
     // Preço Original e Poupança
     let originalPriceHTML = '';
@@ -800,14 +941,25 @@
     } else if (group.max_discount_percentage) {
       discountTagHTML = `<span class="discount-tag">-${Math.round(group.max_discount_percentage)}%</span>`;
     }
+    if (!discountTagHTML) {
+      const titleDiscount = extractDiscountFromTitle(group.title, group.description);
+      if (titleDiscount !== null) {
+        discountTagHTML = `<span class="discount-tag">-${Math.round(titleDiscount)}%</span>`;
+      }
+    }
 
     // Preço por Pizza / Composição
     let unitPriceBadgeHTML = '';
-    if (group.is_comparable_for_unit_price && group.min_price_per_pizza_euros) {
-      const pizzaCountLabel = group.pizza_count ? `${group.pizza_count} pizzas` : 'Por pizza';
+    const selectedChannelCents = group.channelPricing?.[state.filterChannel]?.price_cents;
+    const unitPrice = selectedChannelCents != null && group.pizza_count
+      ? selectedChannelCents / 100 / group.pizza_count
+      : group.min_price_per_pizza_euros;
+    if (group.is_comparable_for_unit_price && unitPrice) {
+      const pizzaCountLabel = group.pizza_count ? `${group.pizza_count} ${group.pizza_count === 1 ? 'pizza' : 'pizzas'}` : 'Por pizza';
+      if (group.offer_type === 'BUNDLE_WITH_PIZZA') pizzaCountLabel += ' · menu';
       unitPriceBadgeHTML = `
         <div class="unit-price-badge">
-          <span>${formatEuros(group.min_price_per_pizza_euros)} / pizza <small>(${pizzaCountLabel})</small></span>
+          <span>${formatEuros(unitPrice)} / pizza <small>(${pizzaCountLabel})</small></span>
         </div>
       `;
     }
@@ -815,12 +967,15 @@
     // Pizza Value Index (Preço / 100 cm² e Doses Estimadas)
     let valueMetricsHTML = '';
     if (group.value_metrics && group.value_metrics.value_badge_label) {
+      const valueLabel = selectedChannelCents != null && group.value_metrics.total_area_cm2
+        ? `${formatEuros(selectedChannelCents / group.value_metrics.total_area_cm2)} / 100 cm²`
+        : group.value_metrics.value_badge_label;
       const portionBadge = group.value_metrics.portion_badge_label
         ? `<span class="badge-portions" title="Estimativa com base no diâmetro e ~450 cm² por pessoa">👥 ${escapeHTML(group.value_metrics.portion_badge_label)}</span>`
         : '';
       valueMetricsHTML = `
         <div class="value-index-badge-wrap">
-          <span class="badge-value-index" title="Preço por 100 cm² de área útil de pizza">🔥 ${escapeHTML(group.value_metrics.value_badge_label)}</span>
+          <span class="badge-value-index" title="Preço por 100 cm² de área útil de pizza">🔥 ${escapeHTML(valueLabel)}</span>
           ${portionBadge}
         </div>
       `;
@@ -870,13 +1025,9 @@
         <div class="card-media card-image-wrap">
           <img src="${escapeHTML(group.image_url)}" alt="${escapeHTML(group.title)}" class="card-image" loading="lazy" decoding="async" onerror="this.onerror=null; this.parentElement.classList.add('has-fallback-active');">
           <div class="card-fallback-banner vendor-bg-${escapeHTML(group.vendor)}">
-            <span class="fallback-brand">${escapeHTML(vendorLabel)}</span>
             <span class="fallback-sub">Oferta Oficial</span>
           </div>
           <div class="card-media-overlay"></div>
-          <div class="floating-badge-top-left">
-            <span class="vendor-badge vendor-${escapeHTML(group.vendor)}">${escapeHTML(vendorLabel)}</span>
-          </div>
           ${discountTagHTML ? `<div class="floating-badge-top-right">${discountTagHTML}</div>` : ''}
           <div class="floating-badge-bottom-right">
             <span class="dispatch-badge">${escapeHTML(channels)}</span>
@@ -887,13 +1038,9 @@
       mediaHTML = `
         <div class="card-media card-image-wrap has-fallback-active">
           <div class="card-fallback-banner vendor-bg-${escapeHTML(group.vendor)}">
-            <span class="fallback-brand">${escapeHTML(vendorLabel)}</span>
             <span class="fallback-sub">Oferta Oficial</span>
           </div>
           <div class="card-media-overlay"></div>
-          <div class="floating-badge-top-left">
-            <span class="vendor-badge vendor-${escapeHTML(group.vendor)}">${escapeHTML(vendorLabel)}</span>
-          </div>
           ${discountTagHTML ? `<div class="floating-badge-top-right">${discountTagHTML}</div>` : ''}
           <div class="floating-badge-bottom-right">
             <span class="dispatch-badge">${escapeHTML(channels)}</span>
@@ -913,11 +1060,7 @@
 
         <div class="card-body">
           <div class="card-tags-row">
-            ${offerTypeBadgeHTML}
-            ${storeStatusBadgeHTML}
-            ${channelBadgeHTML}
-            ${superDiscountHTML}
-            ${preservedBadgeHTML}
+            ${brandLogo ? `<img class="promo-brand-logo" src="${brandLogo}" alt="${escapeHTML(vendorLabel)}" loading="lazy" onerror="this.replaceWith(document.createTextNode(this.alt))">` : escapeHTML(vendorLabel)}
           </div>
 
           <h3 class="card-title">${escapeHTML(group.title)}</h3>
@@ -928,6 +1071,8 @@
               <span class="price-value">${escapeHTML(displayPrice)}</span>
               ${originalPriceHTML}
             </div>
+            ${channelBreakdownHTML}
+            ${sizeBadgeHTML}
             ${unitPriceBadgeHTML}
             ${valueMetricsHTML}
           </div>
@@ -960,6 +1105,7 @@
   // Atualizar Barra de Estado
   function updateStatusBar(count) {
     const isFiltered = state.filterProduct !== 'ALL' ||
+                       state.filterSize !== 'ALL' ||
                        state.filterVendor !== 'ALL' ||
                        state.filterChannel !== 'ALL' ||
                        state.filterDay !== 'ALL' ||
@@ -1035,6 +1181,9 @@
       if (lower.includes('papito')) {
         return 'https://www.papajohns.pt/promocoes/o-papito-menu-individual/';
       }
+      if (lower.includes('junior') || lower.includes('júnior')) {
+        return 'https://www.papajohns.pt/promocoes/junior-johns/';
+      }
     }
 
     return url;
@@ -1048,6 +1197,15 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  function extractDiscountFromTitle(title, description) {
+    const text = (title + ' ' + (description || '')).toLowerCase();
+    let m = text.match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s*)?desconto/);
+    if (m) return parseFloat(m[1].replace(',', '.'));
+    m = text.match(/-\s*(\d+(?:[.,]\d+)?)\s*%/);
+    if (m) return parseFloat(m[1].replace(',', '.'));
+    return null;
   }
 
   // =========================================================================
@@ -1212,7 +1370,7 @@
   // Carregar dados de lojas de Lisboa
   async function loadStoresData() {
     try {
-      const response = await fetch('data/stores.json');
+      const response = await fetch('data/stores.json', { cache: 'no-store' });
       if (!response.ok) {
         throw new Error(`Falha HTTP ao carregar stores.json: ${response.status}`);
       }
@@ -1364,6 +1522,7 @@
   function buildStoreCardHTML(store, lisbonTime) {
     const status = getStoreStatus(store, lisbonTime);
     const vendorLabel = VENDOR_LABELS[store.brand] || store.brand;
+    const logo = BRAND_LOGOS[store.brand];
 
     let badgeClass = 'status-badge-closed';
     let dotClass = 'dot-closed';
@@ -1396,8 +1555,8 @@
     return `
       <article class="store-card store-card-${escapeHTML(store.brand.toLowerCase())}" id="store-${escapeHTML(store.id)}">
         <header class="store-card-header">
-          <div class="store-brand-badge store-brand-${escapeHTML(store.brand)}">
-            ${escapeHTML(vendorLabel)}
+          <div class="store-brand-mark">
+            ${logo ? `<img class="store-brand-logo store-brand-logo-${escapeHTML(store.brand.toLowerCase().replace('_', '-'))}" src="${logo}" alt="${escapeHTML(vendorLabel)}" onerror="this.replaceWith(document.createTextNode(this.alt))">` : escapeHTML(vendorLabel)}
           </div>
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             ${distanceBadgeHTML}
@@ -1575,7 +1734,38 @@
       }
       if (elements.radarSection) elements.radarSection.classList.add('mobile-view-hidden');
       if (elements.storesSection) elements.storesSection.classList.remove('mobile-view-hidden');
+      requestAnimationFrame(() => state.leafletMap?.invalidateSize());
     }
+  }
+
+  function setupBottomNav() {
+    const navItems = [elements.navPromos, elements.navFilters, elements.navMap, elements.navTop].filter(Boolean);
+    const scrollBehavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    const setActiveItem = (activeItem) => {
+      navItems.forEach((item) => {
+        const isActive = item === activeItem;
+        item.classList.toggle('active', isActive);
+        item.setAttribute('aria-pressed', String(isActive));
+      });
+    };
+    const scrollToElement = (element) => requestAnimationFrame(() => element?.scrollIntoView({ behavior: scrollBehavior, block: 'start' }));
+
+    elements.navPromos?.addEventListener('click', () => {
+      setActiveItem(elements.navPromos);
+      scrollToElement(elements.radarSection);
+    });
+    elements.navFilters?.addEventListener('click', () => {
+      setActiveItem(elements.navFilters);
+      scrollToElement(document.querySelector('.discovery-section'));
+    });
+    elements.navMap?.addEventListener('click', () => {
+      setActiveItem(elements.navMap);
+      scrollToElement(elements.storesSection);
+    });
+    elements.navTop?.addEventListener('click', () => {
+      setActiveItem(elements.navTop);
+      window.scrollTo({ top: 0, behavior: scrollBehavior });
+    });
   }
 
   // Relógio em tempo real com atualização a cada 60 segundos
@@ -1641,13 +1831,6 @@
 
     state.markersLayer.clearLayers();
 
-    const brandLetters = {
-      DOMINOS: 'D',
-      PAPA_JOHNS: 'P',
-      PIZZA_HUT: 'H',
-      TELEPIZZA: 'T',
-    };
-
     const targetStores = storesList && storesList.length > 0 ? storesList : state.stores;
 
     for (const store of targetStores) {
@@ -1656,17 +1839,19 @@
       const lat = store.latitude;
       const lng = store.longitude;
 
-      const brandClass = `marker-${store.brand.toLowerCase()}`;
-      const letter = brandLetters[store.brand] || '🍕';
+      const logo = BRAND_LOGOS[store.brand];
+      const brandClass = logo ? `marker-${store.brand.toLowerCase().replace('_', '-')}` : '';
+      const letter = escapeHTML(store.brand[0] || '🍕');
+      const markerWidth = store.brand === 'TELEPIZZA' ? 60 : 44;
       const status = getStoreStatus(store, lisbonTime);
       const vendorLabel = VENDOR_LABELS[store.brand] || store.brand;
 
       const markerIcon = L.divIcon({
         className: 'custom-leaflet-marker-wrap',
-        html: `<div class="custom-brand-marker ${brandClass}" title="${escapeHTML(store.name)}">${letter}</div>`,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
-        popupAnchor: [0, -18],
+        html: `<div class="custom-brand-marker ${brandClass}" role="img" aria-label="${escapeHTML(vendorLabel)} — ${escapeHTML(store.name)}" title="${escapeHTML(store.name)}">${logo ? `<img src="${logo}" alt="" onerror="this.remove()">` : ''}<span class="marker-fallback">${letter}</span></div>`,
+        iconSize: [markerWidth, 44],
+        iconAnchor: [markerWidth / 2, 22],
+        popupAnchor: [0, -24],
       });
 
       const distInfo = store.distanceKm !== undefined ? ` • <strong>${store.distanceKm.toFixed(1)} km</strong>` : '';
@@ -1689,7 +1874,7 @@
         </div>
       `;
 
-      const marker = L.marker([lat, lng], { icon: markerIcon }).bindPopup(popupContent);
+      const marker = L.marker([lat, lng], { icon: markerIcon, title: `${vendorLabel} — ${store.name}` }).bindPopup(popupContent);
       state.markersLayer.addLayer(marker);
     }
 

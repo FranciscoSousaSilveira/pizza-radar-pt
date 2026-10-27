@@ -15,7 +15,7 @@ from __future__ import annotations
 import re
 from typing import Sequence
 
-from pizza_radar.core.models import ComponentCategory, OfferComponent, OfferType
+from pizza_radar.core.models import ComponentCategory, OfferComponent, OfferType, PizzaSize
 
 
 _NON_PIZZA_EXCLUSIVE_KEYWORDS: tuple[str, ...] = (
@@ -90,6 +90,10 @@ _PIZZA_KEYWORDS: tuple[str, ...] = (
     "massa fina",
     "massa pan",
     "rolling pizza",
+    "double stuffed crust",
+    "stuffed crust",
+    "cheesy bites",
+    "rolling stuffed crust",
 )
 
 # Padrões específicos de bundles / menus combinados conhecidos
@@ -201,3 +205,91 @@ def classify_offer_type(
         return OfferType.UNKNOWN
 
     return OfferType.UNKNOWN
+
+
+
+
+
+def classify_pizza_size(
+    title: str,
+    description: str = "",
+    components: Sequence[OfferComponent] | None = None,
+) -> PizzaSize:
+    """Classifica deterministicamente o tamanho de pizza de uma oferta promocional."""
+    if components:
+        for c in components:
+            if c.category == ComponentCategory.PIZZA and c.size and c.size != PizzaSize.UNKNOWN:
+                return c.size
+
+    # 1. Se o título indica explicitamente e sem ambiguidade um tamanho único de pizza,
+    # tem precedência total sobre eventuais tamanhos de acompanhamentos/bebidas na descrição.
+    clean_title = title.lower()
+    t_individual = bool(re.search(r"\b(individual|pequena|júnior|junior|menu uno|papito)\b", clean_title))
+    t_family = bool(re.search(r"\b(familiar|familiares|a maior|gigante)\b", clean_title))
+    t_large = bool(re.search(r"\b(grande|grandes)\b", clean_title))
+    t_medium = bool(re.search(r"\b(m[eé]dia|m[eé]dias|m[eé]dio|m[eé]dios)\b", clean_title))
+    t_detected = sum([t_individual, t_family, t_large, t_medium])
+    if t_detected == 1:
+        if t_individual:
+            return PizzaSize.INDIVIDUAL
+        if t_family:
+            return PizzaSize.FAMILY
+        if t_large:
+            return PizzaSize.LARGE
+        if t_medium:
+            return PizzaSize.MEDIUM
+
+    text = f"{title} {description}".lower()
+
+    # Sanitizar tamanhos de bebidas e complementos na descrição (ex: "bebida grande", "duas latas")
+    text_clean = re.sub(
+        r"\b(?:bebidas?|refrigerantes?|garrafas?|latas?|copos?)\s+(?:grandes?|familiares?|m[eé]dias?|individua?is?)\b",
+        "",
+        text,
+    )
+    text_clean = re.sub(
+        r"\b(?:grandes?|familiares?|m[eé]dias?|individua?is?)\s+(?:bebidas?|refrigerantes?|garrafas?|latas?|copos?)\b",
+        "",
+        text_clean,
+    )
+
+    # Se a oferta menciona múltiplos tamanhos concorrentes (ex.: "média ou familiar"),
+    # não possui um tamanho único padronizado para cálculo de métricas de área ou preço unitário.
+    has_individual = bool(re.search(r"\b(individual|pequena|júnior|junior|menu uno|papito)\b", text_clean))
+    has_family = bool(re.search(r"\b(familiar|familiares|a maior|gigante)\b", text_clean))
+    has_large = bool(re.search(r"\b(grande|grandes)\b", text_clean))
+    has_medium = bool(re.search(r"\b(m[eé]dia|m[eé]dias|m[eé]dio|m[eé]dios)\b", text_clean))
+
+    detected_sizes = sum([has_individual, has_family, has_large, has_medium])
+    if detected_sizes > 1:
+        return PizzaSize.UNKNOWN
+
+    if has_individual:
+        return PizzaSize.INDIVIDUAL
+
+    if has_family:
+        return PizzaSize.FAMILY
+
+    if has_large:
+        return PizzaSize.LARGE
+
+    if has_medium or re.search(r"\b(pan|roller)\b", text_clean):
+        return PizzaSize.MEDIUM
+
+    return PizzaSize.UNKNOWN
+
+
+def extract_discount_from_title(title: str, description: str = "") -> float | None:
+    """Extrai a percentagem de desconto anunciada no título quando os dados estruturados são nulos.
+
+    Procura padrões como '40% DESCONTO', '50% de Desconto', '-50%'.
+    Nunca inventa preços — devolve None se não encontrar percentagem explícita.
+    """
+    text = f"{title} {description}".lower()
+    m = re.search(r"(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s*)?desconto", text)
+    if m:
+        return float(m.group(1).replace(",", "."))
+    m = re.search(r"-\s*(\d+(?:[.,]\d+)?)\s*%", text)
+    if m:
+        return float(m.group(1).replace(",", "."))
+    return None
