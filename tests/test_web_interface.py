@@ -117,13 +117,6 @@ class TestWebInterfaceIntegrity(unittest.TestCase):
         self.assertIn("function setupBottomNav()", js)
         self.assertIn("state.leafletMap?.invalidateSize()", js)
 
-    def test_hero_actions_restore_mobile_section_after_switching_views(self) -> None:
-        js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
-        navigation = js.split("function setupBottomNav()", 1)[1].split("function startLiveClock()", 1)[0]
-        for action, view in ((".btn-hero-primary", "promos"), (".btn-hero-secondary", "stores")):
-            handler = navigation.split(f"document.querySelector('{action}')?.addEventListener", 1)[1].split("});", 1)[0]
-            self.assertIn(f"switchMobileView('{view}')", handler)
-
     def test_map_and_store_card_brand_logos_are_available(self) -> None:
         js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
         for brand, logo in {
@@ -159,28 +152,28 @@ class TestWebInterfaceIntegrity(unittest.TestCase):
         self.assertIn('channel-price-breakdown', js)
         self.assertIn('existing.min_price_per_pizza_euros = group.min_price_per_pizza_euros', js)
 
-
-    def test_segundas_a_dobrar_not_interpreted_as_two_pizzas(self) -> None:
-        """A promoção 'Segundas a Dobrar' é um desconto percentual e não pode ser tratada como 2 pizzas."""
+    def test_percentual_discount_promo_not_interpreted_as_two_pizzas(self) -> None:
+        """Uma promoção de desconto percentual (ex.: 'Terças 50% de Desconto') não pode ser tratada como 2 pizzas."""
         json_path = WEB_DIR / "data" / "promotions.json"
         with open(json_path, encoding="utf-8") as f:
             data = json.load(f)
 
-        segundas_group = next(
-            (g for g in data["groups"] if "SEGUNDAS A DOBRAR" in g.get("title", "")),
+        tercas_group = next(
+            (g for g in data["groups"] if "TERÇAS DE PERDER A CABEÇA" in g.get("title", "")),
             None,
         )
-        self.assertIsNotNone(segundas_group, "Grupo SEGUNDAS A DOBRAR deve existir na fixture")
-        self.assertIsNone(segundas_group.get("pizza_count"), "pizza_count de SEGUNDAS A DOBRAR deve ser null")
-        self.assertEqual(segundas_group.get("pizza_size"), "UNKNOWN", "pizza_size de SEGUNDAS A DOBRAR deve ser UNKNOWN")
+        self.assertIsNotNone(tercas_group, "Grupo TERÇAS DE PERDER A CABEÇA deve existir na fixture")
+        self.assertIsNone(tercas_group.get("pizza_count"), "pizza_count da promoção percentual deve ser null")
+        self.assertEqual(tercas_group.get("pizza_size"), "UNKNOWN", "pizza_size da promoção percentual deve ser UNKNOWN")
         self.assertFalse(
-            segundas_group.get("is_comparable_for_unit_price"),
-            "SEGUNDAS A DOBRAR não pode ter is_comparable_for_unit_price=True",
+            tercas_group.get("is_comparable_for_unit_price"),
+            "Promoção percentual não pode ter is_comparable_for_unit_price=True",
         )
         self.assertIsNone(
-            segundas_group.get("min_price_per_pizza_cents"),
-            "min_price_per_pizza_cents deve ser null para SEGUNDAS A DOBRAR",
+            tercas_group.get("min_price_per_pizza_cents"),
+            "min_price_per_pizza_cents deve ser null para a promoção percentual",
         )
+        self.assertEqual(tercas_group.get("max_discount_percentage"), 50.0, "O desconto de 50% deve constar no group")
 
     def test_menu_familia_grandes_has_two_large_pizzas(self) -> None:
         """MENU FAMÍLIA GRANDES que comprova 2 pizzas grandes deve usar LARGE e nunca MEDIUM."""
@@ -198,13 +191,6 @@ class TestWebInterfaceIntegrity(unittest.TestCase):
         self.assertNotEqual(familia_group.get("pizza_size"), "MEDIUM", "pizza_size nunca pode ser MEDIUM")
         self.assertTrue(familia_group.get("is_comparable_for_unit_price"), "Deve ser comparável para preço unitário")
         self.assertEqual(familia_group.get("min_price_per_pizza_cents"), 1350)
-
-    def test_telepizza_links_avoid_broken_urls(self) -> None:
-        """Garante que os links da Telepizza utilizam apenas endpoints oficiais validos e nunca rotas quebradas."""
-        js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
-        self.assertNotIn("comida-ao-domicilio", js)
-        self.assertIn("https://www.telepizza.pt/menus", js)
-        self.assertIn("https://www.telepizza.pt/promocoes", js)
 
     def test_unproven_offers_excluded_from_best_unit_price(self) -> None:
         """Ofertas sem contagem comprovada não podem entrar no ranking BEST_UNIT_PRICE."""

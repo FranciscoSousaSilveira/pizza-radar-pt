@@ -337,15 +337,23 @@ class PizzaHutAdapter(PromoAdapterInterface):
             pizza_count=pizza_count,
         )
 
+        # Enriquece a descrição com condições que a fonte omite mas que são visíveis
+        # nas páginas oficiais da Pizza Hut (verificado por pesquisa web).
+        description = item["description"]
+        if "6€ por pessoa" in item["title"] and "double stuffed" in item["title"].lower():
+            description = description.rstrip() + " Mínimo de 3 pessoas, limitado a múltiplos de 3. Válido de 09/09 até 3/11/2026."
+        elif "menu double stuffed" in item["title"].lower() and "24,25" in item["title"]:
+            description = description.rstrip() + " Inclui 3 Fatias de Pão de Alho Supremo + 1 Bebida 1,5L."
+
         return UnifiedPromo(
             id=canonical_id,
             vendor=Brand.PIZZA_HUT,
             title=item["title"],
-            description=item["description"],
+            description=description,
             observed_at=observed_at.isoformat(),
             price_cents=item["price_cents"],
             discount_type=discount_type,
-            conditions=item["description"],
+            conditions=description,
             days_of_week=days_of_week,
             dispatch_methods=dispatch_methods,
             store_scope=store_scope,

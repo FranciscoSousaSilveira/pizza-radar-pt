@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 from pizza_radar.adapters.obscura_scraper import ObscuraExecutionError, ObscuraNotFoundError, ObscuraScraper
 from pizza_radar.core.adapter import NetworkError, ParseError, PromoAdapterInterface
-from pizza_radar.core.classifier import classify_offer_type
+from pizza_radar.core.classifier import classify_offer_type, classify_pizza_size
 from pizza_radar.core.models import (
     Brand,
     DiscountType,
@@ -722,6 +722,9 @@ class TelepizzaAdapter(PromoAdapterInterface):
             pizza_count=item.get("pizza_count"),
         )
 
+        # Detecção de tamanho de pizza
+        pizza_size = classify_pizza_size(title, description)
+
         # Condições com nota honesta de aplicabilidade geográfica
         disclaimer = "Telepizza Portugal — confirmar disponibilidade na loja/morada"
         base_conditions = item.get("conditions", description) or ""
@@ -754,7 +757,7 @@ class TelepizzaAdapter(PromoAdapterInterface):
                     store_ids=[],
                     store_names=[],
                     pizza_count=item.get("pizza_count"),
-                    pizza_size=PizzaSize.UNKNOWN,
+                    pizza_size=pizza_size,
                     included_items=[],
                     image_url=image_url,
                     source_url=_URL,

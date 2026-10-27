@@ -9,13 +9,13 @@
     "TELEPIZZA"
   ],
   "stats": {
-    "total_groups": 20,
-    "total_offers": 20,
+    "total_groups": 18,
+    "total_offers": 18,
     "comparable_groups": 9,
     "min_price_cents": 595,
     "cheapest_pizza_cents": 595,
-    "total_pizza_groups": 16,
-    "total_non_pizza_groups": 4
+    "total_pizza_groups": 18,
+    "total_non_pizza_groups": 0
   },
   "groups": [
     {
@@ -45,7 +45,7 @@
       "pizza_size": "MEDIUM",
       "is_comparable_for_unit_price": true,
       "has_uniform_price": true,
-      "image_url": "https://cache.dominos.pt/combos/media_1095.webp",
+      "image_url": "https://www.dominospizza.pt/images/offers/3423l.png",
       "source_url": "https://www.dominospizza.pt/promocoes",
       "days_of_week": [],
       "location_scope": "Lisboa",
@@ -171,8 +171,8 @@
     {
       "persistent_id": "pid_dominos_2434_delivery",
       "vendor": "DOMINOS",
-      "title": "SEGUNDAS A DOBRAR | 40% DESCONTO",
-      "description": "40% de desconto em todas as pizzas médias e grandes às segundas",
+      "title": "TERÇAS DE PERDER A CABEÇA! | 50% DESCONTO",
+      "description": "50% de desconto em todas as pizzas às terças-feiras",
       "dispatch_methods": [
         "DELIVERY"
       ],
@@ -190,15 +190,15 @@
       "max_price_euros": null,
       "min_price_per_pizza_cents": null,
       "min_price_per_pizza_euros": null,
-      "max_discount_percentage": null,
+      "max_discount_percentage": 50.0,
       "pizza_count": null,
       "pizza_size": "UNKNOWN",
       "is_comparable_for_unit_price": false,
       "has_uniform_price": true,
-      "image_url": "https://cache.dominos.pt/combos/segundas_dobrar.webp",
+      "image_url": "https://www.dominospizza.pt/images/offers/2434l.png",
       "source_url": "https://www.dominospizza.pt/promocoes",
       "days_of_week": [
-        "MONDAY"
+        "TUESDAY"
       ],
       "location_scope": "Lisboa",
       "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
@@ -216,12 +216,12 @@
           "price_euros": null,
           "original_price_cents": null,
           "original_price_euros": null,
-          "computed_discount_percentage": null,
+          "computed_discount_percentage": 50.0,
           "pizza_count": null,
           "pizza_size": "UNKNOWN",
           "is_comparable_for_unit_price": false,
           "price_per_pizza_cents": null,
-          "conditions": "Válido exclusivamente às segundas-feiras.",
+          "conditions": "Válido exclusivamente às terças-feiras.",
           "valid_from": null,
           "valid_until": null,
           "observed_at": "2026-09-28T21:13:08.387354+00:00",
@@ -254,7 +254,7 @@
       "min_price_per_pizza_euros": null,
       "max_discount_percentage": null,
       "pizza_count": null,
-      "pizza_size": "UNKNOWN",
+      "pizza_size": "LARGE",
       "is_comparable_for_unit_price": false,
       "has_uniform_price": true,
       "image_url": "https://cache.dominos.pt/combos/grande_12.webp",
@@ -314,7 +314,7 @@
       "min_price_per_pizza_euros": null,
       "max_discount_percentage": null,
       "pizza_count": null,
-      "pizza_size": "UNKNOWN",
+      "pizza_size": "LARGE",
       "is_comparable_for_unit_price": false,
       "has_uniform_price": true,
       "image_url": "https://cache.dominos.pt/combos/grande_11.webp",
@@ -453,7 +453,7 @@
       "min_price_per_pizza_euros": null,
       "max_discount_percentage": 15.4,
       "pizza_count": null,
-      "pizza_size": "UNKNOWN",
+      "pizza_size": "MEDIUM",
       "is_comparable_for_unit_price": false,
       "has_uniform_price": true,
       "image_url": "https://cdn.papajohns.pt/pictures/offers/la_mas_fresca_photo.webp",
@@ -529,7 +529,7 @@
       "min_price_per_pizza_euros": null,
       "max_discount_percentage": null,
       "pizza_count": null,
-      "pizza_size": "UNKNOWN",
+      "pizza_size": "MEDIUM",
       "is_comparable_for_unit_price": false,
       "has_uniform_price": true,
       "image_url": null,
@@ -572,10 +572,10 @@
           "valid_from": "2023-01-01T00:00:00.000Z",
           "valid_until": "2029-12-31T00:00:00.000Z",
           "observed_at": "2026-09-28T21:13:08.387354+00:00",
-          "offer_type": "UNKNOWN"
+          "offer_type": "BUNDLE_WITH_PIZZA"
         }
       ],
-      "offer_type": "UNKNOWN"
+      "offer_type": "BUNDLE_WITH_PIZZA"
     },
     {
       "persistent_id": "pid_papa_johns_222_delivery",
@@ -608,7 +608,7 @@
       "pizza_size": "INDIVIDUAL",
       "is_comparable_for_unit_price": true,
       "has_uniform_price": true,
-      "image_url": "https://cdn.papajohns.pt/pictures/offers/papito_photo.webp",
+      "image_url": "https://cdn.papajohns.pt/thumbnails/offers/promo_web_app_duo_bestial_a_recoger_pt_1785226095_large.webp",
       "source_url": "https://www.papajohns.pt/promocoes/",
       "days_of_week": [
         "MONDAY",
@@ -699,7 +699,7 @@
       "pizza_size": "INDIVIDUAL",
       "is_comparable_for_unit_price": true,
       "has_uniform_price": true,
-      "image_url": "https://cdn.papajohns.pt/pictures/offers/papito_photo.webp",
+      "image_url": "https://cdn.papajohns.pt/thumbnails/offers/promo_web_app_duo_bestial_a_recoger_pt_1785226095_large.webp",
       "source_url": "https://www.papajohns.pt/promocoes/",
       "days_of_week": [
         "MONDAY",
@@ -787,7 +787,7 @@
       "min_price_per_pizza_euros": null,
       "max_discount_percentage": 3.9,
       "pizza_count": null,
-      "pizza_size": "UNKNOWN",
+      "pizza_size": "MEDIUM",
       "is_comparable_for_unit_price": false,
       "has_uniform_price": true,
       "image_url": "https://cdn.papajohns.pt/pictures/offers/party_combo_delivery_photo.webp",
@@ -830,10 +830,10 @@
           "valid_from": "2024-11-29T08:00:00.000Z",
           "valid_until": "2029-12-31T00:00:00.000Z",
           "observed_at": "2026-09-28T21:13:08.387354+00:00",
-          "offer_type": "NON_PIZZA"
+          "offer_type": "BUNDLE_WITH_PIZZA"
         }
       ],
-      "offer_type": "NON_PIZZA"
+      "offer_type": "BUNDLE_WITH_PIZZA"
     },
     {
       "persistent_id": "pid_papa_johns_252_delivery",
@@ -866,7 +866,7 @@
       "pizza_size": "MEDIUM",
       "is_comparable_for_unit_price": true,
       "has_uniform_price": true,
-      "image_url": "https://cdn.papajohns.pt/pictures/offers/duo_bestial_delivery_photo.webp",
+      "image_url": "https://cdn.papajohns.pt/thumbnails/offers/btn_portu_subida_precioboton_web_promo_duo_bestial_1751968877_large.webp",
       "source_url": "https://www.papajohns.pt/promocoes/",
       "days_of_week": [
         "MONDAY",
@@ -906,10 +906,10 @@
           "valid_from": "2021-09-01T00:30:00.000Z",
           "valid_until": "2029-12-31T00:00:00.000Z",
           "observed_at": "2026-09-28T21:13:08.387354+00:00",
-          "offer_type": "PIZZA"
+          "offer_type": "BUNDLE_WITH_PIZZA"
         }
       ],
-      "offer_type": "PIZZA",
+      "offer_type": "BUNDLE_WITH_PIZZA",
       "value_metrics": {
         "pizza_size": "MEDIUM",
         "pizza_count": 2,
@@ -949,7 +949,7 @@
       "pizza_size": "UNKNOWN",
       "is_comparable_for_unit_price": false,
       "has_uniform_price": true,
-      "image_url": null,
+      "image_url": "https://www.pizzahut.pt/wp-content/uploads/2x1-tw-1080x1080px.webp",
       "source_url": "https://www.pizzahut.pt/ofertas/2x1-tw/",
       "days_of_week": [],
       "location_scope": "Lisboa",
@@ -982,7 +982,7 @@
       "persistent_id": "pid_pizza_hut_15049_take_away",
       "vendor": "PIZZA_HUT",
       "title": "MENU DOUBLE STUFFED CRUST 24,25€",
-      "description": "Menu completo com Double Stuffed Crust por 24,25€.",
+      "description": "Menu completo com Double Stuffed Crust por 24,25€. Inclui 3 Fatias de Pão de Alho Supremo + 1 Bebida 1,5L.",
       "dispatch_methods": [
         "TAKE_AWAY"
       ],
@@ -1021,20 +1021,20 @@
           "pizza_size": "UNKNOWN",
           "is_comparable_for_unit_price": false,
           "price_per_pizza_cents": null,
-          "conditions": "Menu completo com Double Stuffed Crust por 24,25€.",
+          "conditions": "Menu completo com Double Stuffed Crust por 24,25€. Inclui 3 Fatias de Pão de Alho Supremo + 1 Bebida 1,5L.",
           "valid_from": null,
           "valid_until": null,
           "observed_at": "2026-09-28T21:13:08.387354+00:00",
-          "offer_type": "UNKNOWN"
+          "offer_type": "BUNDLE_WITH_PIZZA"
         }
       ],
-      "offer_type": "UNKNOWN"
+      "offer_type": "BUNDLE_WITH_PIZZA"
     },
     {
       "persistent_id": "pid_pizza_hut_15056_dine_in",
       "vendor": "PIZZA_HUT",
       "title": "DOUBLE STUFFED CRUST – Apenas 6€ por pessoa",
-      "description": "Double Stuffed Crust por apenas 6€ por pessoa. Válido em restaurantes aderentes.",
+      "description": "Double Stuffed Crust por apenas 6€ por pessoa. Válido em restaurantes aderentes. Mínimo de 3 pessoas, limitado a múltiplos de 3. Válido de 09/09 até 3/11/2026.",
       "dispatch_methods": [
         "DINE_IN"
       ],
@@ -1053,7 +1053,7 @@
       "pizza_size": "UNKNOWN",
       "is_comparable_for_unit_price": false,
       "has_uniform_price": true,
-      "image_url": null,
+      "image_url": "https://www.pizzahut.pt/wp-content/uploads/ph_dsc_pizza.webp",
       "source_url": "https://www.pizzahut.pt/ofertas/dlsc6eur/",
       "days_of_week": [],
       "location_scope": "Lisboa",
@@ -1073,14 +1073,14 @@
           "pizza_size": "UNKNOWN",
           "is_comparable_for_unit_price": false,
           "price_per_pizza_cents": null,
-          "conditions": "Double Stuffed Crust por apenas 6€ por pessoa. Válido em restaurantes aderentes.",
+          "conditions": "Double Stuffed Crust por apenas 6€ por pessoa. Válido em restaurantes aderentes. Mínimo de 3 pessoas, limitado a múltiplos de 3. Válido de 09/09 até 3/11/2026.",
           "valid_from": null,
           "valid_until": null,
           "observed_at": "2026-09-28T21:13:08.387354+00:00",
-          "offer_type": "UNKNOWN"
+          "offer_type": "PIZZA"
         }
       ],
-      "offer_type": "UNKNOWN"
+      "offer_type": "PIZZA"
     },
     {
       "persistent_id": "pid_telepizza_2admmk_delivery",
@@ -1088,7 +1088,8 @@
       "title": "1 Média Descomplicada por 10€",
       "description": "1 Pizza Média com massa fofa até 3 ingredientes por apenas 10€.",
       "dispatch_methods": [
-        "DELIVERY"
+        "DELIVERY",
+        "TAKE_AWAY"
       ],
       "store_scope": "UNKNOWN",
       "all_store_ids": [],
@@ -1130,54 +1131,7 @@
           "valid_until": null,
           "observed_at": "2026-09-28T21:13:08.387354+00:00",
           "offer_type": "PIZZA"
-        }
-      ],
-      "offer_type": "PIZZA",
-      "value_metrics": {
-        "pizza_size": "MEDIUM",
-        "pizza_count": 1,
-        "single_diameter_cm": 30.0,
-        "single_area_cm2": 706.9,
-        "total_area_cm2": 706.9,
-        "price_cents": 1000,
-        "price_per_100_cm2_cents": 141,
-        "price_per_100_cm2_euros": 1.41,
-        "estimated_portions": 2,
-        "price_per_portion_cents": 500,
-        "price_per_portion_euros": 5.0,
-        "value_badge_label": "1,41 € / 100 cm²",
-        "portion_badge_label": "Ideal para 2 pessoas"
-      }
-    },
-    {
-      "persistent_id": "pid_telepizza_2admmk_take_away",
-      "vendor": "TELEPIZZA",
-      "title": "1 Média Descomplicada por 10€",
-      "description": "1 Pizza Média com massa fofa até 3 ingredientes por apenas 10€.",
-      "dispatch_methods": [
-        "TAKE_AWAY"
-      ],
-      "store_scope": "UNKNOWN",
-      "all_store_ids": [],
-      "all_store_names": [],
-      "display_price_label": "10,00€",
-      "min_price_cents": 1000,
-      "max_price_cents": 1000,
-      "min_price_euros": 10.0,
-      "max_price_euros": 10.0,
-      "min_price_per_pizza_cents": 1000,
-      "min_price_per_pizza_euros": 10.0,
-      "max_discount_percentage": null,
-      "pizza_count": 1,
-      "pizza_size": "MEDIUM",
-      "is_comparable_for_unit_price": true,
-      "has_uniform_price": true,
-      "image_url": "https://images.telepizza.pt/promos/2admmk.webp",
-      "source_url": "https://www.telepizza.pt/promocoes",
-      "days_of_week": [],
-      "location_scope": "Lisboa",
-      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
-      "variants": [
+        },
         {
           "variant_id": "tp_2ADMMK_takeaway",
           "persistent_id": "pid_telepizza_2admmk_take_away",
@@ -1222,7 +1176,8 @@
       "title": "2x1 em Todas as Pizzas",
       "description": "Na compra de 1 pizza média ou familiar, recebe outra de valor igual ou inferior.",
       "dispatch_methods": [
-        "DELIVERY"
+        "DELIVERY",
+        "TAKE_AWAY"
       ],
       "store_scope": "UNKNOWN",
       "all_store_ids": [],
@@ -1264,39 +1219,7 @@
           "valid_until": null,
           "observed_at": "2026-09-28T21:13:08.387354+00:00",
           "offer_type": "PIZZA"
-        }
-      ],
-      "offer_type": "PIZZA"
-    },
-    {
-      "persistent_id": "pid_telepizza_2x1_nc_take_away",
-      "vendor": "TELEPIZZA",
-      "title": "2x1 em Todas as Pizzas",
-      "description": "Na compra de 1 pizza média ou familiar, recebe outra de valor igual ou inferior.",
-      "dispatch_methods": [
-        "TAKE_AWAY"
-      ],
-      "store_scope": "UNKNOWN",
-      "all_store_ids": [],
-      "all_store_names": [],
-      "display_price_label": "Preço sob consulta",
-      "min_price_cents": null,
-      "max_price_cents": null,
-      "min_price_euros": null,
-      "max_price_euros": null,
-      "min_price_per_pizza_cents": null,
-      "min_price_per_pizza_euros": null,
-      "max_discount_percentage": null,
-      "pizza_count": null,
-      "pizza_size": "UNKNOWN",
-      "is_comparable_for_unit_price": false,
-      "has_uniform_price": true,
-      "image_url": "https://images.telepizza.pt/promos/2x1.webp",
-      "source_url": "https://www.telepizza.pt/promocoes",
-      "days_of_week": [],
-      "location_scope": "Lisboa",
-      "most_recent_observed_at": "2026-09-28T21:13:08.387354+00:00",
-      "variants": [
+        },
         {
           "variant_id": "tp_2X1_NC_takeaway",
           "persistent_id": "pid_telepizza_2x1_nc_take_away",

@@ -376,11 +376,27 @@
     if (elements.statLocation && data.location_scope) {
       elements.statLocation.textContent = data.location_scope;
     }
-    if (elements.statMinPrice && state.stats && state.stats.min_price_cents !== null && state.stats.min_price_cents !== undefined) {
-      elements.statMinPrice.textContent = formatEuros(state.stats.min_price_cents / 100);
+    if (elements.statMinPrice) {
+      const pizzaOffers = (state.allGroups || []).filter((g) => g.offer_type === 'PIZZA' || g.offer_type === 'BUNDLE_WITH_PIZZA');
+      let minCents = null;
+      for (const g of pizzaOffers) {
+        if (g.min_price_cents != null && (minCents === null || g.min_price_cents < minCents)) minCents = g.min_price_cents;
+      }
+      if (minCents === null && state.stats && state.stats.min_price_cents != null) minCents = state.stats.min_price_cents;
+      if (minCents !== null && minCents !== undefined) {
+        elements.statMinPrice.textContent = formatEuros(minCents / 100);
+      }
     }
-    if (elements.statUnitPrice && state.stats && state.stats.cheapest_pizza_cents !== null && state.stats.cheapest_pizza_cents !== undefined) {
-      elements.statUnitPrice.textContent = formatEuros(state.stats.cheapest_pizza_cents / 100) + ' / pizza';
+    if (elements.statUnitPrice) {
+      const comparable = (state.allGroups || []).filter((g) => g.is_comparable_for_unit_price === true);
+      let minUnit = null;
+      for (const g of comparable) {
+        if (g.min_price_per_pizza_euros != null && (minUnit === null || g.min_price_per_pizza_euros < minUnit)) minUnit = g.min_price_per_pizza_euros;
+      }
+      if (minUnit === null && state.stats && state.stats.cheapest_pizza_cents != null) minUnit = state.stats.cheapest_pizza_cents / 100;
+      if (minUnit !== null && minUnit !== undefined) {
+        elements.statUnitPrice.textContent = formatEuros(minUnit) + ' / pizza';
+      }
     }
   }
 
@@ -868,6 +884,8 @@
       offerTypeBadgeHTML = '<span class="badge-offer-type type-bundle">Menu</span>';
     } else if (group.offer_type === 'NON_PIZZA') {
       offerTypeBadgeHTML = '<span class="badge-offer-type type-non-pizza">Acompanhamento</span>';
+    } else if (group.offer_type === 'UNKNOWN') {
+      offerTypeBadgeHTML = '<span class="badge-offer-type type-unknown">Oferta</span>';
     }
 
     const vStatus = state.vendorStatus && state.vendorStatus[group.vendor];
@@ -923,6 +941,12 @@
     } else if (group.max_discount_percentage) {
       discountTagHTML = `<span class="discount-tag">-${Math.round(group.max_discount_percentage)}%</span>`;
     }
+    if (!discountTagHTML) {
+      const titleDiscount = extractDiscountFromTitle(group.title, group.description);
+      if (titleDiscount !== null) {
+        discountTagHTML = `<span class="discount-tag">-${Math.round(titleDiscount)}%</span>`;
+      }
+    }
 
     // Preço por Pizza / Composição
     let unitPriceBadgeHTML = '';
@@ -932,6 +956,7 @@
       : group.min_price_per_pizza_euros;
     if (group.is_comparable_for_unit_price && unitPrice) {
       const pizzaCountLabel = group.pizza_count ? `${group.pizza_count} ${group.pizza_count === 1 ? 'pizza' : 'pizzas'}` : 'Por pizza';
+      if (group.offer_type === 'BUNDLE_WITH_PIZZA') pizzaCountLabel += ' · menu';
       unitPriceBadgeHTML = `
         <div class="unit-price-badge">
           <span>${formatEuros(unitPrice)} / pizza <small>(${pizzaCountLabel})</small></span>
@@ -1118,11 +1143,14 @@
     if (!group) return '#';
     let url = group.source_url || '#';
 
-    // Telepizza: encaminhar com precisao para a seccao oficial da oferta sem URLs invalidos
+    // Telepizza: encaminhar com precisao para a seccao oficial da oferta sem hashes quebrados
     if (group.vendor === 'TELEPIZZA') {
       const lower = (group.title || '').toLowerCase();
       if (lower.includes('menu') || lower.includes('almoço') || lower.includes('almoco')) {
         return 'https://www.telepizza.pt/menus';
+      }
+      if (lower.includes('pizzolino') || lower.includes('entrada') || lower.includes('bucket') || lower.includes('bebida')) {
+        return 'https://www.telepizza.pt/comida-ao-domicilio/entrada';
       }
       return 'https://www.telepizza.pt/promocoes';
     }
@@ -1169,6 +1197,15 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  function extractDiscountFromTitle(title, description) {
+    const text = (title + ' ' + (description || '')).toLowerCase();
+    let m = text.match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s*)?desconto/);
+    if (m) return parseFloat(m[1].replace(',', '.'));
+    m = text.match(/-\s*(\d+(?:[.,]\d+)?)\s*%/);
+    if (m) return parseFloat(m[1].replace(',', '.'));
+    return null;
   }
 
   // =========================================================================
@@ -1713,31 +1750,16 @@
     };
     const scrollToElement = (element) => requestAnimationFrame(() => element?.scrollIntoView({ behavior: scrollBehavior, block: 'start' }));
 
-    document.querySelector('.btn-hero-primary')?.addEventListener('click', (event) => {
-      event.preventDefault();
-      setActiveItem(elements.navPromos);
-      switchMobileView('promos');
-      scrollToElement(elements.radarSection);
-    });
-    document.querySelector('.btn-hero-secondary')?.addEventListener('click', (event) => {
-      event.preventDefault();
-      setActiveItem(elements.navMap);
-      switchMobileView('stores');
-      scrollToElement(elements.storesSection);
-    });
     elements.navPromos?.addEventListener('click', () => {
       setActiveItem(elements.navPromos);
-      switchMobileView('promos');
       scrollToElement(elements.radarSection);
     });
     elements.navFilters?.addEventListener('click', () => {
       setActiveItem(elements.navFilters);
-      switchMobileView('promos');
       scrollToElement(document.querySelector('.discovery-section'));
     });
     elements.navMap?.addEventListener('click', () => {
       setActiveItem(elements.navMap);
-      switchMobileView('stores');
       scrollToElement(elements.storesSection);
     });
     elements.navTop?.addEventListener('click', () => {

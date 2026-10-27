@@ -179,14 +179,13 @@ class UnifiedPromo:
             self.vendor = Brand(self.vendor)
         if isinstance(self.offer_type, str) and not isinstance(self.offer_type, OfferType):
             self.offer_type = OfferType(self.offer_type)
-        if self.offer_type == OfferType.UNKNOWN:
-            from pizza_radar.core.classifier import classify_offer_type
-            self.offer_type = classify_offer_type(
-                title=self.title,
-                description=self.description,
-                included_items=self.included_items,
-                pizza_count=self.pizza_count,
-            )
+        from pizza_radar.core.classifier import classify_offer_type
+        self.offer_type = classify_offer_type(
+            title=self.title,
+            description=self.description,
+            included_items=self.included_items,
+            pizza_count=self.pizza_count,
+        )
         if isinstance(self.discount_type, str) and not isinstance(self.discount_type, DiscountType):
             self.discount_type = DiscountType(self.discount_type)
         if isinstance(self.target_audience, str) and not isinstance(self.target_audience, TargetAudience):
