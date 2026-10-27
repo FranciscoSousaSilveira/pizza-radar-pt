@@ -1713,6 +1713,18 @@
     };
     const scrollToElement = (element) => requestAnimationFrame(() => element?.scrollIntoView({ behavior: scrollBehavior, block: 'start' }));
 
+    document.querySelector('.btn-hero-primary')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      setActiveItem(elements.navPromos);
+      switchMobileView('promos');
+      scrollToElement(elements.radarSection);
+    });
+    document.querySelector('.btn-hero-secondary')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      setActiveItem(elements.navMap);
+      switchMobileView('stores');
+      scrollToElement(elements.storesSection);
+    });
     elements.navPromos?.addEventListener('click', () => {
       setActiveItem(elements.navPromos);
       switchMobileView('promos');
