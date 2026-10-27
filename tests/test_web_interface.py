@@ -117,6 +117,13 @@ class TestWebInterfaceIntegrity(unittest.TestCase):
         self.assertIn("function setupBottomNav()", js)
         self.assertIn("state.leafletMap?.invalidateSize()", js)
 
+    def test_hero_actions_restore_mobile_section_after_switching_views(self) -> None:
+        js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+        navigation = js.split("function setupBottomNav()", 1)[1].split("function startLiveClock()", 1)[0]
+        for action, view in ((".btn-hero-primary", "promos"), (".btn-hero-secondary", "stores")):
+            handler = navigation.split(f"document.querySelector('{action}')?.addEventListener", 1)[1].split("});", 1)[0]
+            self.assertIn(f"switchMobileView('{view}')", handler)
+
     def test_map_and_store_card_brand_logos_are_available(self) -> None:
         js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
         for brand, logo in {
