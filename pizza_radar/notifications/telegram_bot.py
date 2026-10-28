@@ -131,7 +131,7 @@ def format_telegram_alert_message(highlights: list[dict[str, Any]]) -> str:
     """Formata a mensagem Markdown para o canal ou bot do Telegram."""
     lines = [
         "🍕 *PIZZA RADAR LISBOA — DESTAQUES DO DIA*",
-        "As melhores ofertas oficiais confirmadas hoje em Lisboa:\n",
+        "As melhores ofertas confirmadas hoje em Lisboa:\n",
     ]
 
     for idx, item in enumerate(highlights, start=1):
@@ -146,7 +146,7 @@ def format_telegram_alert_message(highlights: list[dict[str, Any]]) -> str:
         lines.append(f"   💰 Preço: *{price}*{disc_text}{unit_text}")
         if item.get("value_metrics") and item["value_metrics"].get("value_badge_label"):
             lines.append(f"   📏 Índice: _{item['value_metrics']['value_badge_label']}_")
-        lines.append(f"   🔗 [Ver oferta no site oficial]({url})\n")
+        lines.append(f"   🔗 [Ver oferta]({url})\n")
 
     lines.append("⚡ _Atualizado deterministicamente pelo Pizza Radar PT_")
     lines.append("🌐 Consulta o radar completo e lojas abertas em: https://pizzaradar.pt")

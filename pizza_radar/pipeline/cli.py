@@ -17,9 +17,9 @@ import sys
 from pathlib import Path
 
 from pizza_radar.adapters.dominos import DominosAdapter
+from pizza_radar.adapters.glovo_telepizza import GlovoTelepizzaAdapter
 from pizza_radar.adapters.papa_johns import PapaJohnsAdapter
 from pizza_radar.adapters.pizza_hut import PizzaHutAdapter
-from pizza_radar.adapters.telepizza import TelepizzaAdapter
 from pizza_radar.persistence.repository import (
     PromotionRepository,
     SQLitePromotionRepository,
@@ -131,7 +131,7 @@ def main(argv: list[str] | None = None) -> int:
     adapters = [
         PapaJohnsAdapter(),
         DominosAdapter(),
-        TelepizzaAdapter(),
+        GlovoTelepizzaAdapter(),
         PizzaHutAdapter(),
     ]
 

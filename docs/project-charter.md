@@ -18,7 +18,7 @@ O Produto Viável Mínimo (MVP) estabelece uma base sólida com limites bem defi
   2. Pizza Hut
   3. Telepizza
   4. Papa John's
-- **Fontes de Dados:** Apenas páginas públicas e oficiais de promoções e campanhas.
+- **Fontes de Dados:** Páginas públicas de promoções e campanhas; a origem é indicada em cada oferta. Fontes oficiais são preferidas, mas pode ser usado um parceiro de entrega público quando a fonte oficial estiver indisponível.
 
 ## 4. Fora de Âmbito
 
@@ -30,8 +30,8 @@ O Produto Viável Mínimo (MVP) estabelece uma base sólida com limites bem defi
 
 ## 5. Princípios de Engenharia e Ética
 
-- **Transparência:** Indicar sempre a origem dos dados e direcionar o consumidor para os canais oficiais dos vendedores.
-- **Respeito pelas Plataformas:** Consulta ética de informação exclusivamente pública, respeitando rate limits e a disponibilidade das plataformas oficiais.
+- **Transparência:** Indicar sempre a origem dos dados e direcionar o consumidor para a fonte que confirmou a oferta.
+- **Respeito pelas Plataformas:** Consulta ética de informação exclusivamente pública, respeitando rate limits e a disponibilidade da plataforma consultada.
 - **Simplicidade:** Soluções leves, pragmáticas e com o menor overhead técnico possível antes de escalar.
 - **Segurança:** Nenhuma credencial ou segredo comitada no repositório.
 

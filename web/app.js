@@ -875,6 +875,7 @@
     const channels = (group.dispatch_methods || [])
       .map((c) => CHANNEL_LABELS[c] || c)
       .join(' • ');
+    const isGlovoSource = (group.source_url || '').startsWith('https://glovoapp.com/');
 
     // Badges de Tipo e Preservação
     let offerTypeBadgeHTML = '';
@@ -955,7 +956,7 @@
       ? selectedChannelCents / 100 / group.pizza_count
       : group.min_price_per_pizza_euros;
     if (group.is_comparable_for_unit_price && unitPrice) {
-      const pizzaCountLabel = group.pizza_count ? `${group.pizza_count} ${group.pizza_count === 1 ? 'pizza' : 'pizzas'}` : 'Por pizza';
+      let pizzaCountLabel = group.pizza_count ? `${group.pizza_count} ${group.pizza_count === 1 ? 'pizza' : 'pizzas'}` : 'Por pizza';
       if (group.offer_type === 'BUNDLE_WITH_PIZZA') pizzaCountLabel += ' · menu';
       unitPriceBadgeHTML = `
         <div class="unit-price-badge">
@@ -996,7 +997,9 @@
         </div>
       `;
     } else {
-      const unknownText = group.vendor === 'TELEPIZZA'
+      const unknownText = isGlovoSource
+        ? 'Disponibilidade confirmada na Glovo para Lisboa'
+        : group.vendor === 'TELEPIZZA'
         ? 'Telepizza Portugal — confirmar na loja/morada'
         : 'Lojas aderentes sob consulta no catálogo oficial';
       storeScopeHTML = `
@@ -1025,7 +1028,7 @@
         <div class="card-media card-image-wrap">
           <img src="${escapeHTML(group.image_url)}" alt="${escapeHTML(group.title)}" class="card-image" loading="lazy" decoding="async" onerror="this.onerror=null; this.parentElement.classList.add('has-fallback-active');">
           <div class="card-fallback-banner vendor-bg-${escapeHTML(group.vendor)}">
-            <span class="fallback-sub">Oferta Oficial</span>
+            <span class="fallback-sub">Oferta verificada</span>
           </div>
           <div class="card-media-overlay"></div>
           ${discountTagHTML ? `<div class="floating-badge-top-right">${discountTagHTML}</div>` : ''}
@@ -1038,7 +1041,7 @@
       mediaHTML = `
         <div class="card-media card-image-wrap has-fallback-active">
           <div class="card-fallback-banner vendor-bg-${escapeHTML(group.vendor)}">
-            <span class="fallback-sub">Oferta Oficial</span>
+            <span class="fallback-sub">Oferta verificada</span>
           </div>
           <div class="card-media-overlay"></div>
           ${discountTagHTML ? `<div class="floating-badge-top-right">${discountTagHTML}</div>` : ''}
@@ -1088,7 +1091,7 @@
         <footer class="card-footer">
           <div class="card-actions">
             <a href="${escapeHTML(sourceUrl)}" target="_blank" rel="noopener noreferrer" class="btn-official">
-              <span>Ver no site oficial</span>
+              <span>${isGlovoSource ? 'Ver na Glovo' : 'Ver oferta'}</span>
               <span aria-hidden="true" class="btn-icon-external">↗</span>
             </a>
             <button type="button" class="btn-share-promo" title="Copiar hiperligação desta oferta" aria-label="Copiar hiperligação da oferta ${escapeHTML(group.title)}" data-url="${escapeHTML(sourceUrl)}">
@@ -1143,8 +1146,9 @@
     if (!group) return '#';
     let url = group.source_url || '#';
 
-    // Telepizza: encaminhar com precisao para a seccao oficial da oferta sem hashes quebrados
+    // Promoções Telepizza recolhidas na Glovo abrem no checkout que confirmou o preço.
     if (group.vendor === 'TELEPIZZA') {
+      if (url.startsWith('https://glovoapp.com/')) return url;
       const lower = (group.title || '').toLowerCase();
       if (lower.includes('menu') || lower.includes('almoço') || lower.includes('almoco')) {
         return 'https://www.telepizza.pt/menus';
