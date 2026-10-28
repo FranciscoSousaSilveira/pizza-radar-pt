@@ -80,6 +80,7 @@ class TestPizzaHutAdapter(unittest.TestCase):
 
         self.assertEqual(promo.price_cents, 1800)
         self.assertIn("Total de 18€ para 3 pessoas", promo.description)
+        self.assertNotIn("Menu Uno", promo.description)
 
     def test_known_vs_unknown_participating_stores(self) -> None:
         """Verifica distinção entre lojas comprovadas (SPECIFIC_STORES) e incerteza (UNKNOWN)."""
