@@ -25,6 +25,10 @@ class TestWebInterfaceIntegrity(unittest.TestCase):
         self.assertIn('role="banner"', html)
         self.assertIn('role="main"', html)
         self.assertIn('role="contentinfo"', html)
+
+    def test_footer_discloses_the_telepizza_glovo_source(self) -> None:
+        html = (WEB_DIR / "index.html").read_text(encoding="utf-8")
+        self.assertIn("promoções Telepizza são recolhidas de informação pública disponível na Glovo Lisboa", html)
         self.assertIn('class="skip-link"', html)
         self.assertIn('id="main-content"', html)
         self.assertIn('aria-live="polite"', html)
@@ -64,6 +68,15 @@ class TestWebInterfaceIntegrity(unittest.TestCase):
         for group in data["groups"]:
             for field_name in required_group_fields:
                 self.assertIn(field_name, group, f"Campo {field_name} deve constar no grupo {group.get('persistent_id')}")
+
+    def test_glovo_telepizza_checkout_url_is_not_rewritten(self) -> None:
+        js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+        self.assertIn("url.startsWith('https://glovoapp.com/')", js)
+        self.assertIn("Ver na Glovo", js)
+
+    def test_bundle_price_label_is_mutable(self) -> None:
+        js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+        self.assertIn("let pizzaCountLabel", js)
 
     def test_screenshots_exist_and_non_empty(self) -> None:
         desktop_png = SCREENSHOTS_DIR / "desktop_view.png"

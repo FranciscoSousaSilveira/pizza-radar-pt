@@ -12,11 +12,11 @@ Consumidores em Portugal que pretendem encomendar pizza e procuram rapidamente a
 
 ## Âmbito do MVP
 
-O primeiro MVP (Produto Viável Mínimo) foca-se geograficamente no **concelho de Lisboa** (cidade de Lisboa), agregando promoções ativas disponíveis nos canais oficiais das marcas selecionadas através de atualizações periódicas (não em tempo real contínuo), de forma simples, transparente e acessível.
+O primeiro MVP (Produto Viável Mínimo) foca-se geograficamente no **concelho de Lisboa** (cidade de Lisboa), agregando promoções ativas em fontes públicas acessíveis das marcas e, quando indicado, dos respetivos parceiros de entrega, através de atualizações periódicas (não em tempo real contínuo), de forma simples, transparente e acessível.
 
 ## Vendedores Iniciais
 
-Nesta fase inicial, o radar monitoriza promoções oficiais de quatro cadeias:
+Nesta fase inicial, o radar monitoriza promoções públicas de quatro cadeias:
 
 1. **Domino's Pizza**
 2. **Pizza Hut**
@@ -30,7 +30,7 @@ Para manter o foco no valor essencial e respeitar boas práticas técnicas e ope
 - Outros concelhos da Área Metropolitana de Lisboa e restantes regiões do país (o foco do MVP é estritamente o concelho de Lisboa).
 - Atualizações em tempo real contínuo ou streaming de ofertas (o catálogo é atualizado periodicamente).
 - Outras cadeias ou pizzarias locais/independentes.
-- Realização de encomendas diretas ou integração de checkout (o utilizador é direcionado para o site oficial da marca).
+- Realização de encomendas diretas ou integração de checkout (o utilizador é direcionado para a fonte que confirmou a oferta).
 - Acesso a áreas autenticadas, dados privados de clientes ou contorno de mecanismos como CAPTCHA ou proteções anti-bot.
 - Aplicações móveis nativas (iOS/Android) durante o MVP.
 
