@@ -71,6 +71,16 @@ class TestPizzaHutAdapter(unittest.TestCase):
         self.assertEqual(validated.store_names, [])
         self.assertEqual(validated.dispatch_methods, [DispatchMethod.TAKE_AWAY])
 
+    def test_double_stuffed_crust_uses_the_three_person_total(self) -> None:
+        """O preço anunciado por pessoa não é apresentado como preço total."""
+        parsed = self.adapter.parse(self.offers_raw)
+        offer = next(o for o in parsed if o["id"] == "15056")
+
+        promo = self.adapter.adapt(offer, _observed_at())
+
+        self.assertEqual(promo.price_cents, 1800)
+        self.assertIn("Total de 18€ para 3 pessoas", promo.description)
+
     def test_known_vs_unknown_participating_stores(self) -> None:
         """Verifica distinção entre lojas comprovadas (SPECIFIC_STORES) e incerteza (UNKNOWN)."""
         # Caso 1: Lojas comprovadas no payload
