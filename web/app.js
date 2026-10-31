@@ -208,6 +208,13 @@
     });
   }
 
+  function dominosMinimumPizzaCount(description) {
+    const match = String(description || '').match(/\b(\d+|duas|tr[eê]s)\s+pizzas?\b/i);
+    if (!match) return null;
+    const value = match[1].toLowerCase();
+    return { duas: 2, 'três': 3, tres: 3 }[value] || Number(value);
+  }
+
   // Unifica a mesma oferta entre canais, conservando os preços de cada canal.
   function deduplicateVisualGroups(groups) {
     const unified = [];
@@ -220,7 +227,11 @@
       if (group.vendor === 'PIZZA_HUT') title = title.replace(/\s+(?:tw|dlv|ei)$/i, '').trim();
       if (group.vendor === 'DOMINOS') {
         title = title.replace(/\s*\|\s*(?:desde\s+)?\d+(?:[.,]\d{1,2})?\s*€.*$/i, '').trim();
-        title = title.replace(/\s+desde\s+\d+(?:[.,]\d{1,2})?\s*€\s+cada$/i, ' (2 Pizzas)').trim();
+        const pizzaCount = dominosMinimumPizzaCount(group.description);
+        title = title.replace(
+          /\s+desde\s+\d+(?:[.,]\d{1,2})?\s*€\s+cada$/i,
+          pizzaCount ? ` (${pizzaCount} Pizzas)` : '',
+        ).trim();
         title = title.replace(/\s+desde\s+\d+(?:[.,]\d{1,2})?\s*€$/i, '').trim();
       }
       const key = `${group.vendor}|${title.toLowerCase()}|${group.offer_type}`;
