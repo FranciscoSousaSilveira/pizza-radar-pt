@@ -78,6 +78,12 @@ class TestWebInterfaceIntegrity(unittest.TestCase):
         js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
         self.assertIn("let pizzaCountLabel", js)
 
+    def test_dominos_title_uses_the_evidenced_minimum_quantity(self) -> None:
+        js = (WEB_DIR / "app.js").read_text(encoding="utf-8")
+        self.assertIn("function dominosMinimumPizzaCount", js)
+        self.assertIn("group.description", js)
+        self.assertNotIn("' (2 Pizzas)'", js)
+
     def test_screenshots_exist_and_non_empty(self) -> None:
         desktop_png = SCREENSHOTS_DIR / "desktop_view.png"
         mobile_png = SCREENSHOTS_DIR / "mobile_view.png"
